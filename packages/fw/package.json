@@ -1,0 +1,31 @@
+{
+  "name": "fw",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.16.0",
+    "babel-core": "^6.17.0",
+    "babel-preset-es2015": "^6.16.0",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "eslint": "^3.8.1",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-flow": "0.0.0",
+    "flow-bin": "^0.33.0",
+    "mocha": "^3.1.2",
+    "webpack": "^1.13.2"
+  },
+  "dependencies": {
+    "flow-typed": "^2.0.0",
+    "mobx": "^2.6.0",
+    "mobx-react": "^3.5.8",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2"
+  }
+}
