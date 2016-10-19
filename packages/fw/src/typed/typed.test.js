@@ -166,6 +166,8 @@ describe('Typed API', () => {
       }
     };
     ok(Tree.match(candidate));
+    console.log(JSON.stringify(Tree, null, 2))
+
   });
 
   it('should build an object', () => {

@@ -2,7 +2,7 @@
 
 import {inspect} from 'util';
 
-import type {TypeContext, TypeAcquirer} from './context';
+import type {TypeContext, TypeAcquirer} from './TypeContext';
 
 function makeErrorMessage (expected: Type, input: any): string {
   return `Expected ${expected.toString()}, got ${inspect(input)}`;
@@ -22,6 +22,9 @@ export class Type {
   }
   toString () {
     throw new Error('Not implemented.');
+  }
+  toJSON () {
+    return {};
   }
 }
 
@@ -44,6 +47,14 @@ export class TypeParameter extends Type {
       return `${id}: ${bound.toString()}`;
     }
     return id;
+  }
+
+  toJSON () {
+    return {
+      '@type': 'TypeParameter',
+      id: this.id,
+      bound: this.bound
+    };
   }
 }
 
@@ -85,6 +96,14 @@ export class TypeParameterApplication extends Type {
       return name;
     }
   }
+
+  toJSON () {
+    return {
+      '@type': 'TypeParameterApplication',
+      name: this.name,
+      typeInstances: this.typeInstances
+    };
+  }
 }
 
 export class TypeReference extends Type {
@@ -108,6 +127,14 @@ export class TypeReference extends Type {
 
   toString (): string {
     return this.name;
+  }
+
+
+  toJSON () {
+    return {
+      '@type': 'TypeReference',
+      name: this.name
+    };
   }
 }
 
@@ -170,6 +197,15 @@ export class NamedType extends Type {
     }
     return `type ${id} = ${type.toString()};`;
   }
+
+  toJSON () {
+    return {
+      '@type': 'NamedType',
+      name: this.name,
+      type: this.type,
+      typeParameters: this.typeParameters
+    };
+  }
 }
 
 export class TypeHandler extends Type {
@@ -195,6 +231,13 @@ export class TypeHandler extends Type {
       return name;
     }
   }
+
+  toJSON () {
+    return {
+      '@type': 'TypeHandler',
+      name: this.name
+    };
+  }
 }
 
 
@@ -206,6 +249,12 @@ export class NullLiteralType extends Type {
   toString (): string {
     return 'null';
   }
+
+  toJSON () {
+    return {
+      '@type': 'NullLiteralType'
+    };
+  }
 }
 
 export class NumberType extends Type {
@@ -215,6 +264,12 @@ export class NumberType extends Type {
 
   toString (): string {
     return 'number';
+  }
+
+  toJSON () {
+    return {
+      '@type': 'NumberType'
+    };
   }
 }
 
@@ -227,6 +282,13 @@ export class NumericLiteralType extends Type {
   toString (): string {
     return `${this.value}`;
   }
+
+  toJSON () {
+    return {
+      '@type': 'NumericLiteralType',
+      value: this.value
+    };
+  }
 }
 
 export class BooleanType extends Type {
@@ -236,6 +298,12 @@ export class BooleanType extends Type {
 
   toString () {
     return 'boolean';
+  }
+
+  toJSON () {
+    return {
+      '@type': 'BooleanType'
+    };
   }
 }
 
@@ -249,6 +317,13 @@ export class BooleanLiteralType extends Type {
   toString (): string {
     return this.value ? 'true' : 'false';
   }
+
+  toJSON () {
+    return {
+      '@type': 'BooleanLiteralType',
+      value: this.value
+    };
+  }
 }
 
 export class SymbolType extends Type {
@@ -259,6 +334,13 @@ export class SymbolType extends Type {
   toString () {
     return 'Symbol';
   }
+
+
+  toJSON () {
+    return {
+      '@type': 'SymbolType'
+    };
+  }
 }
 
 export class StringType extends Type {
@@ -268,6 +350,12 @@ export class StringType extends Type {
 
   toString () {
     return 'string';
+  }
+
+  toJSON () {
+    return {
+      '@type': 'StringType'
+    };
   }
 }
 
@@ -280,6 +368,13 @@ export class StringLiteralType extends Type {
 
   toString (): string {
     return JSON.stringify(this.value);
+  }
+
+  toJSON () {
+    return {
+      '@type': 'StringLiteralType',
+      value: this.value
+    };
   }
 }
 
@@ -301,6 +396,13 @@ export class ArrayType extends Type {
 
   toString (): string {
     return `Array<${this.elementType.toString()}>`;
+  }
+
+  toJSON () {
+    return {
+      '@type': 'ArrayType',
+      elementType: this.elementType
+    };
   }
 }
 
@@ -347,6 +449,14 @@ export class ObjectType extends Type {
     return `{\n${indent(body.join('\n'))}\n}`;
   }
 
+  toJSON () {
+    return {
+      '@type': 'ObjectType',
+      callProperties: this.callProperties,
+      properties: this.properties,
+      indexers: this.indexers
+    };
+  }
 }
 
 function matchCallProperties (type: ObjectType, input: any): boolean {
@@ -412,6 +522,13 @@ export class ObjectTypeCallProperty extends Type {
   toString (): string {
     return `${this.value.toString()};`;
   }
+
+  toJSON () {
+    return {
+      '@type': 'ObjectTypeProperty',
+      value: this.value
+    };
+  }
 }
 
 export class ObjectTypeIndexer extends Type {
@@ -425,6 +542,15 @@ export class ObjectTypeIndexer extends Type {
 
   toString (): string {
     return `[${this.id}: ${this.key.toString()}]: ${this.value.toString()};`;
+  }
+
+  toJSON () {
+    return {
+      '@type': 'ObjectTypeIndexer',
+      id: this.id,
+      key: this.key,
+      value: this.value
+    };
   }
 }
 
@@ -442,6 +568,15 @@ export class ObjectTypeProperty extends Type {
 
   toString (): string {
     return `${this.key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
+  }
+
+  toJSON () {
+    return {
+      '@type': 'ObjectTypeProperty',
+      key: this.key,
+      value: this.value,
+      optional: this.optional
+    };
   }
 }
 
@@ -494,6 +629,16 @@ export class FunctionType extends Type {
     }
     return `${intro}(${args.join(', ')}) => ${returnType.toString()}`;
   }
+
+  toJSON () {
+    return {
+      '@type': 'FunctionType',
+      typeParameters: this.typeParameters,
+      params: this.params,
+      rest: this.rest,
+      returnType: this.returnType
+    };
+  }
 }
 
 export class FunctionTypeParam extends Type {
@@ -515,6 +660,15 @@ export class FunctionTypeParam extends Type {
     const {optional, type} = this;
     return `${this.name}${optional ? '?' : ''}: ${type.toString()}`;
   }
+
+  toJSON () {
+    return {
+      '@type': 'FunctionTypeParam',
+      name: this.name,
+      optional: this.optional,
+      type: this.type
+    };
+  }
 }
 
 export class FunctionTypeRestParam extends Type {
@@ -530,6 +684,14 @@ export class FunctionTypeRestParam extends Type {
     const {type} = this;
     return `...${this.name}: ${type.toString()}`;
   }
+
+  toJSON () {
+    return {
+      '@type': 'FunctionTypeRestParam',
+      name: this.name,
+      type: this.type
+    };
+  }
 }
 
 export class FunctionTypeReturn extends Type {
@@ -543,6 +705,13 @@ export class FunctionTypeReturn extends Type {
   toString (): string {
     const {type} = this;
     return type.toString();
+  }
+
+  toJSON () {
+    return {
+      '@type': 'FunctionTypeReturn',
+      type: this.type
+    };
   }
 }
 
@@ -569,6 +738,14 @@ export class GenericType extends Type {
       return name;
     }
   }
+
+  toJSON () {
+    return {
+      '@type': 'GenericType',
+      name: this.name,
+      typeInstances: this.typeInstances
+    };
+  }
 }
 
 export class ExistentialType extends Type {
@@ -578,6 +755,12 @@ export class ExistentialType extends Type {
 
   toString (): string {
     return '*';
+  }
+
+  toJSON () {
+    return {
+      '@type': 'ExistentialType'
+    };
   }
 }
 
@@ -589,6 +772,12 @@ export class AnyType extends Type {
   toString (): string {
     return 'any';
   }
+
+  toJSON () {
+    return {
+      '@type': 'AnyType'
+    };
+  }
 }
 
 export class MixedType extends Type {
@@ -598,6 +787,12 @@ export class MixedType extends Type {
 
   toString (): string {
     return 'mixed';
+  }
+
+  toJSON () {
+    return {
+      '@type': 'MixedType'
+    };
   }
 }
 
@@ -609,6 +804,12 @@ export class EmptyType extends Type {
 
   toString (): string {
     return 'empty';
+  }
+
+  toJSON () {
+    return {
+      '@type': 'EmptyType'
+    };
   }
 }
 
@@ -625,6 +826,13 @@ export class NullableType extends Type {
 
   toString (): string {
     return `? ${this.type.toString()}`;
+  }
+
+  toJSON () {
+    return {
+      '@type': 'NullableType',
+      type: this.type
+    };
   }
 }
 
@@ -649,6 +857,13 @@ export class TupleType extends Type {
   toString (): string {
     return `[${this.types.join(', ')}]`;
   }
+
+  toJSON () {
+    return {
+      '@type': 'TupleType',
+      types: this.types
+    };
+  }
 }
 
 export class UnionType extends Type {
@@ -668,6 +883,13 @@ export class UnionType extends Type {
 
   toString (): string {
     return this.types.join(' | ');
+  }
+
+  toJSON () {
+    return {
+      '@type': 'UnionType',
+      types: this.types
+    };
   }
 }
 
@@ -690,6 +912,13 @@ export class IntersectionType extends Type {
   toString (): string {
     return this.types.join(' & ');
   }
+
+  toJSON () {
+    return {
+      '@type': 'IntersectionType',
+      types: this.types
+    };
+  }
 }
 
 export class VoidType extends Type {
@@ -699,6 +928,12 @@ export class VoidType extends Type {
 
   toString (): string {
     return 'void';
+  }
+
+  toJSON () {
+    return {
+      '@type': 'VoidType'
+    };
   }
 }
 

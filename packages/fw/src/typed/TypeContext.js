@@ -367,10 +367,10 @@ export class TypeContext {
     return target;
   }
 
-  ref (name: string, acquirer: TypeAcquirer | TypeContext = this): TypeReference {
+  ref (name: string, acquirer?: TypeAcquirer): TypeReference {
     const target = new TypeReference();
     target.name = name;
-    target.acquirer = acquirer;
+    target.acquirer = acquirer || this;
     return target;
   }
 
