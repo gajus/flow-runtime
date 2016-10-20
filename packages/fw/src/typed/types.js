@@ -8,9 +8,20 @@ function makeErrorMessage (expected: Type, input: any): string {
   return `Expected ${expected.toString()}, got ${inspect(input)}`;
 }
 
+export type TypeCreator <T: Type> = (partial: PartialType<T>) => T;
+export type FunctionBodyCreator <T: FunctionType> = (partial: PartialType<T>) => Array<FunctionTypeParam | FunctionTypeRestParam | FunctionTypeReturn>;
+
 export type TypeConstraint = (input: any) => boolean;
 
+const RecordedType = Symbol('RecordedType');
+
 export class Type {
+  context: TypeContext;
+
+  constructor (context: TypeContext) {
+    this.context = context;
+  }
+
   match (input: any): boolean {
     return false;
   }
@@ -32,13 +43,27 @@ export class TypeParameter extends Type {
   id: string;
   bound: ? Type;
 
+  // @flowIssue 252
+  [RecordedType]: ? Type;
+
   match (input: any): boolean {
-    if (!this.bound) {
-      return true;
+    // @flowIssue 252
+    const recorded = this[RecordedType];
+    if (recorded) {
+      return recorded.match(input);
     }
-    else {
-      return this.bound.match(input);
+
+    const {bound, context} = this;
+
+    if (bound && !bound.match(input)) {
+      return false;
     }
+    const inferred = context.infer(input);
+
+    // @flowIssue 252
+    this[RecordedType] = inferred;
+
+    return true;
   }
 
   toString (withBinding?: boolean): string {
@@ -59,9 +84,8 @@ export class TypeParameter extends Type {
 }
 
 export class TypeParameterApplication extends Type {
-  name: string;
-  parent: {type: Type};
-  constraints: TypeConstraint[];
+  parent: NamedType | PartialType<*>;
+  constraints: TypeConstraint[] = [];
   typeInstances: Type[] = [];
 
   match (input: any): boolean {
@@ -81,8 +105,8 @@ export class TypeParameterApplication extends Type {
   }
 
   toString (): string {
-    const {name, parent, typeInstances} = this;
-    const {type} = parent;
+    const {parent, typeInstances} = this;
+    const {name, type} = parent;
     let id;
     if (typeInstances.length) {
       const items = [];
@@ -100,7 +124,7 @@ export class TypeParameterApplication extends Type {
   toJSON () {
     return {
       '@type': 'TypeParameterApplication',
-      name: this.name,
+      name: this.parent.name,
       typeInstances: this.typeInstances
     };
   }
@@ -138,19 +162,51 @@ export class TypeReference extends Type {
   }
 }
 
-export class NamedType extends Type {
+
+export class PartialType<T: Type> extends Type {
   name: string;
-  type: Type;
-  constraints: TypeConstraint[] = [];
+  type: T;
   typeParameters: TypeParameter[] = [];
 
   typeParameter (id: string, bound?: Type): TypeParameter {
-    const target = new TypeParameter();
+    const target = new TypeParameter(this.context);
     target.id = id;
     target.bound = bound;
     this.typeParameters.push(target);
     return target;
   }
+
+  apply (...typeInstances: Type[]): TypeParameterApplication {
+    const target = new TypeParameterApplication(this.context);
+    target.parent = this;
+    target.typeInstances = typeInstances;
+    return target;
+  }
+
+  match (input: any): boolean {
+    const {type} = this;
+    return type.match(input);
+  }
+
+  toString (): string {
+    const {type} = this;
+    return type.toString();
+  }
+
+  toJSON () {
+    return {
+      '@type': 'PartialType',
+      typeParameters: this.typeParameters,
+      type: this.type
+    };
+  }
+}
+
+
+export class NamedType extends Type {
+  name: string;
+  type: Type;
+  constraints: TypeConstraint[] = [];
 
   addConstraint (constraint: TypeConstraint): NamedType {
     this.constraints.push(constraint);
@@ -158,14 +214,14 @@ export class NamedType extends Type {
   }
 
   match (input: any): boolean {
-    const {constraints, type, typeParameters} = this;
+    const {constraints, type} = this;
     if (!type.match(input)) {
       return false;
     }
     const {length} = constraints;
     for (let i = 0; i < length; i++) {
       const constraint = constraints[i];
-      if (!constraint(input, ...typeParameters)) {
+      if (!constraint(input)) {
         return false;
       }
     }
@@ -173,8 +229,7 @@ export class NamedType extends Type {
   }
 
   apply (...typeInstances: Type[]): TypeParameterApplication {
-    const target = new TypeParameterApplication();
-    target.name = this.name;
+    const target = new TypeParameterApplication(this.context);
     target.parent = this;
     target.typeInstances = typeInstances;
     target.constraints = this.constraints;
@@ -182,31 +237,65 @@ export class NamedType extends Type {
   }
 
   toString (): string {
-    const {name, type, typeParameters} = this;
-    let id;
-    if (typeParameters.length) {
-      const items = [];
-      for (let i = 0; i < typeParameters.length; i++) {
-        const typeParameter = typeParameters[i];
-        items.push(typeParameter.toString(true));
-      }
-      id = `${name}<${items.join(', ')}>`;
-    }
-    else {
-      id = name;
-    }
-    return `type ${id} = ${type.toString()};`;
+    const {name, type} = this;
+    return `type ${name} = ${type.toString()};`;
   }
 
   toJSON () {
     return {
       '@type': 'NamedType',
       name: this.name,
-      type: this.type,
-      typeParameters: this.typeParameters
+      type: this.type
     };
   }
 }
+
+
+
+export class ParameterizedNamedType <T: Type> extends NamedType {
+
+  typeCreator: TypeCreator<T>;
+
+  get partial (): PartialType<T> {
+    const {typeCreator, name} = this;
+    const target = new PartialType(this.context);
+    target.name = name;
+    target.type = typeCreator(target);
+    return target;
+  }
+
+  match (input: any): boolean {
+    const {constraints, partial} = this;
+    if (!partial.match(input)) {
+      return false;
+    }
+    const {length} = constraints;
+    for (let i = 0; i < length; i++) {
+      const constraint = constraints[i];
+      if (!constraint(input)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  toString (): string {
+    const {name, partial} = this;
+    const {typeParameters} = partial;
+    const items = [];
+    for (let i = 0; i < typeParameters.length; i++) {
+      const typeParameter = typeParameters[i];
+      items.push(typeParameter.toString(true));
+    }
+    return `type ${name}<${items.join(', ')}> = ${partial.toString()};`;
+  }
+
+  toJSON () {
+    const {partial} = this;
+    return partial.toJSON();
+  }
+}
+
 
 export class TypeHandler extends Type {
   name: string;
@@ -237,6 +326,10 @@ export class TypeHandler extends Type {
       '@type': 'TypeHandler',
       name: this.name
     };
+  }
+
+  static infer (input: any): Type {
+    throw new Error('Invalid invocation.');
   }
 }
 
@@ -339,6 +432,24 @@ export class SymbolType extends Type {
   toJSON () {
     return {
       '@type': 'SymbolType'
+    };
+  }
+}
+
+export class SymbolLiteralType extends Type {
+  value: Symbol;
+  match (input: any): boolean {
+    return input === this.value;
+  }
+
+  toString () {
+    return `typeof ${this.value.toString()}`;
+  }
+
+  toJSON () {
+    return {
+      '@type': 'SymbolLiteralType',
+      value: this.value
     };
   }
 }
@@ -581,7 +692,6 @@ export class ObjectTypeProperty extends Type {
 }
 
 export class FunctionType extends Type {
-  typeParameters: TypeParameter[] = [];
   params: FunctionTypeParam[] = [];
   rest: ? FunctionTypeRestParam;
   returnType: Type;
@@ -609,17 +719,7 @@ export class FunctionType extends Type {
   }
 
   toString (): string {
-    const {typeParameters, params, rest, returnType} = this;
-    const hasTypeParameters = typeParameters.length > 0;
-    let intro = '';
-    if (hasTypeParameters) {
-      const items = [];
-      for (let i = 0; i < typeParameters.length; i++) {
-        const typeParameter = typeParameters[i];
-        items.push(typeParameter.toString(true));
-      }
-      intro = `<${items.join(', ')}> `;
-    }
+    const {params, rest, returnType} = this;
     const args = [];
     for (let i = 0; i < params.length; i++) {
       args.push(params[i].toString());
@@ -627,17 +727,67 @@ export class FunctionType extends Type {
     if (rest) {
       args.push(rest.toString());
     }
-    return `${intro}(${args.join(', ')}) => ${returnType.toString()}`;
+    return `(${args.join(', ')}) => ${returnType.toString()}`;
   }
 
   toJSON () {
     return {
       '@type': 'FunctionType',
-      typeParameters: this.typeParameters,
       params: this.params,
       rest: this.rest,
       returnType: this.returnType
     };
+  }
+}
+
+export class ParameterizedFunctionType <T: FunctionType> extends Type {
+  bodyCreator: FunctionBodyCreator<T>;
+
+  get partial (): PartialType<T> {
+    const {context, bodyCreator} = this;
+    const target = new PartialType(context);
+    const body = bodyCreator(target);
+    target.type = context.function(...body);
+    return target;
+  }
+
+  get typeParameters (): TypeParameter[] {
+    return this.partial.typeParameters;
+  }
+
+  get params (): FunctionTypeParam[] {
+    return this.partial.type.params;
+  }
+
+  get rest (): ? FunctionTypeRestParam {
+    return this.partial.type.rest;
+  }
+
+  get returnType (): Type {
+    return this.partial.type.returnType;
+  }
+
+  match (input: any): boolean {
+    return this.partial.match(input);
+  }
+
+  toString (): string {
+    const {partial} = this;
+    const {type, typeParameters} = partial;
+    if (typeParameters.length === 0) {
+      return type.toString();
+    }
+    const items = [];
+    for (let i = 0; i < typeParameters.length; i++) {
+      const typeParameter = typeParameters[i];
+      items.push(typeParameter.toString(true));
+    }
+    return `<${items.join(', ')}> ${type.toString()}`;
+  }
+
+  toJSON () {
+    const {partial} = this;
+    return partial.toJSON();
   }
 }
 

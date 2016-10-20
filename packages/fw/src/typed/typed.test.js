@@ -1,11 +1,10 @@
 /* @flow */
 import {ok, equal} from 'assert';
 
-import TypeContext from './TypeContext';
+import t from './globalContext';
+import {TypeHandler} from './types';
 
 const no = (input: any): any => ok(!input);
-
-const t = new TypeContext();
 
 describe('Typed API', () => {
   it('should check a string', () => {
@@ -69,22 +68,6 @@ describe('Typed API', () => {
     }));
   });
 
-  it('should declare a type handler', () => {
-    t.declareTypeHandler('Map', Map, (input, keyType, valueType) => {
-      if (!(input instanceof Map)) {
-        return false;
-      }
-      for (const [key, value] of input) {
-        if (!keyType.match(key) || !valueType.match(value)) {
-          return false;
-        }
-      }
-      return true;
-    });
-
-
-  });
-
   it('should use a Map<string, number>', () => {
     const type = t.instanceOf(Map, t.string(), t.number());
     console.log(type.toString());
@@ -116,10 +99,9 @@ describe('Typed API', () => {
   });
 
   it('should make a parameterized function type', () => {
-    const type = t.fn(() => {
-      const T = t.typeParameter('T', t.union(t.string(), t.number()));
+    const type = t.fn((fn) => {
+      const T = fn.typeParameter('T', t.union(t.string(), t.number()));
       return [
-        T,
         t.param('input', T),
         t.param('etc', t.boolean(), true),
         t.return(t.nullable(T))
@@ -160,13 +142,13 @@ describe('Typed API', () => {
       value: 'hello world',
       left: null,
       right: {
-        value: false, //'foo',
+        value: 'foo',
         left: null,
         right: null
       }
     };
     ok(Tree.match(candidate));
-    console.log(JSON.stringify(Tree, null, 2))
+    //console.log(JSON.stringify(Tree, null, 2))
 
   });
 
@@ -184,22 +166,19 @@ describe('Typed API', () => {
           t.property('hello', t.string('world')),
           t.property('bar', t.string()),
           t.property('meth', t.fn(
-            t.typeParameter('T'),
             t.param('a', t.boolean(false)),
             t.return(t.string())
           )),
-          t.method('m', () => {
-            const T = t.typeParameter('T');
+          t.method('m', (fn) => {
+            const T = fn.typeParameter('T');
             return [
-              T,
               t.param('a', T),
               t.return(T)
             ];
           }),
-          t.property('typed', t.fn(() => {
-            const T = t.typeParameter('T', t.string());
+          t.property('typed', t.fn((fn) => {
+            const T = fn.typeParameter('T', t.string());
             return [
-              T,
               t.param('input', T),
               t.return(t.object(
                 t.property('nn', T)
