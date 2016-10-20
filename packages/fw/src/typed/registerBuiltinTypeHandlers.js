@@ -99,7 +99,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     infer (Handler: Class<TypeHandler>, input: Set<*>): Type {
       const target = new Handler(t);
       const valueTypes = [];
-      loop: for (const [key, value] of input) {
+      loop: for (const value of input) {
         for (let i = 0; i < valueTypes.length; i++) {
           const type = valueTypes[i];
           if (type.match(value)) {

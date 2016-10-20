@@ -1,8 +1,7 @@
 /* @flow */
-import {ok, equal} from 'assert';
+import {ok} from 'assert';
 
 import t from './globalContext';
-import {TypeHandler} from './types';
 
 const no = (input: any): any => ok(!input);
 
@@ -23,7 +22,7 @@ describe('Typed API', () => {
     ok(type.match({
       foo: true,
       bar: 'hello'
-    }))
+    }));
   });
 
   it('should make a tuple type', () => {

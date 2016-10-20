@@ -75,7 +75,7 @@ type NameRegistry = {
 
 type TypeHandlerRegistry = Map<Function, Class<TypeHandler>>;
 
-export class TypeContext {
+export default class TypeContext {
 
   // @flowIssue 252
   [ParentAccessor]: ? TypeContext;
@@ -170,7 +170,7 @@ export class TypeContext {
     Object.defineProperty(Handler, 'name', {value: `${name}TypeHandler`});
 
     handlerRegistry.set(impl, Handler);
-    return Handler
+    return Handler;
   }
 
   getTypeHandler (impl: Function): ? Class<TypeHandler> {
@@ -423,4 +423,3 @@ export class TypeContext {
 
 }
 
-export default TypeContext;

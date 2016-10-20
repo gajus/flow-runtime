@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {TypeContext} from './TypeContext';
+import type TypeContext from './TypeContext';
 
 import type {
   Type,
@@ -85,7 +85,7 @@ export class TypeInferer {
     }
     else {
       const body = [];
-      for (const key in input) {
+      for (const key in input) { // eslint-disable-line
         const value = input[key];
         body.push(context.property(key, this.infer(value)));
       }
@@ -98,7 +98,7 @@ export class TypeInferer {
   inferDict (input: Object): ObjectType {
     const numericIndexers = [];
     const stringIndexers = [];
-    loop: for (const key in input) {
+    loop: for (const key in input) { // eslint-disable-line
       const value = input[key];
       const types = isNaN(+key) ? stringIndexers : numericIndexers;
       for (let i = 0; i < types.length; i++) {

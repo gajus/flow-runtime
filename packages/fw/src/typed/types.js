@@ -2,11 +2,8 @@
 
 import {inspect} from 'util';
 
-import type {TypeContext, TypeAcquirer} from './TypeContext';
+import type TypeContext, {TypeAcquirer} from './TypeContext';
 
-function makeErrorMessage (expected: Type, input: any): string {
-  return `Expected ${expected.toString()}, got ${inspect(input)}`;
-}
 
 export type TypeCreator <T: Type> = (partial: PartialType<T>) => T;
 export type FunctionBodyCreator <T: FunctionType> = (partial: PartialType<T>) => Array<FunctionTypeParam | FunctionTypeRestParam | FunctionTypeReturn>;
@@ -106,8 +103,7 @@ export class TypeParameterApplication extends Type {
 
   toString (): string {
     const {parent, typeInstances} = this;
-    const {name, type} = parent;
-    let id;
+    const {name} = parent;
     if (typeInstances.length) {
       const items = [];
       for (let i = 0; i < typeInstances.length; i++) {
@@ -1096,3 +1092,7 @@ function indent (input: string): string {
   return lines.join('\n');
 }
 
+
+function makeErrorMessage (expected: Type, input: any): string {
+  return `Expected ${expected.toString()}, got ${inspect(input)}`;
+}
