@@ -42,6 +42,13 @@ import {
   VoidType
 } from './types';
 
+import {
+  ParentAccessor,
+  NameRegistryAccessor,
+  TypeHandlerRegistryAccessor,
+  InferrerAccessor
+} from './symbols';
+
 import type {TypeCreator, FunctionBodyCreator} from './types';
 
 export type TypeAcquirer = (name: string) => ? Type;
@@ -64,13 +71,8 @@ type ValidObjectBody
  | ObjectTypeIndexer
  ;
 
-const ParentAccessor = Symbol('Parent');
-const NameRegistryAccessor = Symbol('NameRegistry');
-const TypeHandlerRegistryAccessor = Symbol('TypeHandlerRegistry');
-const InferrerAccessor = Symbol('Inferrer');
-
 type NameRegistry = {
-  [name: string]: Type;
+  [name: string]: Type | Class<TypeHandler>;
 };
 
 type TypeHandlerRegistry = Map<Function, Class<TypeHandler>>;
@@ -109,8 +111,13 @@ export default class TypeContext {
   get (name: string): ? Type {
     // @flowIssue 252
     const item = this[NameRegistryAccessor][name];
-    if (item) {
-      return item;
+    if (item != null) {
+      if (typeof item === 'function') {
+        return new item(this);
+      }
+      else {
+        return item;
+      }
     }
     // @flowIssue 252
     const parent = this[ParentAccessor];
@@ -148,17 +155,17 @@ export default class TypeContext {
     return target;
   }
 
-  declareTypeHandler (name: string, impl: Function, {match, infer}: TypeHandlerConfig): Class<TypeHandler> {
+  declareTypeHandler (name: string, impl: ? Function, {match, infer}: TypeHandlerConfig): Class<TypeHandler> {
     // @flowIssue 252
-    const handlerRegistry = this[TypeHandlerRegistryAccessor];
-    (handlerRegistry: TypeHandlerRegistry);
+    const nameRegistry = this[NameRegistryAccessor];
 
-    if (handlerRegistry.has(impl)) {
-      throw new Error(`A type handler already exists for the given implementation.`);
+    if (nameRegistry[name]) {
+      throw new Error(`Cannot redeclare type: ${name}`);
     }
+
     class Handler extends TypeHandler {
       name: string = name;
-      impl: Function = impl;
+      impl: ? Function = impl;
       match (input: any): boolean {
         return match(input, ...this.typeInstances);
       }
@@ -169,7 +176,18 @@ export default class TypeContext {
     }
     Object.defineProperty(Handler, 'name', {value: `${name}TypeHandler`});
 
-    handlerRegistry.set(impl, Handler);
+    nameRegistry[name] = Handler;
+
+    if (typeof impl === 'function') {
+      // @flowIssue 252
+      const handlerRegistry = this[TypeHandlerRegistryAccessor];
+      (handlerRegistry: TypeHandlerRegistry);
+
+      if (handlerRegistry.has(impl)) {
+        throw new Error(`A type handler already exists for the given implementation.`);
+      }
+      handlerRegistry.set(impl, Handler);
+    }
     return Handler;
   }
 
@@ -181,8 +199,11 @@ export default class TypeContext {
     return handlerRegistry.get(impl);
   }
 
-  instanceOf (input: Function | NamedType | PartialType<*>, ...typeInstances: Type[]): Type {
-    if (input instanceof NamedType) {
+  instanceOf (input: string | Function | NamedType | PartialType<*>, ...typeInstances: Type[]): Type {
+    if (typeof input === 'string') {
+      return this.ref(input, ...typeInstances);
+    }
+    else if (input instanceof NamedType) {
       return input.apply(...typeInstances);
     }
     else if (input instanceof PartialType) {
@@ -414,10 +435,10 @@ export default class TypeContext {
     return target;
   }
 
-  ref (name: string, acquirer?: TypeAcquirer): TypeReference {
+  ref (name: string, ...typeInstances: Type[]): TypeReference {
     const target = new TypeReference(this);
     target.name = name;
-    target.acquirer = acquirer || this;
+    target.typeInstances = typeInstances;
     return target;
   }
 

@@ -18,6 +18,18 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     }
   });
 
+  t.declareTypeHandler('Iterable', undefined, {
+    match: (input, keyType: Type): boolean => {
+      if (!input || typeof input[Symbol.iterator] === 'undefined') {
+        return false;
+      }
+      return true;
+    },
+    infer: (Handler: Class<TypeHandler>, input: any): Type => {
+      return new Handler(t);
+    }
+  });
+
   t.declareTypeHandler('Promise', Promise, {
     match: (input): boolean => {
       return input && typeof input.then === 'function' && input.then.length > 1;

@@ -8,15 +8,33 @@ import type {
   ObjectType
 } from './types';
 
+type Inferred = Map<Object, Type>;
+
 export class TypeInferer {
   context: TypeContext;
-  inferred: WeakMap<Object, Type> = new WeakMap();
 
   constructor (context: TypeContext) {
     this.context = context;
   }
 
   infer (input: any): Type {
+    const primitive = this.inferPrimitive(input);
+    if (primitive) {
+      return primitive;
+    }
+    const inferred = new Map();
+    return this.inferComplex(input, inferred);
+  }
+
+  inferInternal (input: any, inferred: Inferred): Type {
+    const primitive = this.inferPrimitive(input);
+    if (primitive) {
+      return primitive;
+    }
+    return this.inferComplex(input, inferred);
+  }
+
+  inferPrimitive (input: any): ? Type {
     const {context} = this;
     if (input === null) {
       return context.null();
@@ -37,18 +55,26 @@ export class TypeInferer {
     else if (typeof input === 'symbol') {
       return context.symbol();
     }
-    else if (typeof input === 'function') {
-      return this.inferFunction(input);
+    else {
+      return undefined;
+    }
+  }
+
+  inferComplex (input: any, inferred: Inferred) {
+    const {context} = this;
+
+    if (typeof input === 'function') {
+      return this.inferFunction(input, inferred);
     }
     else if (typeof input === 'object') {
-      return this.inferObject(input);
+      return this.inferObject(input, inferred);
     }
     else {
       return context.any();
     }
   }
 
-  inferFunction (input: Function): Type {
+  inferFunction (input: Function, inferred: Inferred): Type {
     const {context} = this;
     const {length} = input;
     const body = new Array(length + 1);
@@ -62,17 +88,18 @@ export class TypeInferer {
     return context.fn(...body);
   }
 
-  inferObject (input: Object): Type {
-    if (this.inferred.has(input)) {
-      return this.inferred.get(input);
+  inferObject (input: Object, inferred: Inferred): Type {
+    const existing = inferred.get(input);
+    if (existing) {
+      return existing;
     }
     const {context} = this;
     let type;
     if (Array.isArray(input)) {
-      type = this.inferArray(input);
+      type = this.inferArray(input, inferred);
     }
     else if (!(input instanceof Object)) {
-      type = this.inferDict(input);
+      type = this.inferDict(input, inferred);
     }
     else if (input.constructor !== Object) {
       const handler = context.getTypeHandler(input.constructor);
@@ -87,15 +114,15 @@ export class TypeInferer {
       const body = [];
       for (const key in input) { // eslint-disable-line
         const value = input[key];
-        body.push(context.property(key, this.infer(value)));
+        body.push(context.property(key, this.inferInternal(value, inferred)));
       }
       type = context.object(...body);
     }
-    this.inferred.set(input, type);
+    inferred.set(input, type);
     return type;
   }
 
-  inferDict (input: Object): ObjectType {
+  inferDict (input: Object, inferred: Inferred): ObjectType {
     const numericIndexers = [];
     const stringIndexers = [];
     loop: for (const key in input) { // eslint-disable-line
@@ -107,7 +134,7 @@ export class TypeInferer {
           continue loop;
         }
       }
-      types.push(this.infer(value));
+      types.push(this.inferInternal(value, inferred));
     }
 
     const {context} = this;
@@ -153,7 +180,7 @@ export class TypeInferer {
     return context.object(...body);
   }
 
-  inferArray (input: any[]): ArrayType {
+  inferArray (input: any[], inferred: Inferred): ArrayType {
     const {context} = this;
     const types = [];
     const {length} = input;
@@ -165,7 +192,7 @@ export class TypeInferer {
           continue loop;
         }
       }
-      types.push(this.infer(item));
+      types.push(this.inferInternal(item, inferred));
     }
     if (types.length === 0) {
       return context.array(context.any());

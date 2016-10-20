@@ -31,7 +31,6 @@ describe('Typed API', () => {
       t.number(),
       t.boolean()
     );
-    console.log(type.toString());
 
     ok(type.match(['hello', 213, true]));
     ok(type.match(['hello', 213, true, 'still ok']));

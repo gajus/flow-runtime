@@ -1,7 +1,12 @@
 /* @flow */
 
-import {inspect} from 'util';
+import {
+  makeErrorMessage,
+  makeReturnErrorMessage,
+  makeParamErrorMessage
+} from './errorMessages';
 
+import {RecordedType} from './symbols';
 import type TypeContext, {TypeAcquirer} from './TypeContext';
 
 
@@ -10,9 +15,8 @@ export type FunctionBodyCreator <T: FunctionType> = (partial: PartialType<T>) =>
 
 export type TypeConstraint = (input: any) => boolean;
 
-const RecordedType = Symbol('RecordedType');
-
 export class Type {
+  typeName: string = 'Type';
   context: TypeContext;
 
   constructor (context: TypeContext) {
@@ -32,33 +36,30 @@ export class Type {
     throw new Error('Not implemented.');
   }
   toJSON () {
-    return {};
+    return {
+      typeName: this.typeName
+    };
   }
 }
 
 export class TypeParameter extends Type {
+  typeName: string = 'TypeParameter';
   id: string;
   bound: ? Type;
 
-  // @flowIssue 252
-  [RecordedType]: ? Type;
+  recorded: ? Type;
 
   match (input: any): boolean {
-    // @flowIssue 252
-    const recorded = this[RecordedType];
+
+    const {recorded, bound, context} = this;
+
     if (recorded) {
       return recorded.match(input);
     }
-
-    const {bound, context} = this;
-
-    if (bound && !bound.match(input)) {
+    else if (bound && !bound.match(input)) {
       return false;
     }
-    const inferred = context.infer(input);
-
-    // @flowIssue 252
-    this[RecordedType] = inferred;
+    this.recorded = context.infer(input);
 
     return true;
   }
@@ -73,14 +74,16 @@ export class TypeParameter extends Type {
 
   toJSON () {
     return {
-      '@type': 'TypeParameter',
+      typeName: this.typeName,
       id: this.id,
-      bound: this.bound
+      bound: this.bound,
+      recorded: this.recorded
     };
   }
 }
 
 export class TypeParameterApplication extends Type {
+  typeName: string = 'TypeParameterApplication';
   parent: NamedType | PartialType<*>;
   constraints: TypeConstraint[] = [];
   typeInstances: Type[] = [];
@@ -119,7 +122,7 @@ export class TypeParameterApplication extends Type {
 
   toJSON () {
     return {
-      '@type': 'TypeParameterApplication',
+      typeName: this.typeName,
       name: this.parent.name,
       typeInstances: this.typeInstances
     };
@@ -127,22 +130,17 @@ export class TypeParameterApplication extends Type {
 }
 
 export class TypeReference extends Type {
+  typeName: string = 'TypeReference';
   name: string;
-  acquirer: TypeContext | TypeAcquirer;
+  typeInstances: Type[] = [];
 
   match (input: any): boolean {
-    const {acquirer, name} = this;
-    let type;
-    if (typeof acquirer === 'function') {
-      type = acquirer(name);
-    }
-    else {
-      type = acquirer.get(name);
-    }
+    const {context, name} = this;
+    const type = context.get(name);
     if (!type) {
       throw new ReferenceError(`Cannot find a type called ${name}`);
     }
-    return type.match(input);
+    return type.match(input, ...this.typeInstances);
   }
 
   toString (): string {
@@ -152,14 +150,16 @@ export class TypeReference extends Type {
 
   toJSON () {
     return {
-      '@type': 'TypeReference',
-      name: this.name
+      typeName: this.typeName,
+      name: this.name,
+      typeInstances: this.typeInstances
     };
   }
 }
 
 
 export class PartialType<T: Type> extends Type {
+  typeName: string = 'PartialType';
   name: string;
   type: T;
   typeParameters: TypeParameter[] = [];
@@ -191,7 +191,7 @@ export class PartialType<T: Type> extends Type {
 
   toJSON () {
     return {
-      '@type': 'PartialType',
+      typeName: this.typeName,
       typeParameters: this.typeParameters,
       type: this.type
     };
@@ -200,6 +200,7 @@ export class PartialType<T: Type> extends Type {
 
 
 export class NamedType extends Type {
+  typeName: string = 'NamedType';
   name: string;
   type: Type;
   constraints: TypeConstraint[] = [];
@@ -239,7 +240,7 @@ export class NamedType extends Type {
 
   toJSON () {
     return {
-      '@type': 'NamedType',
+      typeName: this.typeName,
       name: this.name,
       type: this.type
     };
@@ -249,6 +250,7 @@ export class NamedType extends Type {
 
 
 export class ParameterizedNamedType <T: Type> extends NamedType {
+  typeName: string = 'ParameterizedNamedType';
 
   typeCreator: TypeCreator<T>;
 
@@ -294,8 +296,9 @@ export class ParameterizedNamedType <T: Type> extends NamedType {
 
 
 export class TypeHandler extends Type {
+  typeName: string = 'TypeHandler';
   name: string;
-  impl: Function;
+  impl: ? Function;
   typeInstances: Type[] = [];
 
   match (input: any): boolean {
@@ -319,7 +322,7 @@ export class TypeHandler extends Type {
 
   toJSON () {
     return {
-      '@type': 'TypeHandler',
+      typeName: this.typeName,
       name: this.name
     };
   }
@@ -331,6 +334,8 @@ export class TypeHandler extends Type {
 
 
 export class NullLiteralType extends Type {
+  typeName: string = 'NullLiteralType';
+
   match (input: any): boolean {
     return input === null;
   }
@@ -341,12 +346,14 @@ export class NullLiteralType extends Type {
 
   toJSON () {
     return {
-      '@type': 'NullLiteralType'
+      typeName: this.typeName
     };
   }
 }
 
 export class NumberType extends Type {
+  typeName: string = 'NumberType';
+
   match (input: any): boolean {
     return typeof input === 'number';
   }
@@ -357,13 +364,15 @@ export class NumberType extends Type {
 
   toJSON () {
     return {
-      '@type': 'NumberType'
+      typeName: this.typeName
     };
   }
 }
 
 export class NumericLiteralType extends Type {
+  typeName: string = 'NumericLiteralType';
   value: number;
+
   match (input: any): boolean {
     return input === this.value;
   }
@@ -374,13 +383,14 @@ export class NumericLiteralType extends Type {
 
   toJSON () {
     return {
-      '@type': 'NumericLiteralType',
+      typeName: this.typeName,
       value: this.value
     };
   }
 }
 
 export class BooleanType extends Type {
+  typeName: string = 'BooleanType';
   match (input: any): boolean {
     return typeof input === 'boolean';
   }
@@ -391,14 +401,16 @@ export class BooleanType extends Type {
 
   toJSON () {
     return {
-      '@type': 'BooleanType'
+      typeName: this.typeName
     };
   }
 }
 
 
 export class BooleanLiteralType extends Type {
+  typeName: string = 'BooleanLiteralType';
   value: boolean;
+
   match (input: any): boolean {
     return input === this.value;
   }
@@ -409,13 +421,15 @@ export class BooleanLiteralType extends Type {
 
   toJSON () {
     return {
-      '@type': 'BooleanLiteralType',
+      typeName: this.typeName,
       value: this.value
     };
   }
 }
 
 export class SymbolType extends Type {
+  typeName: string = 'SymbolType';
+
   match (input: any): boolean {
     return typeof input === 'symbol';
   }
@@ -427,13 +441,15 @@ export class SymbolType extends Type {
 
   toJSON () {
     return {
-      '@type': 'SymbolType'
+      typeName: this.typeName
     };
   }
 }
 
 export class SymbolLiteralType extends Type {
+  typeName: string = 'SymbolLiteralType';
   value: Symbol;
+
   match (input: any): boolean {
     return input === this.value;
   }
@@ -444,13 +460,15 @@ export class SymbolLiteralType extends Type {
 
   toJSON () {
     return {
-      '@type': 'SymbolLiteralType',
+      typeName: this.typeName,
       value: this.value
     };
   }
 }
 
 export class StringType extends Type {
+  typeName: string = 'StringType';
+
   match (input: any): boolean {
     return typeof input === 'string';
   }
@@ -461,14 +479,16 @@ export class StringType extends Type {
 
   toJSON () {
     return {
-      '@type': 'StringType'
+      typeName: this.typeName
     };
   }
 }
 
 
 export class StringLiteralType extends Type {
+  typeName: string = 'StringLiteralType';
   value: string;
+
   match (input: any): boolean {
     return input === this.value;
   }
@@ -479,14 +499,16 @@ export class StringLiteralType extends Type {
 
   toJSON () {
     return {
-      '@type': 'StringLiteralType',
+      typeName: this.typeName,
       value: this.value
     };
   }
 }
 
 export class ArrayType extends Type {
+  typeName: string = 'ArrayType';
   elementType: Type;
+
   match (input: any): boolean {
     if (!Array.isArray(input)) {
       return false;
@@ -507,13 +529,14 @@ export class ArrayType extends Type {
 
   toJSON () {
     return {
-      '@type': 'ArrayType',
+      typeName: this.typeName,
       elementType: this.elementType
     };
   }
 }
 
 export class ObjectType extends Type {
+  typeName: string = 'ObjectType';
   properties: ObjectTypeProperty[] = [];
   indexers: ObjectTypeIndexer[] = [];
   callProperties: ObjectTypeCallProperty[] = [];
@@ -558,7 +581,7 @@ export class ObjectType extends Type {
 
   toJSON () {
     return {
-      '@type': 'ObjectType',
+      typeName: this.typeName,
       callProperties: this.callProperties,
       properties: this.properties,
       indexers: this.indexers
@@ -621,7 +644,9 @@ function matchWithoutIndexers (type: ObjectType, input: any): boolean {
 
 
 export class ObjectTypeCallProperty extends Type {
+  typeName: string = 'ObjectTypeCallProperty';
   value: Type;
+
   match (input: any): boolean {
     return this.value.match(input);
   }
@@ -632,13 +657,14 @@ export class ObjectTypeCallProperty extends Type {
 
   toJSON () {
     return {
-      '@type': 'ObjectTypeProperty',
+      typeName: this.typeName,
       value: this.value
     };
   }
 }
 
 export class ObjectTypeIndexer extends Type {
+  typeName: string = 'ObjectTypeIndexer';
   id: string;
   key: Type;
   value: Type;
@@ -653,7 +679,7 @@ export class ObjectTypeIndexer extends Type {
 
   toJSON () {
     return {
-      '@type': 'ObjectTypeIndexer',
+      typeName: this.typeName,
       id: this.id,
       key: this.key,
       value: this.value
@@ -662,6 +688,7 @@ export class ObjectTypeIndexer extends Type {
 }
 
 export class ObjectTypeProperty extends Type {
+  typeName: string = 'ObjectTypeProperty';
   key: string;
   value: Type;
   optional: boolean;
@@ -679,7 +706,7 @@ export class ObjectTypeProperty extends Type {
 
   toJSON () {
     return {
-      '@type': 'ObjectTypeProperty',
+      typeName: this.typeName,
       key: this.key,
       value: this.value,
       optional: this.optional
@@ -688,6 +715,7 @@ export class ObjectTypeProperty extends Type {
 }
 
 export class FunctionType extends Type {
+  typeName: string = 'FunctionType';
   params: FunctionTypeParam[] = [];
   rest: ? FunctionTypeRestParam;
   returnType: Type;
@@ -714,6 +742,71 @@ export class FunctionType extends Type {
     return true;
   }
 
+  matchParams (...args: any[]): boolean {
+    const {params, rest} = this;
+    const paramsLength = params.length;
+    const argsLength = args.length;
+    for (let i = 0; i < paramsLength; i++) {
+      const param = params[i];
+      if (i < argsLength) {
+        if (!param.match(args[i])) {
+          return false;
+        }
+      }
+      else if (!param.match(undefined)) {
+        return false;
+      }
+    }
+
+    if (argsLength > paramsLength && rest) {
+      for (let i = paramsLength; i < argsLength; i++) {
+        if (!rest.match(args[i])) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  matchReturn (input: any): boolean {
+    return this.returnType.match(input);
+  }
+
+  assertParams <T> (...args: T[]): T[] {
+    const {params, rest} = this;
+    const paramsLength = params.length;
+    const argsLength = args.length;
+    for (let i = 0; i < paramsLength; i++) {
+      const param = params[i];
+      if (i < argsLength) {
+        if (!param.match(args[i])) {
+          throw new TypeError(makeParamErrorMessage(param, args[i]));
+        }
+      }
+      else if (!param.match(undefined)) {
+        throw new TypeError(makeParamErrorMessage(param, undefined));
+      }
+    }
+
+    if (argsLength > paramsLength && rest) {
+      for (let i = paramsLength; i < argsLength; i++) {
+        if (!rest.match(args[i])) {
+          throw new TypeError(makeParamErrorMessage(rest, args[i]));
+        }
+      }
+    }
+
+    return args;
+  }
+
+  assertReturn <T> (input: T): T {
+    if (!this.matchReturn(input)) {
+      throw new TypeError(makeReturnErrorMessage(this, input));
+    }
+    return input;
+  }
+
   toString (): string {
     const {params, rest, returnType} = this;
     const args = [];
@@ -728,7 +821,7 @@ export class FunctionType extends Type {
 
   toJSON () {
     return {
-      '@type': 'FunctionType',
+      typeName: this.typeName,
       params: this.params,
       rest: this.rest,
       returnType: this.returnType
@@ -737,6 +830,7 @@ export class FunctionType extends Type {
 }
 
 export class ParameterizedFunctionType <T: FunctionType> extends Type {
+  typeName: string = 'ParameterizedFunctionType';
   bodyCreator: FunctionBodyCreator<T>;
 
   get partial (): PartialType<T> {
@@ -767,6 +861,22 @@ export class ParameterizedFunctionType <T: FunctionType> extends Type {
     return this.partial.match(input);
   }
 
+  matchParams (...args: any[]): boolean {
+    return this.partial.type.matchParams(...args);
+  }
+
+  matchReturn (input: any): boolean {
+    return this.partial.type.matchReturn(input);
+  }
+
+  assertParams <T> (...args: T[]): T[] {
+    return this.partial.type.assertParams(...args);
+  }
+
+  assertReturn <T> (input: T): T {
+    return this.partial.type.assertReturn(input);
+  }
+
   toString (): string {
     const {partial} = this;
     const {type, typeParameters} = partial;
@@ -788,6 +898,7 @@ export class ParameterizedFunctionType <T: FunctionType> extends Type {
 }
 
 export class FunctionTypeParam extends Type {
+  typeName: string = 'FunctionTypeParam';
   name: string;
   optional: boolean;
   type: Type;
@@ -809,7 +920,7 @@ export class FunctionTypeParam extends Type {
 
   toJSON () {
     return {
-      '@type': 'FunctionTypeParam',
+      typeName: this.typeName,
       name: this.name,
       optional: this.optional,
       type: this.type
@@ -818,6 +929,7 @@ export class FunctionTypeParam extends Type {
 }
 
 export class FunctionTypeRestParam extends Type {
+  typeName: string = 'FunctionTypeRestParam';
   name: string;
   type: Type;
 
@@ -833,7 +945,7 @@ export class FunctionTypeRestParam extends Type {
 
   toJSON () {
     return {
-      '@type': 'FunctionTypeRestParam',
+      typeName: this.typeName,
       name: this.name,
       type: this.type
     };
@@ -841,6 +953,7 @@ export class FunctionTypeRestParam extends Type {
 }
 
 export class FunctionTypeReturn extends Type {
+  typeName: string = 'FunctionTypeReturn';
   type: Type;
 
   match (input: any): boolean {
@@ -855,13 +968,14 @@ export class FunctionTypeReturn extends Type {
 
   toJSON () {
     return {
-      '@type': 'FunctionTypeReturn',
+      typeName: this.typeName,
       type: this.type
     };
   }
 }
 
 export class GenericType extends Type {
+  typeName: string = 'GenericType';
   name: string;
   impl: any;
   typeInstances: Type[] = [];
@@ -887,7 +1001,7 @@ export class GenericType extends Type {
 
   toJSON () {
     return {
-      '@type': 'GenericType',
+      typeName: this.typeName,
       name: this.name,
       typeInstances: this.typeInstances
     };
@@ -895,6 +1009,8 @@ export class GenericType extends Type {
 }
 
 export class ExistentialType extends Type {
+  typeName: string = 'ExistentialType';
+
   match (input: any): boolean {
     return true;
   }
@@ -905,12 +1021,14 @@ export class ExistentialType extends Type {
 
   toJSON () {
     return {
-      '@type': 'ExistentialType'
+      typeName: this.typeName
     };
   }
 }
 
 export class AnyType extends Type {
+  typeName: string = 'AnyType';
+
   match (input: any): boolean {
     return true;
   }
@@ -921,12 +1039,14 @@ export class AnyType extends Type {
 
   toJSON () {
     return {
-      '@type': 'AnyType'
+      typeName: this.typeName
     };
   }
 }
 
 export class MixedType extends Type {
+  typeName: string = 'MixedType';
+
   match (input: any): boolean {
     return true;
   }
@@ -937,13 +1057,15 @@ export class MixedType extends Type {
 
   toJSON () {
     return {
-      '@type': 'MixedType'
+      typeName: this.typeName
     };
   }
 }
 
 
 export class EmptyType extends Type {
+  typeName: string = 'EmptyType';
+
   match (input: any): boolean {
     return false; // empty types match nothing.
   }
@@ -954,13 +1076,15 @@ export class EmptyType extends Type {
 
   toJSON () {
     return {
-      '@type': 'EmptyType'
+      typeName: this.typeName
     };
   }
 }
 
 export class NullableType extends Type {
+  typeName: string = 'NullableType';
   type: Type;
+
   match (input: any): boolean {
     if (input == null) {
       return true;
@@ -976,13 +1100,14 @@ export class NullableType extends Type {
 
   toJSON () {
     return {
-      '@type': 'NullableType',
+      typeName: this.typeName,
       type: this.type
     };
   }
 }
 
 export class TupleType extends Type {
+  typeName: string = 'TupleType';
   types: Type[] = [];
 
   match (input: any): boolean {
@@ -1006,13 +1131,14 @@ export class TupleType extends Type {
 
   toJSON () {
     return {
-      '@type': 'TupleType',
+      typeName: this.typeName,
       types: this.types
     };
   }
 }
 
 export class UnionType extends Type {
+  typeName: string = 'UnionType';
   types: Type[] = [];
 
   match (input: any): boolean {
@@ -1033,7 +1159,7 @@ export class UnionType extends Type {
 
   toJSON () {
     return {
-      '@type': 'UnionType',
+      typeName: this.typeName,
       types: this.types
     };
   }
@@ -1041,6 +1167,7 @@ export class UnionType extends Type {
 
 
 export class IntersectionType extends Type {
+  typeName: string = 'IntersectionType';
   types: Type[] = [];
 
   match (input: any): boolean {
@@ -1061,13 +1188,15 @@ export class IntersectionType extends Type {
 
   toJSON () {
     return {
-      '@type': 'IntersectionType',
+      typeName: this.typeName,
       types: this.types
     };
   }
 }
 
 export class VoidType extends Type {
+  typeName: string = 'VoidType';
+
   match (input: any): boolean {
     return input === undefined;
   }
@@ -1078,7 +1207,7 @@ export class VoidType extends Type {
 
   toJSON () {
     return {
-      '@type': 'VoidType'
+      typeName: this.typeName
     };
   }
 }
@@ -1090,9 +1219,4 @@ function indent (input: string): string {
     lines[i] = `  ${lines[i]}`;
   }
   return lines.join('\n');
-}
-
-
-function makeErrorMessage (expected: Type, input: any): string {
-  return `Expected ${expected.toString()}, got ${inspect(input)}`;
 }
