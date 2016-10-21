@@ -1,20 +1,19 @@
 /* @flow */
 
-import {
-  makeErrorMessage,
-  makeReturnErrorMessage,
-  makeParamErrorMessage
-} from './errorMessages';
+import makeError from './makeError';
 
-import {RecordedType} from './symbols';
-import type TypeContext, {TypeAcquirer} from './TypeContext';
-
+import type TypeContext from './TypeContext';
 
 export type TypeCreator <T: Type> = (partial: PartialType<T>) => T;
 export type FunctionBodyCreator <T: FunctionType> = (partial: PartialType<T>) => Array<FunctionTypeParam | FunctionTypeRestParam | FunctionTypeReturn>;
 
 export type TypeConstraint = (input: any) => boolean;
 
+/**
+ * # Type
+ *
+ * This is the base class for all types.
+ */
 export class Type {
   typeName: string = 'Type';
   context: TypeContext;
@@ -24,17 +23,24 @@ export class Type {
   }
 
   match (input: any): boolean {
-    return false;
+    throw new Error('Not implemented.');
   }
+
   assert <T> (input: T): T {
     if (!this.match(input)) {
-      throw new TypeError(makeErrorMessage(this, input));
+      throw makeError(this, input);
     }
     return input;
   }
+
+  makeErrorMessage (): string {
+    return 'Invalid value for type.';
+  }
+
   toString () {
     throw new Error('Not implemented.');
   }
+
   toJSON () {
     return {
       typeName: this.typeName
@@ -42,6 +48,13 @@ export class Type {
   }
 }
 
+/**
+ * # TypeParameter
+ *
+ * Type parameters allow polymorphic type safety.
+ * The first time a type parameter is checked, it records the shape of its input,
+ * this recorded shape is used to check all future inputs for this particular instance.
+ */
 export class TypeParameter extends Type {
   typeName: string = 'TypeParameter';
   id: string;
@@ -64,6 +77,10 @@ export class TypeParameter extends Type {
     return true;
   }
 
+  makeErrorMessage (): string {
+    return `Invalid value for type parameter: ${this.id}`;
+  }
+
   toString (withBinding?: boolean): string {
     const {id, bound} = this;
     if (withBinding && bound) {
@@ -82,26 +99,22 @@ export class TypeParameter extends Type {
   }
 }
 
+/**
+ * # TypeParameterApplication
+ *
+ */
 export class TypeParameterApplication extends Type {
   typeName: string = 'TypeParameterApplication';
-  parent: NamedType | PartialType<*>;
-  constraints: TypeConstraint[] = [];
+  parent: IApplicableType;
   typeInstances: Type[] = [];
 
   match (input: any): boolean {
-    const {constraints, parent, typeInstances} = this;
-    const {type} = parent;
-    if (!type.match(input)) {
-      return false;
-    }
-    const {length} = constraints;
-    for (let i = 0; i < length; i++) {
-      const constraint = constraints[i];
-      if (!constraint(input, ...typeInstances)) {
-        return false;
-      }
-    }
-    return true;
+    const {parent, typeInstances} = this;
+    return parent.match(input, ...typeInstances);
+  }
+
+  makeErrorMessage (): string {
+    return 'Invalid type parameter application.';
   }
 
   toString (): string {
@@ -123,16 +136,19 @@ export class TypeParameterApplication extends Type {
   toJSON () {
     return {
       typeName: this.typeName,
-      name: this.parent.name,
       typeInstances: this.typeInstances
     };
   }
 }
 
+export type IApplicableType = Type & {
+  name: string;
+  apply (...typeParameters: Type[]): TypeParameterApplication;
+};
+
 export class TypeReference extends Type {
   typeName: string = 'TypeReference';
   name: string;
-  typeInstances: Type[] = [];
 
   match (input: any): boolean {
     const {context, name} = this;
@@ -140,21 +156,85 @@ export class TypeReference extends Type {
     if (!type) {
       throw new ReferenceError(`Cannot find a type called ${name}`);
     }
-    return type.match(input, ...this.typeInstances);
+    return type.match(input);
+  }
+
+  apply (...typeInstances: Type[]): TypeParameterApplication {
+    const target = new TypeParameterApplication(this.context);
+    target.parent = this;
+    target.typeInstances = typeInstances;
+    return target;
+  }
+
+  makeErrorMessage (): string {
+    return `Invalid value for type: ${this.name}.`;
   }
 
   toString (): string {
     return this.name;
   }
 
+  toJSON () {
+    return {
+      typeName: this.typeName,
+      name: this.name
+    };
+  }
+}
+
+
+export class TypeHandler extends Type {
+  typeName: string = 'TypeHandler';
+  name: string;
+  impl: ? Function;
+
+  match (input: any, ...typeInstances: Type[]): boolean {
+    throw new Error(`No matcher for ${this.name}.`);
+  }
+
+  inferTypeParameters (input: any): Type[] {
+    throw new Error(`No inferrer for ${this.name}.`);
+  }
+
+  apply (...typeInstances: Type[]): TypeParameterApplication {
+    const target = new TypeParameterApplication(this.context);
+    target.parent = this;
+    target.typeInstances = typeInstances;
+    return target;
+  }
+
+  makeErrorMessage (): string {
+    return `Invalid value for type handler: ${this.name}.`;
+  }
+
+  toString (): string {
+    return this.name;
+  }
 
   toJSON () {
     return {
       typeName: this.typeName,
-      name: this.name,
-      typeInstances: this.typeInstances
+      name: this.name
     };
   }
+
+}
+
+export class GenericType extends TypeHandler {
+  typeName: string = 'GenericType';
+
+  match (input: any, ...typeInstances: Type[]): boolean {
+    return input instanceof this.impl;
+  }
+
+  inferTypeParameters (input: any): Type[] {
+    return [];
+  }
+
+  makeErrorMessage (): string {
+    return `Invalid value for generic type: ${this.name}.`;
+  }
+
 }
 
 
@@ -184,9 +264,19 @@ export class PartialType<T: Type> extends Type {
     return type.match(input);
   }
 
-  toString (): string {
+  makeErrorMessage (): string {
     const {type} = this;
-    return type.toString();
+    if (type) {
+      return type.makeErrorMessage();
+    }
+    else {
+      return `Invalid value for partial type: ${this.name}.`;
+    }
+  }
+
+  toString (expand?: boolean): string {
+    const {type} = this;
+    return type.toString(expand);
   }
 
   toJSON () {
@@ -229,13 +319,21 @@ export class NamedType extends Type {
     const target = new TypeParameterApplication(this.context);
     target.parent = this;
     target.typeInstances = typeInstances;
-    target.constraints = this.constraints;
     return target;
   }
 
-  toString (): string {
+  makeErrorMessage (): string {
+    return `Invalid value for type: ${this.name}.`;
+  }
+
+  toString (withDeclaration?: boolean): string {
     const {name, type} = this;
-    return `type ${name} = ${type.toString()};`;
+    if (withDeclaration) {
+      return `type ${name} = ${type.toString()};`;
+    }
+    else {
+      return name;
+    }
   }
 
   toJSON () {
@@ -277,7 +375,12 @@ export class ParameterizedNamedType <T: Type> extends NamedType {
     return true;
   }
 
-  toString (): string {
+
+  makeErrorMessage (): string {
+    return `Invalid value for polymorphic type: ${this.toString()}.`;
+  }
+
+  toString (withDeclaration?: boolean): string {
     const {name, partial} = this;
     const {typeParameters} = partial;
     const items = [];
@@ -285,7 +388,12 @@ export class ParameterizedNamedType <T: Type> extends NamedType {
       const typeParameter = typeParameters[i];
       items.push(typeParameter.toString(true));
     }
-    return `type ${name}<${items.join(', ')}> = ${partial.toString()};`;
+    if (withDeclaration) {
+      return `type ${name}<${items.join(', ')}> = ${partial.toString()};`;
+    }
+    else {
+      return `${name}<${items.join(', ')}>`;
+    }
   }
 
   toJSON () {
@@ -295,49 +403,15 @@ export class ParameterizedNamedType <T: Type> extends NamedType {
 }
 
 
-export class TypeHandler extends Type {
-  typeName: string = 'TypeHandler';
-  name: string;
-  impl: ? Function;
-  typeInstances: Type[] = [];
-
-  match (input: any): boolean {
-    throw new Error(`No matcher for ${this.name}.`);
-  }
-
-  toString (): string {
-    const {name, typeInstances} = this;
-    if (typeInstances.length) {
-      const items = [];
-      for (let i = 0; i < typeInstances.length; i++) {
-        const typeInstance = typeInstances[i];
-        items.push(typeInstance.toString());
-      }
-      return `${name}<${items.join(', ')}>`;
-    }
-    else {
-      return name;
-    }
-  }
-
-  toJSON () {
-    return {
-      typeName: this.typeName,
-      name: this.name
-    };
-  }
-
-  static infer (input: any): Type {
-    throw new Error('Invalid invocation.');
-  }
-}
-
-
 export class NullLiteralType extends Type {
   typeName: string = 'NullLiteralType';
 
   match (input: any): boolean {
     return input === null;
+  }
+
+  makeErrorMessage (): string {
+    return 'Value is not null.';
   }
 
   toString (): string {
@@ -356,6 +430,10 @@ export class NumberType extends Type {
 
   match (input: any): boolean {
     return typeof input === 'number';
+  }
+
+  makeErrorMessage (): string {
+    return 'Value is not a number.';
   }
 
   toString (): string {
@@ -377,6 +455,10 @@ export class NumericLiteralType extends Type {
     return input === this.value;
   }
 
+  makeErrorMessage (): string {
+    return `Value must be exactly: ${this.toString()}.`;
+  }
+
   toString (): string {
     return `${this.value}`;
   }
@@ -393,6 +475,10 @@ export class BooleanType extends Type {
   typeName: string = 'BooleanType';
   match (input: any): boolean {
     return typeof input === 'boolean';
+  }
+
+  makeErrorMessage (): string {
+    return 'Value must be true or false.';
   }
 
   toString () {
@@ -415,6 +501,10 @@ export class BooleanLiteralType extends Type {
     return input === this.value;
   }
 
+  makeErrorMessage (): string {
+    return `Value must be exactly: ${this.toString()}.`;
+  }
+
   toString (): string {
     return this.value ? 'true' : 'false';
   }
@@ -434,10 +524,13 @@ export class SymbolType extends Type {
     return typeof input === 'symbol';
   }
 
+  makeErrorMessage (): string {
+    return 'Invalid value for type: Symbol.';
+  }
+
   toString () {
     return 'Symbol';
   }
-
 
   toJSON () {
     return {
@@ -452,6 +545,11 @@ export class SymbolLiteralType extends Type {
 
   match (input: any): boolean {
     return input === this.value;
+  }
+
+
+  makeErrorMessage (): string {
+    return `Value must be exactly: ${this.value.toString()}.`;
   }
 
   toString () {
@@ -473,6 +571,10 @@ export class StringType extends Type {
     return typeof input === 'string';
   }
 
+  makeErrorMessage (): string {
+    return 'Value must be a string.';
+  }
+
   toString () {
     return 'string';
   }
@@ -491,6 +593,10 @@ export class StringLiteralType extends Type {
 
   match (input: any): boolean {
     return input === this.value;
+  }
+
+  makeErrorMessage (): string {
+    return `Value must be exactly: ${this.toString()}.`;
   }
 
   toString (): string {
@@ -521,6 +627,10 @@ export class ArrayType extends Type {
       }
     }
     return true;
+  }
+
+  makeErrorMessage (): string {
+    return 'Invalid array.';
   }
 
   toString (): string {
@@ -562,6 +672,11 @@ export class ObjectType extends Type {
     else {
       return matchWithoutIndexers(this, input);
     }
+  }
+
+
+  makeErrorMessage (): string {
+    return 'Invalid object.';
   }
 
   toString (): string {
@@ -651,6 +766,10 @@ export class ObjectTypeCallProperty extends Type {
     return this.value.match(input);
   }
 
+  makeErrorMessage (): string {
+    return 'Invalid object call property.';
+  }
+
   toString (): string {
     return `${this.value.toString()};`;
   }
@@ -671,6 +790,10 @@ export class ObjectTypeIndexer extends Type {
 
   match (key: any, value: any): boolean {
     return this.key.match(key) && this.value.match(value);
+  }
+
+  makeErrorMessage (): string {
+    return `Invalid object indexer: ${this.id}.`;
   }
 
   toString (): string {
@@ -698,6 +821,10 @@ export class ObjectTypeProperty extends Type {
       return true;
     }
     return this.value.match(input[this.key]);
+  }
+
+  makeErrorMessage (): string {
+    return `Invalid value for property: ${this.key}.`;
   }
 
   toString (): string {
@@ -780,20 +907,16 @@ export class FunctionType extends Type {
     for (let i = 0; i < paramsLength; i++) {
       const param = params[i];
       if (i < argsLength) {
-        if (!param.match(args[i])) {
-          throw new TypeError(makeParamErrorMessage(param, args[i]));
-        }
+        param.assert(args[i]);
       }
-      else if (!param.match(undefined)) {
-        throw new TypeError(makeParamErrorMessage(param, undefined));
+      else {
+        param.assert(undefined);
       }
     }
 
     if (argsLength > paramsLength && rest) {
       for (let i = paramsLength; i < argsLength; i++) {
-        if (!rest.match(args[i])) {
-          throw new TypeError(makeParamErrorMessage(rest, args[i]));
-        }
+        rest.assert(args[i]);
       }
     }
 
@@ -801,10 +924,11 @@ export class FunctionType extends Type {
   }
 
   assertReturn <T> (input: T): T {
-    if (!this.matchReturn(input)) {
-      throw new TypeError(makeReturnErrorMessage(this, input));
-    }
-    return input;
+    return this.returnType.assert(input);
+  }
+
+  makeErrorMessage (): string {
+    return `Invalid function.`;
   }
 
   toString (): string {
@@ -877,6 +1001,10 @@ export class ParameterizedFunctionType <T: FunctionType> extends Type {
     return this.partial.type.assertReturn(input);
   }
 
+  makeErrorMessage (): string {
+    return 'Invalid function.';
+  }
+
   toString (): string {
     const {partial} = this;
     const {type, typeParameters} = partial;
@@ -913,6 +1041,10 @@ export class FunctionTypeParam extends Type {
     }
   }
 
+  makeErrorMessage (): string {
+    return `Invalid value for ${this.optional ? 'optional ' : ''}argument: ${this.name}.`;
+  }
+
   toString (): string {
     const {optional, type} = this;
     return `${this.name}${optional ? '?' : ''}: ${type.toString()}`;
@@ -938,6 +1070,10 @@ export class FunctionTypeRestParam extends Type {
     return type.match(input);
   }
 
+  makeErrorMessage (): string {
+    return `Invalid value for rest argument: ${this.name}.`;
+  }
+
   toString (): string {
     const {type} = this;
     return `...${this.name}: ${type.toString()}`;
@@ -961,6 +1097,10 @@ export class FunctionTypeReturn extends Type {
     return type.match(input);
   }
 
+  makeErrorMessage (): string {
+    return 'Invalid function return type.';
+  }
+
   toString (): string {
     const {type} = this;
     return type.toString();
@@ -974,36 +1114,59 @@ export class FunctionTypeReturn extends Type {
   }
 }
 
-export class GenericType extends Type {
-  typeName: string = 'GenericType';
-  name: string;
-  impl: any;
-  typeInstances: Type[] = [];
+export class GeneratorType extends Type {
+  typeName: string = 'GeneratorType';
+  yieldType: Type;
+  returnType: Type;
+  nextType: Type;
 
   match (input: any): boolean {
-    return input instanceof this.impl;
+    return input
+      && typeof input.next === 'function'
+      && typeof input.return === 'function'
+      && typeof input.throw === 'function'
+      ;
+  }
+
+  matchYield (input: any): boolean {
+    return this.yieldType.match(input);
+  }
+
+  matchReturn (input: any): boolean {
+    return this.returnType.match(input);
+  }
+
+  matchNext (input: any): boolean {
+    return this.nextType.match(input);
+  }
+
+  assertYield <T> (input: T): T {
+    return this.yieldType.assert(input);
+  }
+
+  assertReturn <T> (input: T): T {
+    return this.returnType.assert(input);
+  }
+
+  assertNext <T> (input: T): T {
+    return this.nextType.assert(input);
+  }
+
+  makeErrorMessage (): string {
+    return `Invalid generator function.`;
   }
 
   toString (): string {
-    const {name, typeInstances} = this;
-    if (typeInstances.length > 0) {
-      const items = [];
-      for (let i = 0; i < typeInstances.length; i++) {
-        const typeInstance = typeInstances[i];
-        items.push(typeInstance.toString());
-      }
-      return `${name}<${items.join(', ')}>`;
-    }
-    else {
-      return name;
-    }
+    const {yieldType, returnType, nextType} = this;
+    return `Generator<${yieldType.toString()}, ${returnType.toString()}, ${nextType.toString()}`;
   }
 
   toJSON () {
     return {
       typeName: this.typeName,
-      name: this.name,
-      typeInstances: this.typeInstances
+      yieldType: this.yieldType,
+      returnType: this.returnType,
+      nextType: this.nextType
     };
   }
 }
@@ -1094,6 +1257,10 @@ export class NullableType extends Type {
     }
   }
 
+  makeErrorMessage (): string {
+    return this.type.makeErrorMessage();
+  }
+
   toString (): string {
     return `? ${this.type.toString()}`;
   }
@@ -1125,6 +1292,10 @@ export class TupleType extends Type {
     return true;
   }
 
+  makeErrorMessage (): string {
+    return 'Invalid tuple.';
+  }
+
   toString (): string {
     return `[${this.types.join(', ')}]`;
   }
@@ -1151,6 +1322,10 @@ export class UnionType extends Type {
       }
     }
     return false;
+  }
+
+  makeErrorMessage (): string {
+    return 'Invalid union element.';
   }
 
   toString (): string {
@@ -1182,6 +1357,10 @@ export class IntersectionType extends Type {
     return true;
   }
 
+  makeErrorMessage (): string {
+    return 'Invalid intersection element.';
+  }
+
   toString (): string {
     return this.types.join(' & ');
   }
@@ -1199,6 +1378,10 @@ export class VoidType extends Type {
 
   match (input: any): boolean {
     return input === undefined;
+  }
+
+  makeErrorMessage (): string {
+    return 'Value must be undefined.';
   }
 
   toString (): string {

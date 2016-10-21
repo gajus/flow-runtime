@@ -58,6 +58,7 @@ describe('decorateFunction', () => {
     console.log(decorated(1, 2));
     console.log(decorated('hello ', 'world'));
     console.log(decorated('hello ', 123));
+      decorated('hello ', {nope: true});
     throws(() => {
       // @flowIgnore
       return decorated('hello ', {nope: true});

@@ -3,44 +3,54 @@
 import type TypeContext from './TypeContext';
 
 import type {
-  Type,
-  TypeHandler
+  Type
 } from './types';
 
 export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContext {
 
-  t.declareTypeHandler('Date', Date, {
-    match: (input): boolean => {
+  t.declareTypeHandler({
+    name: 'Date',
+    impl: Date,
+    typeName: 'DateType',
+    match (input): boolean {
       return input instanceof Date && !isNaN(input.getTime());
     },
-    infer: (Handler: Class<TypeHandler>, input: any): Type => {
-      return new Handler(t);
+    inferTypeParameters (input: Date): Type[] {
+      return [];
     }
   });
 
-  t.declareTypeHandler('Iterable', undefined, {
-    match: (input, keyType: Type): boolean => {
-      if (!input || typeof input[Symbol.iterator] === 'undefined') {
+  t.declareTypeHandler({
+    name: 'Iterable',
+    typeName: 'IterableType',
+    match (input, keyType: Type): boolean {
+      if (!input || typeof input[Symbol.iterator] !== 'function') {
         return false;
       }
       return true;
     },
-    infer: (Handler: Class<TypeHandler>, input: any): Type => {
-      return new Handler(t);
+    inferTypeParameters (input: Iterable<*>): Type[] {
+      return [];
     }
   });
 
-  t.declareTypeHandler('Promise', Promise, {
-    match: (input): boolean => {
+  t.declareTypeHandler({
+    name: 'Promise',
+    impl: Promise,
+    typeName: 'PromiseType',
+    match (input): boolean {
       return input && typeof input.then === 'function' && input.then.length > 1;
     },
-    infer: (Handler: Class<TypeHandler>, input: any): Type => {
-      return new Handler(t);
+    inferTypeParameters (input: any): Type[] {
+      return [];
     }
   });
 
-  t.declareTypeHandler('Map', Map, {
-    match: (input, keyType: Type, valueType: Type): boolean => {
+  t.declareTypeHandler({
+    name: 'Map',
+    impl: Map,
+    typeName: 'MapType',
+    match (input, keyType: Type, valueType: Type): boolean {
       if (!(input instanceof Map)) {
         return false;
       }
@@ -51,8 +61,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       return true;
     },
-    infer: (Handler: Class<TypeHandler>, input: Map<*, *>): Type => {
-      const target = new Handler(t);
+    inferTypeParameters (input: Map<*, *>): Type[] {
       const keyTypes = [];
       const valueTypes = [];
       loop: for (const [key, value] of input) {
@@ -74,30 +83,37 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
         }
         valueTypes.push(t.infer(value));
       }
+      const typeInstances = [];
+
       if (keyTypes.length === 0) {
-        target.typeInstances.push(t.existential());
+        typeInstances.push(t.existential());
       }
       else if (keyTypes.length === 1) {
-        target.typeInstances.push(keyTypes[0]);
+        typeInstances.push(keyTypes[0]);
       }
       else {
-        target.typeInstances.push(t.union(...keyTypes));
+        typeInstances.push(t.union(...keyTypes));
       }
+
       if (valueTypes.length === 0) {
-        target.typeInstances.push(t.existential());
+        typeInstances.push(t.existential());
       }
       else if (valueTypes.length === 1) {
-        target.typeInstances.push(valueTypes[0]);
+        typeInstances.push(valueTypes[0]);
       }
       else {
-        target.typeInstances.push(t.union(...valueTypes));
+        typeInstances.push(t.union(...valueTypes));
       }
-      return target;
+
+      return typeInstances;
     }
   });
 
-  t.declareTypeHandler('Set', Set, {
-    match: (input, valueType) => {
+  t.declareTypeHandler({
+    name: 'Set',
+    impl: Set,
+    typeName: 'SetType',
+    match (input, valueType) {
       if (!(input instanceof Set)) {
         return false;
       }
@@ -108,8 +124,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       return true;
     },
-    infer (Handler: Class<TypeHandler>, input: Set<*>): Type {
-      const target = new Handler(t);
+    inferTypeParameters (input: Set<*>): Type[] {
       const valueTypes = [];
       loop: for (const value of input) {
         for (let i = 0; i < valueTypes.length; i++) {
@@ -121,15 +136,14 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
         valueTypes.push(t.infer(value));
       }
       if (valueTypes.length === 0) {
-        target.typeInstances.push(t.existential());
+        return [t.existential()];
       }
       else if (valueTypes.length === 1) {
-        target.typeInstances.push(valueTypes[0]);
+        return [valueTypes[0]];
       }
       else {
-        target.typeInstances.push(t.union(...valueTypes));
+        return [t.union(...valueTypes)];
       }
-      return target;
     }
   });
 

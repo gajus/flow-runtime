@@ -1,5 +1,9 @@
 /* @flow */
 
+/**
+ * This file exports a dictionary of global types that are shared by all contexts.
+ * It is populated in [registerSingletonTypes()](./registerSingletonTypes.js).
+ */
 
 import type {
   Type,
@@ -16,6 +20,9 @@ import type {
 } from './types';
 
 
+/**
+ * Covers our builtin types and makes room for future ones.
+ */
 type SingletonTypes = {
   null: NullLiteralType;
   empty: EmptyType;
@@ -31,10 +38,15 @@ type SingletonTypes = {
   [name: string]: Type;
 };
 
-function makeSingletonTypes (): SingletonTypes {
+/**
+ * Returns an object which will contain our types.
+ * Tricks flow into propogating the correct type for the export
+ * despite it not being populated yet.
+ */
+function makeDict (): SingletonTypes {
   return ({}: any);
 }
 
-const singletonTypes: SingletonTypes = makeSingletonTypes();
+const singletonTypes: SingletonTypes = makeDict();
 
 export default singletonTypes;

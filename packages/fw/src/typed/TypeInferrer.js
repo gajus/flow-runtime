@@ -104,10 +104,11 @@ export class TypeInferer {
     else if (input.constructor !== Object) {
       const handler = context.getTypeHandler(input.constructor);
       if (handler) {
-        type = handler.infer(input);
+        const typeParameters = handler.inferTypeParameters(input);
+        type = handler.apply(...typeParameters);
       }
       else {
-        type = context.instanceOf(input.constructor);
+        type = context.ref(input.constructor);
       }
     }
     else {

@@ -1,5 +1,5 @@
 /* @flow */
-import {ok} from 'assert';
+import {ok, throws} from 'assert';
 
 import t from './globalContext';
 
@@ -67,7 +67,7 @@ describe('Typed API', () => {
   });
 
   it('should use a Map<string, number>', () => {
-    const type = t.instanceOf(Map, t.string(), t.number());
+    const type = t.ref(Map, t.string(), t.number());
     console.log(type.toString());
     ok(type.match(new Map()));
     ok(type.match(new Map([
@@ -131,11 +131,11 @@ describe('Typed API', () => {
       const T = Tree.typeParameter('T');
       return t.object(
         t.property('value', T),
-        t.property('left', t.nullable(t.instanceOf(Tree, T))),
-        t.property('right', t.nullable(t.instanceOf(Tree, T))),
+        t.property('left', t.nullable(t.ref(Tree, T))),
+        t.property('right', t.nullable(t.ref(Tree, T))),
       );
     });
-    console.log(Tree.toString());
+    console.log(Tree.toString(true));
     const candidate = {
       value: 'hello world',
       left: null,
@@ -145,9 +145,33 @@ describe('Typed API', () => {
         right: null
       }
     };
-    ok(Tree.match(candidate));
+    ok(Tree.assert(candidate));
     //console.log(JSON.stringify(Tree, null, 2))
 
+  });
+
+  it('should handle named types', () => {
+    const UserEmailAddress = t.type('UserEmailAddress', t.string());
+    UserEmailAddress.addConstraint(input => /@/.test(input));
+
+    const User = t.type('User', t.object(
+      t.property('id', t.number()),
+      t.property('name', t.string()),
+      t.property('email', UserEmailAddress)
+    ));
+
+    console.log(User.toString(true));
+
+    const sally = {
+      id: 123,
+      name: 'Sally',
+      email: 'invalid'
+    };
+    throws(() => User.assert(sally));
+    sally.email = 'sally@example.com';
+    User.assert(sally);
+
+    t.ref(Map, t.string(), t.number()).assert(new Map([['hello', false]]));
   });
 
   it('should build an object', () => {

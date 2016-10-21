@@ -2,15 +2,16 @@
 
 import TypeInferrer from './TypeInferrer';
 import singletonTypes from './singletonTypes';
+import invariant from './invariant';
 
 import {
   Type,
   TypeParameter,
   TypeReference,
-  PartialType,
   ParameterizedNamedType,
   NamedType,
   TypeHandler,
+  GenericType,
   NullLiteralType,
   NumberType,
   NumericLiteralType,
@@ -30,7 +31,7 @@ import {
   FunctionTypeParam,
   FunctionTypeRestParam,
   FunctionTypeReturn,
-  GenericType,
+  GeneratorType,
   ExistentialType,
   AnyType,
   MixedType,
@@ -49,13 +50,14 @@ import {
   InferrerAccessor
 } from './symbols';
 
-import type {TypeCreator, FunctionBodyCreator} from './types';
-
-export type TypeAcquirer = (name: string) => ? Type;
+import type {TypeCreator, FunctionBodyCreator, IApplicableType} from './types';
 
 export type TypeHandlerConfig = {
-  match: (input: any, ...typeInstances: Type[]) => boolean;
-  infer: (Handler: Class<TypeHandler>, input: any) => Type;
+  name: string;
+  impl?: Function;
+  typeName: string;
+  match (input: any, ...typeInstances: Type[]): boolean;
+  inferTypeParameters (input: any): Type[];
 };
 
 type ValidFunctionBody
@@ -155,7 +157,7 @@ export default class TypeContext {
     return target;
   }
 
-  declareTypeHandler (name: string, impl: ? Function, {match, infer}: TypeHandlerConfig): Class<TypeHandler> {
+  declareTypeHandler ({name, impl, typeName, match, inferTypeParameters}: TypeHandlerConfig): TypeHandler {
     // @flowIssue 252
     const nameRegistry = this[NameRegistryAccessor];
 
@@ -163,20 +165,14 @@ export default class TypeContext {
       throw new Error(`Cannot redeclare type: ${name}`);
     }
 
-    class Handler extends TypeHandler {
-      name: string = name;
-      impl: ? Function = impl;
-      match (input: any): boolean {
-        return match(input, ...this.typeInstances);
-      }
+    const target = new TypeHandler(this);
+    target.name = name;
+    target.typeName = typeName;
+    target.impl = impl;
+    target.match = match;
+    target.inferTypeParameters = inferTypeParameters;
 
-      static infer (input: any): Type {
-        return infer(Handler, input);
-      }
-    }
-    Object.defineProperty(Handler, 'name', {value: `${name}TypeHandler`});
-
-    nameRegistry[name] = Handler;
+    nameRegistry[name] = target;
 
     if (typeof impl === 'function') {
       // @flowIssue 252
@@ -186,46 +182,17 @@ export default class TypeContext {
       if (handlerRegistry.has(impl)) {
         throw new Error(`A type handler already exists for the given implementation.`);
       }
-      handlerRegistry.set(impl, Handler);
+      handlerRegistry.set(impl, target);
     }
-    return Handler;
+    return target;
   }
 
-  getTypeHandler (impl: Function): ? Class<TypeHandler> {
+  getTypeHandler (impl: Function): ? TypeHandler {
     // @flowIssue 252
     const handlerRegistry = this[TypeHandlerRegistryAccessor];
     (handlerRegistry: TypeHandlerRegistry);
 
     return handlerRegistry.get(impl);
-  }
-
-  instanceOf (input: string | Function | NamedType | PartialType<*>, ...typeInstances: Type[]): Type {
-    if (typeof input === 'string') {
-      return this.ref(input, ...typeInstances);
-    }
-    else if (input instanceof NamedType) {
-      return input.apply(...typeInstances);
-    }
-    else if (input instanceof PartialType) {
-      return input.apply(...typeInstances);
-    }
-    // @flowIssue 252
-    const handlerRegistry = this[TypeHandlerRegistryAccessor];
-    (handlerRegistry: TypeHandlerRegistry);
-
-    const Handler = handlerRegistry.get(input);
-
-    if (Handler) {
-      const target = new Handler(this);
-      target.typeInstances = typeInstances;
-      return target;
-    }
-
-    const target = new GenericType(this);
-    target.impl = input;
-    target.name = input.name || `anonymous`;
-    target.typeInstances = typeInstances;
-    return target;
   }
 
   null (): NullLiteralType {
@@ -361,6 +328,14 @@ export default class TypeContext {
     return target;
   }
 
+  generator (yieldType: Type, returnType?: Type, nextType?: Type): GeneratorType {
+    const target = new GeneratorType(this);
+    target.yieldType = yieldType;
+    target.returnType = returnType || this.any();
+    target.nextType = nextType || this.any();
+    return target;
+  }
+
   object (...body: ValidObjectBody[]): ObjectType {
     const target = new ObjectType(this);
     const {length} = body;
@@ -435,11 +410,47 @@ export default class TypeContext {
     return target;
   }
 
-  ref (name: string, ...typeInstances: Type[]): TypeReference {
-    const target = new TypeReference(this);
-    target.name = name;
-    target.typeInstances = typeInstances;
-    return target;
+  ref (subject: string | IApplicableType | Function, ...typeInstances: Type[]): Type {
+    let target;
+    if (typeof subject === 'string') {
+      // try and eagerly resolve the reference
+      target = this.get(subject);
+      if (!target) {
+        // defer dereferencing for now
+        target = new TypeReference(this);
+        target.name = subject;
+      }
+    }
+    else if (typeof subject === 'function') {
+      // @flowIssue 252
+      const handlerRegistry = this[TypeHandlerRegistryAccessor];
+      (handlerRegistry: TypeHandlerRegistry);
+
+      // see if we have a dedicated TypeHandler for this.
+      target = handlerRegistry.get(subject);
+
+      if (!target) {
+        // just use a generic type handler.
+        target = new GenericType(this);
+        target.impl = subject;
+        target.name = subject.name;
+      }
+
+    }
+    else if (subject instanceof Type) {
+      target = subject;
+    }
+    else {
+      throw new Error('Could not reference the given type.');
+    }
+
+    if (typeInstances.length) {
+      invariant(typeof target.apply === 'function', `Cannot apply non-applicable type: ${target.typeName}.`);
+      return target.apply(...typeInstances);
+    }
+    else {
+      return target;
+    }
   }
 
 }
