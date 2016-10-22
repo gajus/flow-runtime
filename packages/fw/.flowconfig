@@ -1,10 +1,7 @@
 [ignore]
 
 # Ugh
-.*/node_modules/babel.*
-.*/node_modules/babylon.*
 .*/node_modules/.*/src.*
-.*/node_modules/babel-plugin.*
 .*/node_modules/binary-extensions/.*
 .*/node_modules/url-regex/.*
 .*/node_modules/spdx.*

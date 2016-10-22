@@ -27,6 +27,10 @@
     "webpack": "^1.13.2"
   },
   "dependencies": {
+    "babel-generator": "^6.17.0",
+    "babel-traverse": "^6.16.0",
+    "babel-types": "^6.16.0",
+    "babylon": "^6.13.0",
     "flow-typed": "^2.0.0",
     "mobx": "^2.6.0",
     "mobx-react": "^3.5.8",

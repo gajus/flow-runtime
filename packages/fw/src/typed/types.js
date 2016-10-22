@@ -150,13 +150,17 @@ export class TypeReference extends Type {
   typeName: string = 'TypeReference';
   name: string;
 
-  match (input: any): boolean {
+  get type (): Type {
     const {context, name} = this;
     const type = context.get(name);
     if (!type) {
-      throw new ReferenceError(`Cannot find a type called ${name}`);
+      throw new ReferenceError(`Cannot resolve type: ${name}`);
     }
-    return type.match(input);
+    return type;
+  }
+
+  match (input: any): boolean {
+    return this.type.match(input);
   }
 
   apply (...typeInstances: Type[]): TypeParameterApplication {
@@ -651,6 +655,20 @@ export class ObjectType extends Type {
   indexers: ObjectTypeIndexer[] = [];
   callProperties: ObjectTypeCallProperty[] = [];
 
+  /**
+   * Get a property with the given name, or undefined if it does not exist.
+   */
+  getProperty (key: string): ? ObjectTypeProperty {
+    const {properties} = this;
+    const {length} = properties;
+    for (let i = 0; i < length; i++) {
+      const property = properties[i];
+      if (property.key === key) {
+        return property;
+      }
+    }
+  }
+
   match (input: any): boolean {
     if (input === null) {
       return false;
@@ -673,7 +691,6 @@ export class ObjectType extends Type {
       return matchWithoutIndexers(this, input);
     }
   }
-
 
   makeErrorMessage (): string {
     return 'Invalid object.';

@@ -29,6 +29,7 @@ export default function decorateGeneratorFunction <P, Y, R, N, G: Generator<Y, R
     const result: any = next.value;
     (result: R);
     //generatorType.assertReturn(result);
+
     // @flowIgnore
     return result;
   };
