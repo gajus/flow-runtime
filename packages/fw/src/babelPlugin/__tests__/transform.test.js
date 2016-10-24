@@ -7,17 +7,16 @@ import fixtures from './fixtures';
 import transform from '../transform';
 
 import * as babylon from 'babylon';
-import * as t from 'babel-types';
-import template from 'babel-template';
 import generate from 'babel-generator';
-import {default as traverse, NodePath, Scope} from 'babel-traverse';
+import traverse from 'babel-traverse';
+import type {Node, NodePath} from 'babel-traverse';
 
 
 describe.only('transform', () => {
   for (const [name, {input, expected}] of fixtures) {
     it(`should transform ${name}`, () => {
       const parsed = parse(input);
-      const transformed = transform(parsed);
+      const transformed = stripFlowTypes(transform(parsed));
       const generated = generate(transformed).code;
       equal(normalize(generated), normalize(expected));
     });
@@ -25,7 +24,16 @@ describe.only('transform', () => {
 });
 
 
-function parse (source: string): NodePath {
+function stripFlowTypes (program: Node): Node {
+  traverse(program, {
+    Flow (path: NodePath) {
+      path.remove();
+    }
+  });
+  return program;
+}
+
+function parse (source: string): Node {
   return babylon.parse(source, {
     filename: 'unknown',
     sourceType: 'module',

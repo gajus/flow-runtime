@@ -6,7 +6,8 @@ import ConversionContext from './ConversionContext';
 import convert from './convert';
 
 import firstPassVisitors from './firstPassVisitors';
-
+import getTypeParameters from './getTypeParameters';
+import {ok as invariant} from 'assert';
 import type {Node, NodePath} from 'babel-traverse';
 
 export default function transform (input: Node): Node {
@@ -24,10 +25,11 @@ export default function transform (input: Node): Node {
     },
     TypeCastExpression (path: NodePath) {
       const expression = path.get('expression');
+      const typeAnnotation = path.get('typeAnnotation');
       if (!expression.isIdentifier()) {
         path.replaceWith(t.callExpression(
           t.memberExpression(
-            convert(context, path.get('typeAnnotation')),
+            convert(context, typeAnnotation),
             t.identifier('assert')
           ),
           [expression.node]
@@ -35,14 +37,13 @@ export default function transform (input: Node): Node {
         return;
       }
       const name = expression.node.name;
-      let valueUid;
       const binding = path.scope.getBinding(name);
       if (binding && binding.path.isCatchClause()) {
         // special case typecasts for error handlers.
         path.parentPath.replaceWith(t.ifStatement(
           t.unaryExpression('!', t.callExpression(
             t.memberExpression(
-              convert(context, path.get('typeAnnotation')),
+              convert(context, typeAnnotation),
               t.identifier('match')
             ),
             [expression.node]
@@ -52,22 +53,30 @@ export default function transform (input: Node): Node {
         return;
       }
 
-      valueUid = path.scope.getData(`valueuid:${name}`);
+      let valueUid = path.scope.getData(`valueUid:${name}`);
 
       if (!valueUid) {
-        const uid = path.scope.generateUidIdentifier(`${name}Type`);
-        path.scope.setData(`valueuid:${name}`, uid.name);
+        valueUid = path.scope.generateUidIdentifier(`${name}Type`);
+        path.scope.setData(`valueUid:${name}`, valueUid);
         path.insertBefore(t.variableDeclaration('let', [
           t.variableDeclarator(
-            uid,
-            convert(context, path.get('typeAnnotation'))
+            valueUid,
+            convert(context, typeAnnotation)
           )
         ]));
-        valueUid = uid.name;
+      }
+      else {
+        path.insertBefore(t.expressionStatement(
+          t.assignmentExpression(
+            '=',
+            valueUid,
+            convert(context, typeAnnotation)
+          )
+        ));
       }
       path.replaceWith(t.callExpression(
         t.memberExpression(
-          t.identifier(valueUid),
+          valueUid,
           t.identifier('assert')
         ),
         [expression.node]
@@ -81,16 +90,16 @@ export default function transform (input: Node): Node {
         return;
       }
       if (!path.has('init') || path.parentPath.node.kind !== 'const') {
-        const uid = path.scope.generateUidIdentifier(`${name}Type`);
-        path.scope.setData(`valueuid:${name}`, uid.name);
+        const valueUid = path.scope.generateUidIdentifier(`${name}Type`);
+        path.scope.setData(`valueUid:${name}`, valueUid);
         path.insertBefore(t.variableDeclarator(
-          uid,
+          valueUid,
           convert(context, id.get('typeAnnotation'))
         ));
         if (path.has('init')) {
           const wrapped = t.callExpression(
             t.memberExpression(
-              uid,
+              valueUid,
               t.identifier('assert')
             ),
             [path.get('init').node]
@@ -126,18 +135,184 @@ export default function transform (input: Node): Node {
         return;
       }
       const name = left.node.name;
-      const valueUid = path.scope.getData(`valueuid:${name}`);
+      const valueUid = path.scope.getData(`valueUid:${name}`);
       if (!valueUid) {
         return;
       }
       const right = path.get('right');
       right.replaceWith(t.callExpression(
         t.memberExpression(
-          t.identifier(valueUid),
+          valueUid,
           t.identifier('assert')
         ),
         [right.node]
       ));
+    },
+    Function (path: NodePath) {
+      const body = path.get('body');
+
+      const definitions = [];
+      const invocations = [];
+      const typeParameters = getTypeParameters(path);
+      const params = path.get('params');
+
+      for (const typeParameter of typeParameters) {
+        const {name} = typeParameter.node;
+        const args = [t.stringLiteral(name)];
+        if (typeParameter.has('bound')) {
+          args.push(
+            convert(context, typeParameter.get('bound'))
+          );
+        }
+        definitions.push(t.variableDeclaration('const', [
+          t.variableDeclarator(
+            t.identifier(name),
+            context.call('typeParameter', ...args)
+          )
+        ]));
+      }
+
+      let shouldShadow = false;
+
+      for (let param of params) {
+        const argumentIndex = +param.key;
+        let assignmentRight;
+        if (param.isAssignmentPattern()) {
+          assignmentRight = param.get('right');
+          param = param.get('left');
+        }
+        if (!param.has('typeAnnotation')) {
+          continue;
+        }
+        const typeAnnotation = param.get('typeAnnotation');
+
+        if (param.isObjectPattern() || param.isArrayPattern()) {
+          shouldShadow = true;
+
+          const args = [
+            t.stringLiteral(`arguments[${argumentIndex}]`),
+            convert(context, typeAnnotation)
+          ];
+          if (param.has('optional')) {
+            args.push(t.booleanLiteral(true));
+          }
+
+          const ref = t.memberExpression(
+            t.identifier('arguments'),
+            t.numericLiteral(argumentIndex),
+            true
+          );
+
+          const expression = t.expressionStatement(
+            t.callExpression(
+              t.memberExpression(context.call('param', ...args), t.identifier('assert')),
+              [ref]
+            )
+          );
+          if (assignmentRight) {
+            invocations.push(
+              t.ifStatement(
+                t.binaryExpression(
+                  '!==',
+                  ref,
+                  t.identifier('undefined')
+                ),
+                t.blockStatement([expression])
+              )
+            );
+          }
+          else {
+            invocations.push(expression);
+          }
+        }
+        else {
+          let name = param.node.name;
+          let methodName = 'param';
+          if (param.isRestElement()) {
+            methodName = 'rest';
+            name = param.node.argument.name;
+          }
+          else if (!param.isIdentifier()) {
+            continue;
+          }
+          const valueUid = body.scope.generateUidIdentifier(`${name}Type`);
+          body.scope.setData(`valueUid:${name}`, valueUid);
+          definitions.push(t.variableDeclaration('let', [
+            t.variableDeclarator(
+              valueUid,
+              convert(context, typeAnnotation)
+            )
+          ]));
+          const args = [t.stringLiteral(name), valueUid];
+          if (param.has('optional')) {
+            args.push(t.booleanLiteral(true));
+          }
+          invocations.push(t.expressionStatement(
+            t.callExpression(
+              t.memberExpression(context.call(methodName, ...args), t.identifier('assert')),
+              [t.identifier(name)]
+            )
+          ));
+        }
+
+
+
+      }
+
+      if (path.has('returnType')) {
+        const returnType = path.get('returnType');
+        const returnTypeUid = body.scope.generateUidIdentifier('returnType');
+        body.scope.setData(`returnTypeUid`, returnTypeUid);
+        definitions.push(t.variableDeclaration('const', [
+          t.variableDeclarator(
+            returnTypeUid,
+            context.call('return', convert(context, returnType))
+          )
+        ]));
+      }
+      if (shouldShadow && path.isArrowFunctionExpression()) {
+        path.arrowFunctionToShadowed();
+        path.get('body').unshiftContainer('body', definitions.concat(invocations));
+      }
+      else {
+
+        body.unshiftContainer('body', definitions.concat(invocations));
+      }
+
+    },
+
+    ReturnStatement (path: NodePath) {
+      const fn = path.scope.getFunctionParent().path;
+      if (!fn.has('returnType')) {
+        return;
+      }
+      const returnTypeUid = path.scope.getData('returnTypeUid');
+
+      const argument = path.get('argument');
+      argument.replaceWith(t.callExpression(
+        t.memberExpression(returnTypeUid, t.identifier('assert')),
+        argument.node ? [argument.node] : []
+      ));
+    },
+
+    Class (path: NodePath) {
+      const typeParameters = getTypeParameters(path);
+      if (!typeParameters.length) {
+        return;
+      }
+
+    },
+
+    ClassProperty (path: NodePath) {
+      if (!path.has('typeAnnotation')) {
+        return;
+      }
+      const typeAnnotation = path.get('typeAnnotation');
+      const decorator = t.decorator(context.call('decorateProperty', convert(context, typeAnnotation)));
+      if (!path.has('decorators')) {
+        path.node.decorators = [];
+      }
+      path.pushContainer('decorators', decorator);
     }
   });
   return input;

@@ -36,13 +36,11 @@ function annotationReferencesId (annotation: NodePath, name: string): boolean {
 
 function annotationParentHasTypeParameter (annotation: NodePath, name: string): boolean {
   let subject = annotation.parentPath;
-  while (subject && subject.isFlow() && !subject.isTypeAlias()) {
+  while (subject && subject.isFlow()) {
     const typeParameters = getTypeParameters(subject);
-    if (typeParameters.length > 0) {
-      for (const typeParameter of typeParameters) {
-        if (typeParameter.node.name === name) {
-          return true;
-        }
+    for (const typeParameter of typeParameters) {
+      if (typeParameter.node.name === name) {
+        return true;
       }
     }
     subject = subject.parentPath;
@@ -76,6 +74,7 @@ converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
     );
   }
   else if (annotationReferencesId(path.get('right'), path.node.id.name)) {
+    // This type alias references itself, we need to wrap it in an arrow
     body = t.arrowFunctionExpression(
       [t.identifier(name)],
       t.blockStatement([
@@ -105,6 +104,22 @@ converters.NullableTypeAnnotation = (context: ConversionContext, path: NodePath)
 
 converters.NullLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
   return context.call('null');
+};
+
+converters.AnyTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+  return context.call('any');
+};
+
+converters.MixedTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+  return context.call('mixed');
+};
+
+converters.ExistentialTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+  return context.call('existential');
+};
+
+converters.EmptyTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+  return context.call('empty');
 };
 
 converters.NumberTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
@@ -146,10 +161,18 @@ converters.IntersectionTypeAnnotation = (context: ConversionContext, path: NodeP
 };
 
 converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
-  const {node, scope} = path;
+  const {node} = path;
   const {name} = node.id;
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
-  if (annotationParentHasTypeParameter(path, name) || scope.getData(`typealias:${name}`) || scope.getData(`typeparam:${name}`)) {
+  const entity = context.getEntity(name, path);
+
+  const isDirectlyReferenceable
+        = annotationParentHasTypeParameter(path, name)
+        || (entity && (entity.isTypeAlias || entity.isTypeParameter))
+        ;
+
+
+  if (isDirectlyReferenceable) {
     if (typeParameters.length > 0) {
       return context.call('ref', t.identifier(name), ...typeParameters);
     }
@@ -157,14 +180,30 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
       return t.identifier(name);
     }
   }
-  else if (scope.getData(`valuetype:${name}`) || global[name]) {
+  else if (!entity) {
+    return context.call('ref', t.stringLiteral(name), ...typeParameters);
+  }
+  else if (entity.isClassTypeParameter) {
+    const target = t.memberExpression(
+      t.memberExpression(
+        t.thisExpression(),
+        context.symbol('TypeParameters'),
+        true
+      ),
+      t.identifier(name)
+    );
+    if (typeParameters.length > 0) {
+      return context.call('ref', target, ...typeParameters);
+    }
+    else {
+      return target;
+    }
+  }
+  else {
     if (name === 'Array') {
       return context.call('array', ...typeParameters);
     }
     return context.call('ref', t.identifier(name), ...typeParameters);
-  }
-  else {
-    return context.call('ref', t.stringLiteral(name), ...typeParameters);
   }
 };
 
