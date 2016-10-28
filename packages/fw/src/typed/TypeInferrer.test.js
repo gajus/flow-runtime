@@ -7,7 +7,7 @@ import t from './globalContext';
 describe('TypeInferrer', () => {
 
   function test (input: any, expected: string) {
-    const type = t.infer(input);
+    const type = t.typeOf(input);
     it(`should infer ${expected}`, () => {
       equal(type.toString(), expected);
     });

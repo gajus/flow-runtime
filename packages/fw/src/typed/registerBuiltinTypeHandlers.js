@@ -225,7 +225,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
               break findKey;
             }
           }
-          keyTypes.push(t.infer(key));
+          keyTypes.push(t.typeOf(key));
         }
 
         for (let i = 0; i < valueTypes.length; i++) {
@@ -234,7 +234,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
             continue loop;
           }
         }
-        valueTypes.push(t.infer(value));
+        valueTypes.push(t.typeOf(value));
       }
       const typeInstances = [];
 
@@ -286,7 +286,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
             continue loop;
           }
         }
-        valueTypes.push(t.infer(value));
+        valueTypes.push(t.typeOf(value));
       }
       if (valueTypes.length === 0) {
         return [t.existential()];

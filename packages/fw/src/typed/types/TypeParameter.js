@@ -27,7 +27,7 @@ export default class TypeParameter extends Type {
     else if (bound && !bound.accepts(input)) {
       return false;
     }
-    this.recorded = context.infer(input);
+    this.recorded = context.typeOf(input);
 
     return true;
   }

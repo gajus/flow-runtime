@@ -103,7 +103,7 @@ export default class TypeContext {
     return body(context);
   }
 
-  infer (input: any): Type {
+  typeOf (input: any): Type {
     // @flowIssue 252
     const inferrer = this[InferrerSymbol];
     (inferrer: TypeInferrer);

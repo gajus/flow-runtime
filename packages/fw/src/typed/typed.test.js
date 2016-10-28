@@ -278,7 +278,7 @@ describe('Typed API', () => {
   });
 
   it('should $Keys<typeOf A>', () => {
-    const A = t.infer({
+    const A = t.typeOf({
       name: 'Alice',
       email: 'example@example.com'
     });
