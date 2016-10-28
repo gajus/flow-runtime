@@ -59,13 +59,18 @@ export default function firstPassVisitors (context: ConversionContext): Object {
     Class (path: NodePath) {
       if (path.isClassDeclaration()) {
         const {name} = path.node.id;
-        context.defineValue(name, path);
+        context.defineValue(name, path.parentPath);
       }
       const body = path.get('body');
-      getTypeParameters(path).forEach(item => {
+      const typeParameters = getTypeParameters(path);
+      typeParameters.forEach(item => {
         const {name} = item.node;
         context.defineClassTypeParameter(name, item);
       });
+      if (typeParameters.length > 0 || path.has('superTypeParameters')) {
+        ensureConstructor(path);
+        path.parentPath.scope.setData('typeParametersUid', path.parentPath.scope.generateUid('typeParameters'));
+      }
     }
   };
 }
@@ -76,4 +81,56 @@ export default function firstPassVisitors (context: ConversionContext): Object {
  */
 function hasTypeAnnotation (path: NodePath): boolean {
   return path.node && path.node.typeAnnotation ? true : false;
+}
+
+/**
+ * Ensure that the given class contains a constructor.
+ */
+function ensureConstructor (path: NodePath) {
+  let lastProperty;
+  const [existing] = path.get('body.body').filter(
+    item => {
+      if (item.isClassProperty()) {
+        lastProperty = item;
+        return false;
+      }
+      return item.node.kind === 'constructor';
+    }
+  );
+  if (existing) {
+    return existing;
+  }
+  let constructorNode;
+  if (path.has('superClass')) {
+    const args = t.identifier('args');
+    constructorNode = t.classMethod(
+      'constructor',
+      t.identifier('constructor'),
+      [t.restElement(args)],
+      t.blockStatement([
+        t.expressionStatement(
+          t.callExpression(
+            t.super(),
+            [t.spreadElement(args)]
+          )
+        )
+      ])
+    );
+
+  }
+  else {
+    constructorNode = t.classMethod(
+      'constructor',
+      t.identifier('constructor'),
+      [],
+      t.blockStatement([])
+    );
+  }
+
+  if (lastProperty) {
+    lastProperty.insertAfter(constructorNode);
+  }
+  else {
+    path.get('body').unshiftContainer('body', constructorNode);
+  }
 }

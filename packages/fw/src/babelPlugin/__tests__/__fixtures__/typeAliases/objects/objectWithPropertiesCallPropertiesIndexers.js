@@ -13,7 +13,7 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "runtime-types";
+  import t from "flow-runtime";
   const Demo = t.type("Demo", t.object(
     t.callProperty(t.function(
       t.param("foo", t.string()),

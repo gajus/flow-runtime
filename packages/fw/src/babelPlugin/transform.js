@@ -2,6 +2,7 @@
 import traverse from 'babel-traverse';
 import * as t from 'babel-types';
 
+import typeAnnotationIterator from './typeAnnotationIterator';
 import ConversionContext from './ConversionContext';
 import convert from './convert';
 
@@ -18,6 +19,22 @@ export default function transform (input: Node): Node {
   traverse(input, {
     Program (path: NodePath) {
       attachImport(context, path);
+    },
+    ImportDeclaration: {
+      exit (path: NodePath) {
+        if (path.node.importKind !== 'type') {
+          return;
+        }
+        path.node.importKind = 'value';
+      }
+    },
+    ExportDeclaration: {
+      exit (path: NodePath) {
+        if (path.node.exportKind !== 'type') {
+          return;
+        }
+        path.node.exportKind = 'value';
+      }
     },
     TypeAlias (path: NodePath) {
       const replacement = convert(context, path);
@@ -260,7 +277,39 @@ export default function transform (input: Node): Node {
       }
 
       if (path.has('returnType')) {
-        const returnType = path.get('returnType');
+        let returnType = path.get('returnType');
+        if (returnType.type === 'TypeAnnotation') {
+          returnType = returnType.get('typeAnnotation');
+        }
+        const returnTypeParameters = getTypeParameters(returnType);
+        if (returnType.isGenericTypeAnnotation() && returnTypeParameters.length > 0) {
+          // If we're in an async function, make the return type the promise resolution type.
+          if (path.node.async) {
+            // @todo warn if identifier is not Promise ?
+            returnType = getTypeParameters(returnType)[0];
+          }
+          else if (path.node.generator) {
+            const yieldType = returnTypeParameters[0];
+            returnType  = returnTypeParameters[1];
+            const nextType = returnTypeParameters[2];
+            const yieldTypeUid = body.scope.generateUidIdentifier('yieldType');
+            body.scope.setData(`yieldTypeUid`, yieldTypeUid);
+            definitions.push(t.variableDeclaration('const', [
+              t.variableDeclarator(
+                yieldTypeUid,
+                convert(context, yieldType)
+              )
+            ]));
+            const nextTypeUid = body.scope.generateUidIdentifier('nextType');
+            body.scope.setData(`nextTypeUid`, nextTypeUid);
+            definitions.push(t.variableDeclaration('const', [
+              t.variableDeclarator(
+                nextTypeUid,
+                convert(context, nextType)
+              )
+            ]));
+          }
+        }
         const returnTypeUid = body.scope.generateUidIdentifier('returnType');
         body.scope.setData(`returnTypeUid`, returnTypeUid);
         definitions.push(t.variableDeclaration('const', [
@@ -275,7 +324,6 @@ export default function transform (input: Node): Node {
         path.get('body').unshiftContainer('body', definitions.concat(invocations));
       }
       else {
-
         body.unshiftContainer('body', definitions.concat(invocations));
       }
 
@@ -295,12 +343,149 @@ export default function transform (input: Node): Node {
       ));
     },
 
-    Class (path: NodePath) {
-      const typeParameters = getTypeParameters(path);
-      if (!typeParameters.length) {
+    YieldExpression (path: NodePath) {
+      const fn = path.scope.getFunctionParent().path;
+      if (!fn.has('returnType')) {
         return;
       }
+      if (context.visited.has(path.node)) {
+        return;
+      }
+      const yieldTypeUid = path.scope.getData('yieldTypeUid');
+      const nextTypeUid = path.scope.getData('nextTypeUid');
 
+      const argument = path.get('argument');
+      let replacement;
+      if (path.node.delegate) {
+        replacement = t.yieldExpression(
+          t.callExpression(
+            context.call('wrapIterator', yieldTypeUid),
+            argument.node ? [argument.node] : []
+          ),
+          true
+        );
+      }
+      else {
+        replacement = t.yieldExpression(
+          t.callExpression(
+            t.memberExpression(yieldTypeUid, t.identifier('assert')),
+            argument.node ? [argument.node] : []
+          )
+        );
+      }
+
+      context.visited.add(replacement);
+      if (path.parentPath.isExpressionStatement()) {
+        path.replaceWith(replacement);
+      }
+      else {
+        path.replaceWith(t.callExpression(
+          t.memberExpression(nextTypeUid, t.identifier('assert')),
+          [replacement]
+        ));
+      }
+    },
+
+    Class: {
+      exit (path: NodePath) {
+        const typeParameters = getTypeParameters(path);
+        const superTypeParameters
+            = path.has('superTypeParameters')
+            ? path.get('superTypeParameters.params')
+            : []
+            ;
+        const hasTypeParameters = typeParameters.length > 0;
+        const hasSuperTypeParameters = superTypeParameters.length > 0;
+        if (!hasTypeParameters && !hasSuperTypeParameters) {
+          // Nothing to do here.
+          return;
+        }
+        const [constructor] = path.get('body.body').filter(
+          item => item.node.kind === 'constructor'
+        );
+        if (path.has('superClass')) {
+          const body = constructor.get('body');
+          const typeParametersUid = t.identifier(path.scope.getData('typeParametersUid'));
+
+          const trailer = [];
+          if (hasTypeParameters) {
+            body.unshiftContainer('body', t.variableDeclaration(
+              'const',
+              [t.variableDeclarator(
+                typeParametersUid,
+                t.objectExpression(typeParameters.map(typeParameter => {
+                  return t.objectProperty(
+                    t.identifier(typeParameter.node.name),
+                    convert(context, typeParameter)
+                  );
+                }))
+              )]
+            ));
+
+            const thisTypeParameters = t.memberExpression(
+              t.thisExpression(),
+              context.symbol('TypeParameters'),
+              true
+            );
+
+            trailer.push(
+              t.ifStatement(
+                thisTypeParameters,
+                t.blockStatement([
+                  t.expressionStatement(
+                    t.callExpression(
+                      t.memberExpression(
+                        t.identifier('Object'),
+                        t.identifier('assign')
+                      ),
+                      [thisTypeParameters, typeParametersUid]
+                    )
+                  )
+                ]),
+                t.blockStatement([
+                  t.expressionStatement(
+                    t.assignmentExpression(
+                      '=',
+                      thisTypeParameters,
+                      typeParametersUid
+                    )
+                  )
+                ])
+              )
+            );
+          }
+
+          if (hasSuperTypeParameters) {
+            trailer.push(t.expressionStatement(
+              context.call(
+                'bindTypeParameters',
+                t.thisExpression(),
+                ...superTypeParameters.map(item => convert(context, item))
+              )
+            ));
+          }
+          getSuperStatement(body).insertAfter(trailer);
+        }
+        else {
+          constructor.get('body').unshiftContainer('body', t.expressionStatement(
+            t.assignmentExpression(
+              '=',
+              t.memberExpression(
+                t.thisExpression(),
+                context.symbol('TypeParameters'),
+                true
+              ),
+              t.objectExpression(typeParameters.map(typeParameter => {
+                return t.objectProperty(
+                  t.identifier(typeParameter.node.name),
+                  convert(context, typeParameter)
+                );
+              }))
+            )
+          ));
+        }
+
+      }
     },
 
     ClassProperty (path: NodePath) {
@@ -308,7 +493,22 @@ export default function transform (input: Node): Node {
         return;
       }
       const typeAnnotation = path.get('typeAnnotation');
-      const decorator = t.decorator(context.call('decorateProperty', convert(context, typeAnnotation)));
+      let decorator;
+      if (annotationReferencesClassEntity (context, typeAnnotation)) {
+        decorator = t.decorator(context.call(
+          'decorate',
+          t.functionExpression(
+            null,
+            [],
+            t.blockStatement([
+              t.returnStatement(convert(context, typeAnnotation))
+            ])
+          )
+        ));
+      }
+      else {
+        decorator = t.decorator(context.call('decorate', convert(context, typeAnnotation)));
+      }
       if (!path.has('decorators')) {
         path.node.decorators = [];
       }
@@ -330,4 +530,33 @@ function attachImport (context: ConversionContext, container: NodePath) {
     item.insertBefore(importDeclaration);
     return;
   }
+}
+
+
+function annotationReferencesClassEntity (context: ConversionContext, annotation: NodePath): boolean {
+  for (const item of typeAnnotationIterator(annotation)) {
+    if (item.type !== 'Identifier') {
+      continue;
+    }
+    const entity = context.getEntity(item.node.name, annotation);
+    if (entity && entity.isClassTypeParameter) {
+      return true;
+    }
+    else if (entity && entity.isValue && !entity.isGlobal) {
+      return true;
+    }
+
+  }
+  return false;
+}
+
+function getSuperStatement (block: NodePath): NodePath {
+  let found;
+  block.traverse({
+    Super (path: NodePath) {
+      found = path.getStatementParent();
+    }
+  });
+  invariant(found, "Constructor of sub class must contain super().");
+  return found;
 }

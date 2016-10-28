@@ -48,6 +48,69 @@ function annotationParentHasTypeParameter (annotation: NodePath, name: string): 
   return false;
 }
 
+function parentIsClassConstructorWithSuper (subject: NodePath): boolean {
+  const fn = subject.findParent(item => item.isClassMethod() && item.node.kind === 'constructor');
+  if (!fn) {
+    return false;
+  }
+  const classDefinition = fn.parentPath.parentPath;
+  if (classDefinition.has('superClass')) {
+    return true;
+  }
+  else {
+    return parentIsClassConstructorWithSuper(classDefinition.parentPath);
+  }
+}
+
+function qualifiedToMemberExpression (subject: Node): Node {
+  if (subject.type === 'QualifiedTypeIdentifier') {
+    return t.memberExpression(
+      qualifiedToMemberExpression(subject.qualification),
+      subject.id
+    );
+  }
+  else {
+    return subject;
+  }
+}
+
+function annotationToValue (subject: Node): Node {
+  switch (subject.type) {
+    case 'NullableTypeAnnotation':
+    case 'TypeAnnotation':
+      return annotationToValue(subject.typeAnnotation);
+    case 'GenericTypeAnnotation':
+      return annotationToValue(subject.id);
+    case 'QualifiedTypeIdentifier':
+      return t.memberExpression(
+        annotationToValue(subject.qualification),
+        subject.id
+      );
+    case 'NullLiteralTypeAnnotation':
+      return t.nullLiteral();
+    case 'VoidTypeAnnotation':
+      return t.identifier('undefined');
+    case 'BooleanLiteralTypeAnnotation':
+      return t.booleanLiteral(subject.value);
+    case 'NumericLiteralTypeAnnotation':
+      return t.numericLiteral(subject.value);
+    case 'StringLiteralTypeAnnotation':
+      return t.stringLiteral(subject.value);
+
+    default:
+      return subject;
+  }
+}
+
+function getMemberExpressionObject (subject: Node): Node {
+  if (subject.type === 'MemberExpression') {
+    return getMemberExpressionObject(subject.object);
+  }
+  else {
+    return subject;
+  }
+}
+
 converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
   const name = path.node.id.name;
   const typeParameters = getTypeParameters(path);
@@ -92,6 +155,19 @@ converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
       )
     )
   ]);
+};
+
+converters.TypeofTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
+  return context.call('typeOf', annotationToValue(path.get('argument').node));
+};
+
+converters.TypeParameter = (context: ConversionContext, path: NodePath): Node => {
+  if (path.has('bound')) {
+    return context.call('typeParameter', t.stringLiteral(path.node.name), convert(context, path.get('bound')));
+  }
+  else {
+    return context.call('typeParameter', t.stringLiteral(path.node.name));
+  }
 };
 
 converters.TypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
@@ -161,8 +237,18 @@ converters.IntersectionTypeAnnotation = (context: ConversionContext, path: NodeP
 };
 
 converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
-  const {node} = path;
-  const {name} = node.id;
+  const id = path.get('id');
+  let name;
+  let subject;
+  if (id.isQualifiedTypeIdentifier()) {
+    subject = qualifiedToMemberExpression(id.node);
+    const outer = getMemberExpressionObject(subject);
+    name = outer.name;
+  }
+  else {
+    name = id.node.name;
+    subject = t.identifier(name);
+  }
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 
@@ -174,24 +260,35 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
 
   if (isDirectlyReferenceable) {
     if (typeParameters.length > 0) {
-      return context.call('ref', t.identifier(name), ...typeParameters);
+      return context.call('ref', subject, ...typeParameters);
     }
     else {
-      return t.identifier(name);
+      return subject;
     }
   }
   else if (!entity) {
     return context.call('ref', t.stringLiteral(name), ...typeParameters);
   }
   else if (entity.isClassTypeParameter) {
-    const target = t.memberExpression(
-      t.memberExpression(
-        t.thisExpression(),
-        context.symbol('TypeParameters'),
-        true
-      ),
-      t.identifier(name)
-    );
+    let target;
+    const typeParametersUid = path.scope.getData('typeParametersUid');
+    if (typeParametersUid && parentIsClassConstructorWithSuper(path)) {
+      target = t.memberExpression(
+        t.identifier(typeParametersUid),
+        subject
+      );
+    }
+    else {
+      target = t.memberExpression(
+        t.memberExpression(
+          t.thisExpression(),
+          context.symbol('TypeParameters'),
+          true
+        ),
+        subject
+      );
+    }
+
     if (typeParameters.length > 0) {
       return context.call('ref', target, ...typeParameters);
     }
@@ -203,7 +300,7 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     if (name === 'Array') {
       return context.call('array', ...typeParameters);
     }
-    return context.call('ref', t.identifier(name), ...typeParameters);
+    return context.call('ref', subject, ...typeParameters);
   }
 };
 

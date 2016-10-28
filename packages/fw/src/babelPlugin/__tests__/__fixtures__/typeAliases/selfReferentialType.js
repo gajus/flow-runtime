@@ -7,7 +7,7 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "runtime-types";
+  import t from "flow-runtime";
   const Demo = t.type("Demo", Demo => {
     return t.object(
       t.property("next", t.nullable(Demo))

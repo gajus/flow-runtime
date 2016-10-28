@@ -119,7 +119,6 @@ module.exports = {
     //'no-unused-expressions': 'warn',
     'no-unused-labels': 'warn',
     'no-unused-vars': ['warn', { vars: 'local', args: 'none' }],
-    'no-use-before-define': ['warn', 'nofunc'],
     'no-useless-computed-key': 'warn',
     'no-useless-concat': 'warn',
     'no-useless-constructor': 'warn',

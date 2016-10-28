@@ -32,7 +32,7 @@ export default class Entity {
   }
 
   get isValue (): boolean {
-    return this.type === 'ClassTypeParameter';
+    return this.type === 'Value';
   }
 
   get isGlobal (): boolean {

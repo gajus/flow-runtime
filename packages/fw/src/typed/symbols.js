@@ -1,7 +1,8 @@
 /* @flow */
 
 
-export const ParentAccessor = Symbol('Parent');
-export const NameRegistryAccessor = Symbol('NameRegistry');
-export const TypeHandlerRegistryAccessor = Symbol('TypeHandlerRegistry');
-export const InferrerAccessor = Symbol('Inferrer');
+export const ParentSymbol = Symbol('Parent');
+export const NameRegistrySymbol = Symbol('NameRegistry');
+export const TypeHandlerRegistrySymbol = Symbol('TypeHandlerRegistry');
+export const InferrerSymbol = Symbol('Inferrer');
+export const TypeSymbol = Symbol('Type');

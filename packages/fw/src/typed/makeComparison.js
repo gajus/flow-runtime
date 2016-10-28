@@ -74,6 +74,5 @@ export function makeObjectComparison (expected: ObjectType, inferred: ObjectType
 
     }
   }
-  console.log('c', expected, inferred);
   return makeSimpleComparison(expected, inferred);
 }

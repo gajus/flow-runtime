@@ -18,7 +18,7 @@ describe('Typed API', () => {
       t.property('bar', t.string('hello'))
     );
 
-    console.log(type.toString());
+    //console.log(type.toString());
     ok(type.match({
       foo: true,
       bar: 'hello'
@@ -44,7 +44,7 @@ describe('Typed API', () => {
     ));
 
     User.addConstraint(input => input.name.length > 2 && input.name.length < 45);
-    console.log(User.toString());
+    //console.log(User.toString());
 
     no(User.match({
       id: 123,
@@ -68,7 +68,7 @@ describe('Typed API', () => {
 
   it('should use a Map<string, number>', () => {
     const type = t.ref(Map, t.string(), t.number());
-    console.log(type.toString());
+    //console.log(type.toString());
     ok(type.match(new Map()));
     ok(type.match(new Map([
       ['valid', 123]
@@ -87,7 +87,7 @@ describe('Typed API', () => {
       t.return(t.string())
     );
 
-    console.log(type.toString());
+    //console.log(type.toString());
     const good = (input: boolean) => input ? 'yes' : 'no';
     const better = (input: boolean, etc: boolean) => input && etc ? 'yes' : 'no';
     const bad = () => undefined;
@@ -118,7 +118,7 @@ describe('Typed API', () => {
     ok(type.match(good));
     ok(type.match(better));
     no(type.match(bad));
-    console.log(type.toString());
+    //console.log(type.toString());
   });
 
   it('should build a tree-like object', () => {
@@ -135,7 +135,7 @@ describe('Typed API', () => {
         t.property('right', t.nullable(t.ref(Tree, T))),
       );
     });
-    console.log(Tree.toString(true));
+    //console.log(Tree.toString(true));
     const candidate = {
       value: 'hello world',
       left: null,
@@ -160,21 +160,138 @@ describe('Typed API', () => {
       t.property('email', UserEmailAddress)
     ));
 
-    console.log(User.toString(true));
+    //console.log(User.toString(true));
 
     const sally = {
       id: 123,
       name: 'Sally',
       email: 'invalid'
     };
-    User.assert(sally);
 
     throws(() => User.assert(sally));
     sally.email = 'sally@example.com';
     User.assert(sally);
 
+  });
+
+  it('should handle Class<User>', () => {
+
+    @t.annotate(t.object(
+      t.property('id', t.number()),
+      t.property('name', t.string()),
+      t.property('email', t.string())
+    ))
+    class User {
+      id: number;
+      name: string;
+      email: string;
+    }
+
+
+    class AdminUser extends User {
+
+    }
+
+    @t.annotate(t.object(
+      t.property('name', t.string()),
+    ))
+    class Role {
+      name: string;
+    }
+
+    const INameable = t.type('Nameable', t.object(
+      t.property('name', t.string())
+    ));
+    const INomable = t.type('Nameable', t.object(
+      t.property('nom', t.string())
+    ));
+    const INameableClass = t.ref('Class', INameable);
+    const INomableClass = t.ref('Class', INomable);
+
+    const IUserClass = t.ref('Class', t.ref(User));
+    const IAdminUserClass = t.ref('Class', t.ref(AdminUser));
+    no(IUserClass.match(Role));
+    ok(IUserClass.match(User));
+    ok(IUserClass.match(AdminUser));
+
+    no(IAdminUserClass.match(Role));
+    no(IAdminUserClass.match(User));
+    ok(IAdminUserClass.match(AdminUser));
+
+    ok(INameableClass.match(User));
+    ok(INameableClass.match(Role));
+    ok(INameableClass.match(AdminUser));
+    no(INomableClass.match(User));
+
+
     //t.ref(Map, t.string(), t.number()).assert(new Map([['hello', false]]));
   });
+
+  it('should $Diff<A, B>', () => {
+    const A = t.object(
+      t.property('name', t.string()),
+      t.property('email', t.string()),
+    );
+    const B = t.object(
+      t.property('email', t.string('example@example.com'))
+    );
+
+    const C = t.ref('$Diff', A, B);
+
+    no(C.match({}));
+    ok(C.match({name: 'Alice'}));
+    ok(C.match({name: 'Alice', email: 'alice@example.com'}));
+    no(C.match({email: 'alice@example.com'}));
+    no(C.match({name: false, email: 'alice@example.com'}));
+
+  });
+
+
+  it('should $Shape<A>', () => {
+    const A = t.object(
+      t.property('name', t.string()),
+      t.property('email', t.string()),
+    );
+    const B = t.ref('$Shape', A);
+
+    ok(B.match({}));
+    ok(B.match({name: 'Alice'}));
+    ok(B.match({name: 'Alice', email: 'alice@example.com'}));
+    no(B.match({nope: false}));
+    no(B.match({name: false, email: 'alice@example.com'}));
+    no(B.match({name: 'Alice', email: 'alice@example.com', extra: true}));
+
+  });
+
+  it('should $Keys<A>', () => {
+    const A = t.object(
+      t.property('name', t.string()),
+      t.property('email', t.string()),
+    );
+    const B = t.ref('$Keys', A);
+
+    ok(B.match('name'));
+    ok(B.match('email'));
+    no(B.match('nope'));
+    no(B.match(false));
+    no(B.match({}));
+  });
+
+  it('should $Keys<typeOf A>', () => {
+    const A = t.infer({
+      name: 'Alice',
+      email: 'example@example.com'
+    });
+    const B = t.ref('$Keys', A);
+
+    ok(B.match('name'));
+    ok(B.match('email'));
+    no(B.match('nope'));
+    no(B.match(false));
+    no(B.match({}));
+  });
+
+
 
   it('should build an object', () => {
     const type = t.object(
@@ -212,8 +329,8 @@ describe('Typed API', () => {
         ))
       ))
     );
-    console.log('\n');
-    console.log(type.toString());
-    console.log('\n');
+    //console.log('\n');
+    //console.log(type.toString());
+    //console.log('\n');
   });
 });

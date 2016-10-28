@@ -12,7 +12,7 @@ import traverse from 'babel-traverse';
 import type {Node, NodePath} from 'babel-traverse';
 
 
-describe.only('transform', () => {
+describe('transform', () => {
   for (const [name, {input, expected}] of fixtures) {
     it(`should transform ${name}`, () => {
       const parsed = parse(input);
@@ -62,6 +62,7 @@ function normalize (input: string): string {
     .replace(/\s+\}/g, '\n}')
     .replace(/\[\s+/g, '[')
     .replace(/\s+\]/g, ']')
+    .replace(/\}\s+([A-Za-z])/g, '\n}\n$1')
     .split(';')
     .join(';\n')
     ;

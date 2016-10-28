@@ -9,7 +9,7 @@ import type {Node, NodePath} from 'babel-traverse';
 
 export default class ConversionContext {
 
-  libraryName: string = 'runtime-types';
+  libraryName: string = 'flow-runtime';
   libraryId: string = 't';
 
   /**

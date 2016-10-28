@@ -5,7 +5,7 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "runtime-types";
+  import t from "flow-runtime";
   const Demo = t.type("Demo", t.function(_fn => {
     const T = _fn.typeParameter("T");
     return [

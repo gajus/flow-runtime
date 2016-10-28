@@ -5,7 +5,7 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "runtime-types";
+  import t from "flow-runtime";
   const Demo = t.type("Demo", t.function(
     t.rest("a", t.array(t.string())),
     t.return(t.string())

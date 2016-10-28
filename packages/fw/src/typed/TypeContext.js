@@ -44,10 +44,11 @@ import {
 } from './types';
 
 import {
-  ParentAccessor,
-  NameRegistryAccessor,
-  TypeHandlerRegistryAccessor,
-  InferrerAccessor
+  ParentSymbol,
+  NameRegistrySymbol,
+  TypeHandlerRegistrySymbol,
+  InferrerSymbol,
+  TypeSymbol
 } from './symbols';
 
 import type {TypeCreator, FunctionBodyCreator, IApplicableType} from './types';
@@ -82,29 +83,29 @@ type TypeHandlerRegistry = Map<Function, Class<TypeHandler>>;
 export default class TypeContext {
 
   // @flowIssue 252
-  [ParentAccessor]: ? TypeContext;
+  [ParentSymbol]: ? TypeContext;
 
   // @flowIssue 252
-  [NameRegistryAccessor]: NameRegistry = {};
+  [NameRegistrySymbol]: NameRegistry = {};
 
   // @flowIssue 252
-  [TypeHandlerRegistryAccessor]: TypeHandlerRegistry = new Map();
+  [TypeHandlerRegistrySymbol]: TypeHandlerRegistry = new Map();
 
   // @flowIssue 252
-  [InferrerAccessor]: TypeInferrer = new TypeInferrer(this);
+  [InferrerSymbol]: TypeInferrer = new TypeInferrer(this);
 
   createContext <T: Type> (body: (context: TypeContext) => T): T {
     const context = new TypeContext();
 
     // @flowIssue 252
-    context[ParentAccessor] = this;
+    context[ParentSymbol] = this;
 
     return body(context);
   }
 
   infer (input: any): Type {
     // @flowIssue 252
-    const inferrer = this[InferrerAccessor];
+    const inferrer = this[InferrerSymbol];
     (inferrer: TypeInferrer);
 
     return inferrer.infer(input);
@@ -112,7 +113,7 @@ export default class TypeContext {
 
   get (name: string): ? Type {
     // @flowIssue 252
-    const item = this[NameRegistryAccessor][name];
+    const item = this[NameRegistrySymbol][name];
     if (item != null) {
       if (typeof item === 'function') {
         return new item(this);
@@ -122,10 +123,33 @@ export default class TypeContext {
       }
     }
     // @flowIssue 252
-    const parent = this[ParentAccessor];
+    const parent = this[ParentSymbol];
     if (parent) {
       return parent.get(name);
     }
+  }
+
+  /**
+   * Returns a decorator for a function or object with the given type.
+   */
+  annotate (type: Type): * {
+    return function <T: Object | Function> (input: T): T {
+      input[TypeSymbol] = type;
+      return input;
+    };
+  }
+
+  getAnnotation (input: Object | Function): ? Type {
+    return input[TypeSymbol];
+  }
+
+  hasAnnotation (input: Object | Function): boolean {
+    return input[TypeSymbol] ? true : false;
+  }
+
+  setAnnotation <T: Object | Function> (input: T, type: Type): T {
+    input[TypeSymbol] = type;
+    return input;
   }
 
   type <T: Type> (name: string, type: Type | TypeCreator<T>): NamedType | ParameterizedNamedType<T> {
@@ -146,7 +170,7 @@ export default class TypeContext {
   declare <T: Type> (name: string, type: Type | TypeCreator<T>): NamedType | ParameterizedNamedType<T> {
 
     // @flowIssue 252
-    const nameRegistry = this[NameRegistryAccessor];
+    const nameRegistry = this[NameRegistrySymbol];
 
     if (nameRegistry[name]) {
       throw new Error(`Cannot redeclare type: ${name}`);
@@ -159,7 +183,7 @@ export default class TypeContext {
 
   declareTypeHandler ({name, impl, typeName, match, inferTypeParameters}: TypeHandlerConfig): TypeHandler {
     // @flowIssue 252
-    const nameRegistry = this[NameRegistryAccessor];
+    const nameRegistry = this[NameRegistrySymbol];
 
     if (nameRegistry[name]) {
       throw new Error(`Cannot redeclare type: ${name}`);
@@ -176,7 +200,7 @@ export default class TypeContext {
 
     if (typeof impl === 'function') {
       // @flowIssue 252
-      const handlerRegistry = this[TypeHandlerRegistryAccessor];
+      const handlerRegistry = this[TypeHandlerRegistrySymbol];
       (handlerRegistry: TypeHandlerRegistry);
 
       if (handlerRegistry.has(impl)) {
@@ -189,7 +213,7 @@ export default class TypeContext {
 
   getTypeHandler (impl: Function): ? TypeHandler {
     // @flowIssue 252
-    const handlerRegistry = this[TypeHandlerRegistryAccessor];
+    const handlerRegistry = this[TypeHandlerRegistrySymbol];
     (handlerRegistry: TypeHandlerRegistry);
 
     return handlerRegistry.get(impl);
@@ -423,7 +447,7 @@ export default class TypeContext {
     }
     else if (typeof subject === 'function') {
       // @flowIssue 252
-      const handlerRegistry = this[TypeHandlerRegistryAccessor];
+      const handlerRegistry = this[TypeHandlerRegistrySymbol];
       (handlerRegistry: TypeHandlerRegistry);
 
       // see if we have a dedicated TypeHandler for this.
