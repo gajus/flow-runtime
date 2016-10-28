@@ -6,11 +6,11 @@ import SymbolLiteralType from './SymbolLiteralType';
 export default class SymbolType extends Type {
   typeName: string = 'SymbolType';
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return typeof input === 'symbol';
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof SymbolType || input instanceof SymbolLiteralType;
   }
 

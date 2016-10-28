@@ -26,13 +26,13 @@ export default class PartialType<T: Type> extends Type {
     return target;
   }
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {type} = this;
-    return type.match(input);
+    return type.accepts(input);
   }
 
-  matchType (input: Type): boolean {
-    return this.type.matchType(input);
+  acceptsType (input: Type): boolean {
+    return this.type.acceptsType(input);
   }
 
   makeErrorMessage (): string {

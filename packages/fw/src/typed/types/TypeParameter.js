@@ -17,14 +17,14 @@ export default class TypeParameter extends Type {
 
   recorded: ? Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
 
     const {recorded, bound, context} = this;
 
     if (recorded) {
-      return recorded.match(input);
+      return recorded.accepts(input);
     }
-    else if (bound && !bound.match(input)) {
+    else if (bound && !bound.accepts(input)) {
       return false;
     }
     this.recorded = context.infer(input);
@@ -32,7 +32,7 @@ export default class TypeParameter extends Type {
     return true;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     const {recorded, bound} = this;
     if (input instanceof TypeParameter) {
       // We don't need to check for `recorded` or `bound` fields
@@ -40,13 +40,13 @@ export default class TypeParameter extends Type {
       return true;
     }
     else if (recorded) {
-      return recorded.matchType(input);
+      return recorded.acceptsType(input);
     }
     else if (bound) {
-      return bound.matchType(input);
+      return bound.acceptsType(input);
     }
     else {
-      // A generic type parameter matches any input.
+      // A generic type parameter accepts any input.
       return true;
     }
   }

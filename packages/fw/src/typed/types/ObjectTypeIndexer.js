@@ -8,15 +8,15 @@ export default class ObjectTypeIndexer extends Type {
   key: Type;
   value: Type;
 
-  match (key: any, value: any): boolean {
-    return this.key.match(key) && this.value.match(value);
+  accepts (key: any, value: any): boolean {
+    return this.key.accepts(key) && this.value.accepts(value);
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (!(input instanceof ObjectTypeIndexer)) {
       return false;
     }
-    return this.key.matchType(input.key) && this.value.matchType(input.value);
+    return this.key.acceptsType(input.key) && this.value.acceptsType(input.value);
   }
 
   makeErrorMessage (): string {

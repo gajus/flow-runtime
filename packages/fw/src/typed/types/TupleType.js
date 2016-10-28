@@ -6,7 +6,7 @@ export default class TupleType extends Type {
   typeName: string = 'TupleType';
   types: Type[] = [];
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {types} = this;
     const {length} = types;
     if (!Array.isArray(input) || input.length < length) {
@@ -14,14 +14,14 @@ export default class TupleType extends Type {
     }
     for (let i = 0; i < length; i++) {
       const type = types[i];
-      if (!type.match(input[i])) {
+      if (!type.accepts(input[i])) {
         return false;
       }
     }
     return true;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (!(input instanceof TupleType)) {
       return false;
     }
@@ -31,7 +31,7 @@ export default class TupleType extends Type {
       return false;
     }
     for (let i = 0; i < types.length; i++) {
-      if (!types[i].matchType(inputTypes[i])) {
+      if (!types[i].acceptsType(inputTypes[i])) {
         return false;
       }
     }

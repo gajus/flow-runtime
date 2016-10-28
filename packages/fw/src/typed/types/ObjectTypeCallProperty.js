@@ -6,15 +6,15 @@ export default class ObjectTypeCallProperty extends Type {
   typeName: string = 'ObjectTypeCallProperty';
   value: Type;
 
-  match (input: any): boolean {
-    return this.value.match(input);
+  accepts (input: any): boolean {
+    return this.value.accepts(input);
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (!(input instanceof ObjectTypeCallProperty)) {
       return false;
     }
-    return this.value.matchType(input.value);
+    return this.value.acceptsType(input.value);
   }
 
   makeErrorMessage (): string {

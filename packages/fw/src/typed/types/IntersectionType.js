@@ -6,30 +6,30 @@ export default class IntersectionType extends Type {
   typeName: string = 'IntersectionType';
   types: Type[] = [];
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {types} = this;
     const {length} = types;
     for (let i = 0; i < length; i++) {
       const type = types[i];
-      if (!type.match(input)) {
+      if (!type.accepts(input)) {
         return false;
       }
     }
     return true;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     const types = this.types;
     if (input instanceof IntersectionType) {
       const inputTypes = input.types;
       loop: for (let i = 0; i < types.length; i++) {
         const type = types[i];
         for (let j = 0; j < inputTypes.length; j++) {
-          if (type.matchType(inputTypes[i])) {
+          if (type.acceptsType(inputTypes[i])) {
             continue loop;
           }
         }
-        // if we got this far then nothing matched this type.
+        // if we got this far then nothing acceptsed this type.
         return false;
       }
       return true;
@@ -37,7 +37,7 @@ export default class IntersectionType extends Type {
     else {
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
-        if (!type.matchType(input)) {
+        if (!type.acceptsType(input)) {
           return false;
         }
       }

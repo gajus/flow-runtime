@@ -13,7 +13,7 @@ describe('TypeInferrer', () => {
     });
 
     it('should be acceptable to the infered type', () => {
-      ok(type.match(input));
+      ok(type.accepts(input));
     });
   }
 

@@ -6,22 +6,22 @@ export default class ArrayType extends Type {
   typeName: string = 'ArrayType';
   elementType: Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     if (!Array.isArray(input)) {
       return false;
     }
     const {elementType} = this;
     const {length} = input;
     for (let i = 0; i < length; i++) {
-      if (!elementType.match(input[i])) {
+      if (!elementType.accepts(input[i])) {
         return false;
       }
     }
     return true;
   }
 
-  matchType (input: Type): boolean {
-    return input instanceof ArrayType && this.elementType.matchType(input.elementType);
+  acceptsType (input: Type): boolean {
+    return input instanceof ArrayType && this.elementType.acceptsType(input.elementType);
   }
 
   makeErrorMessage (): string {

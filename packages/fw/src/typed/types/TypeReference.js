@@ -18,12 +18,12 @@ export default class TypeReference extends Type {
     return type;
   }
 
-  match (input: any): boolean {
-    return this.type.match(input);
+  accepts (input: any): boolean {
+    return this.type.accepts(input);
   }
 
-  matchType (input: Type): boolean {
-    return this.type.matchType(input);
+  acceptsType (input: Type): boolean {
+    return this.type.acceptsType(input);
   }
 
   apply (...typeInstances: Type[]): TypeParameterApplication {

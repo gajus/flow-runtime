@@ -6,11 +6,11 @@ import NumericLiteralType from './NumericLiteralType';
 export default class NumberType extends Type {
   typeName: string = 'NumberType';
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return typeof input === 'number';
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof NumberType || input instanceof NumericLiteralType;
   }
 

@@ -16,7 +16,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: 'Class',
     typeName: 'ClassType',
-    match (input, instanceType: Type): boolean {
+    accepts (input, instanceType: Type): boolean {
       if (typeof input !== 'function') {
         return false;
       }
@@ -34,7 +34,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       const annotation = t.getAnnotation(input);
       if (annotation) {
-        return expectedType.matchType(annotation);
+        return expectedType.acceptsType(annotation);
       }
       // we're dealing with a type
       switch (input.typeName) {
@@ -65,7 +65,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$Diff',
     typeName: '$DiffType',
-    match (input, aType: Type, bType: Type): boolean {
+    accepts (input, aType: Type, bType: Type): boolean {
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
         return false;
       }
@@ -78,7 +78,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
         if (bType.hasProperty(property.key)) {
           continue;
         }
-        if (!property.match(input)) {
+        if (!property.accepts(input)) {
           return false;
         }
       }
@@ -91,11 +91,11 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
 
   // An object of type $Shape<T> does not have to have all of the properties
   // that type T defines. But the types of the properties that it does have
-  // must match the types of the same properties in T.
+  // must accepts the types of the same properties in T.
   t.declareTypeHandler({
     name: '$Shape',
     typeName: '$ShapeType',
-    match (input, shapeType: Type): boolean {
+    accepts (input, shapeType: Type): boolean {
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
         return false;
       }
@@ -103,7 +103,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       invariant(shapeType instanceof ObjectType, "Can only $Shape<T> object types.");
       for (const key in input) {
         const property = shapeType.getProperty(key);
-        if (!property || !property.match(input)) {
+        if (!property || !property.accepts(input)) {
           return false;
         }
       }
@@ -119,8 +119,8 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$SuperType',
     typeName: '$SuperType',
-    match (input, superType: Type): boolean {
-      return superType.match(input);
+    accepts (input, superType: Type): boolean {
+      return superType.accepts(input);
     },
     inferTypeParameters (input: any): Type[] {
       return [];
@@ -131,8 +131,8 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$SubType',
     typeName: '$SubType',
-    match (input, subType: Type): boolean {
-      return subType.match(input);
+    accepts (input, subType: Type): boolean {
+      return subType.accepts(input);
     },
     inferTypeParameters (input: any): Type[] {
       return [];
@@ -144,7 +144,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$Keys',
     typeName: '$KeysType',
-    match (input, subject: Type): boolean {
+    accepts (input, subject: Type): boolean {
       subject = subject.resolve();
       invariant(subject instanceof ObjectType, '$Keys<T> - T must be an ObjectType.');
       const properties = subject.properties;
@@ -165,7 +165,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     name: 'Date',
     impl: Date,
     typeName: 'DateType',
-    match (input): boolean {
+    accepts (input): boolean {
       return input instanceof Date && !isNaN(input.getTime());
     },
     inferTypeParameters (input: Date): Type[] {
@@ -176,7 +176,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: 'Iterable',
     typeName: 'IterableType',
-    match (input, keyType: Type): boolean {
+    accepts (input, keyType: Type): boolean {
       if (!input || typeof input[Symbol.iterator] !== 'function') {
         return false;
       }
@@ -191,7 +191,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     name: 'Promise',
     impl: Promise,
     typeName: 'PromiseType',
-    match (input): boolean {
+    accepts (input): boolean {
       return input && typeof input.then === 'function' && input.then.length > 1;
     },
     inferTypeParameters (input: any): Type[] {
@@ -203,12 +203,12 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     name: 'Map',
     impl: Map,
     typeName: 'MapType',
-    match (input, keyType: Type, valueType: Type): boolean {
+    accepts (input, keyType: Type, valueType: Type): boolean {
       if (!(input instanceof Map)) {
         return false;
       }
       for (const [key, value] of input) {
-        if (!keyType.match(key) || !valueType.match(value)) {
+        if (!keyType.accepts(key) || !valueType.accepts(value)) {
           return false;
         }
       }
@@ -221,7 +221,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
         findKey: {
           for (let i = 0; i < keyTypes.length; i++) {
             const type = keyTypes[i];
-            if (type.match(key)) {
+            if (type.accepts(key)) {
               break findKey;
             }
           }
@@ -230,7 +230,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
 
         for (let i = 0; i < valueTypes.length; i++) {
           const type = valueTypes[i];
-          if (type.match(value)) {
+          if (type.accepts(value)) {
             continue loop;
           }
         }
@@ -266,12 +266,12 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     name: 'Set',
     impl: Set,
     typeName: 'SetType',
-    match (input, valueType) {
+    accepts (input, valueType) {
       if (!(input instanceof Set)) {
         return false;
       }
       for (const value of input) {
-        if (!valueType.match(value)) {
+        if (!valueType.accepts(value)) {
           return false;
         }
       }
@@ -282,7 +282,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       loop: for (const value of input) {
         for (let i = 0; i < valueTypes.length; i++) {
           const type = valueTypes[i];
-          if (type.match(value)) {
+          if (type.accepts(value)) {
             continue loop;
           }
         }

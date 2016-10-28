@@ -7,11 +7,11 @@ import type Type from './Type';
 export default class GenericType extends TypeHandler {
   typeName: string = 'GenericType';
 
-  match (input: any, ...typeInstances: Type[]): boolean {
+  accepts (input: any, ...typeInstances: Type[]): boolean {
     return input instanceof this.impl;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof GenericType && input.impl === this.impl;
   }
 

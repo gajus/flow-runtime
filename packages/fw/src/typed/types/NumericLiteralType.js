@@ -6,11 +6,11 @@ export default class NumericLiteralType extends Type {
   typeName: string = 'NumericLiteralType';
   value: number;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return input === this.value;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof NumericLiteralType && input.value === this.value;
   }
 

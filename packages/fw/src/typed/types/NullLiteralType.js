@@ -5,11 +5,11 @@ import Type from './Type';
 export default class NullLiteralType extends Type {
   typeName: string = 'NullLiteralType';
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return input === null;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof NullLiteralType;
   }
 

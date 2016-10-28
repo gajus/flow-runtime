@@ -6,11 +6,11 @@ export default class SymbolLiteralType extends Type {
   typeName: string = 'SymbolLiteralType';
   value: Symbol;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return input === this.value;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof SymbolLiteralType && input.value === this.value;
   }
 

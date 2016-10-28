@@ -6,11 +6,11 @@ import BooleanLiteralType from './BooleanLiteralType';
 export default class BooleanType extends Type {
   typeName: string = 'BooleanType';
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return typeof input === 'boolean';
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof BooleanType || input instanceof BooleanLiteralType;
   }
 

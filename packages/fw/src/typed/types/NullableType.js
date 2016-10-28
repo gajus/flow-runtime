@@ -7,21 +7,21 @@ export default class NullableType extends Type {
   typeName: string = 'NullableType';
   type: Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     if (input == null) {
       return true;
     }
     else {
-      return this.type.match(input);
+      return this.type.accepts(input);
     }
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (input instanceof NullableType) {
-      return this.type.matchType(input.type);
+      return this.type.acceptsType(input.type);
     }
     else {
-      return this.type.matchType(input);
+      return this.type.acceptsType(input);
     }
   }
 

@@ -6,11 +6,11 @@ import Type from './Type';
 export default class VoidType extends Type {
   typeName: string = 'VoidType';
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return input === undefined;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof VoidType;
   }
 

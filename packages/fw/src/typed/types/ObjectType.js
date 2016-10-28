@@ -43,14 +43,14 @@ export default class ObjectType extends Type {
 
 
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     if (input === null) {
       return false;
     }
     const hasCallProperties = this.callProperties.length > 0;
 
     if (hasCallProperties) {
-      if (!matchCallProperties(this, input)) {
+      if (!acceptsCallProperties(this, input)) {
         return false;
       }
     }
@@ -59,28 +59,28 @@ export default class ObjectType extends Type {
     }
 
     if (this.indexers.length > 0) {
-      return matchWithIndexers(this, input);
+      return acceptsWithIndexers(this, input);
     }
     else {
-      return matchWithoutIndexers(this, input);
+      return acceptsWithoutIndexers(this, input);
     }
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (!(input instanceof ObjectType)) {
       return false;
     }
     const hasCallProperties = this.callProperties.length > 0;
 
-    if (hasCallProperties && !matchTypeCallProperties(this, input)) {
+    if (hasCallProperties && !acceptsTypeCallProperties(this, input)) {
       return false;
     }
 
     if (this.indexers.length > 0) {
-      return matchTypeWithIndexers(this, input);
+      return acceptsTypeWithIndexers(this, input);
     }
     else {
-      return matchTypeWithoutIndexers(this, input);
+      return acceptsTypeWithoutIndexers(this, input);
     }
   }
 
@@ -113,14 +113,14 @@ export default class ObjectType extends Type {
   }
 }
 
-function matchCallProperties (type: ObjectType, input: any): boolean {
+function acceptsCallProperties (type: ObjectType, input: any): boolean {
   if (typeof input !== 'function') {
     return false;
   }
   const {callProperties} = type;
   for (let i = 0; i < callProperties.length; i++) {
     const callProperty = callProperties[i];
-    if (callProperty.match(input)) {
+    if (callProperty.accepts(input)) {
       return true;
     }
   }
@@ -128,7 +128,7 @@ function matchCallProperties (type: ObjectType, input: any): boolean {
 }
 
 
-function matchTypeCallProperties (type: ObjectType, input: ObjectType): boolean {
+function acceptsTypeCallProperties (type: ObjectType, input: ObjectType): boolean {
   const {callProperties} = type;
   const inputCallProperties = input.callProperties;
   loop: for (let i = 0; i < callProperties.length; i++) {
@@ -136,22 +136,22 @@ function matchTypeCallProperties (type: ObjectType, input: ObjectType): boolean 
 
     for (let j = 0; j < inputCallProperties.length; j++) {
       const inputCallProperty = inputCallProperties[j];
-      if (callProperty.matchType(inputCallProperty)) {
+      if (callProperty.acceptsType(inputCallProperty)) {
         continue loop;
       }
     }
-    // If we got this far, nothing matched.
+    // If we got this far, nothing acceptsed.
     return false;
   }
   return true;
 }
 
-function matchWithIndexers (type: ObjectType, input: any): boolean {
+function acceptsWithIndexers (type: ObjectType, input: any): boolean {
   const {properties, indexers} = type;
   const seen = [];
   for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
-    if (!property.match(input)) {
+    if (!property.accepts(input)) {
       return false;
     }
     seen.push(property.key);
@@ -163,18 +163,18 @@ function matchWithIndexers (type: ObjectType, input: any): boolean {
     const value = input[key];
     for (let i = 0; i < indexers.length; i++) {
       const indexer = indexers[i];
-      if (indexer.match(key, value)) {
+      if (indexer.accepts(key, value)) {
         continue loop;
       }
     }
 
-    // if we got this far the key / value did not match any indexers.
+    // if we got this far the key / value did not accepts any indexers.
     return false;
   }
   return true;
 }
 
-function matchTypeWithIndexers (type: ObjectType, input: ObjectType): boolean {
+function acceptsTypeWithIndexers (type: ObjectType, input: ObjectType): boolean {
   const {indexers, properties} = type;
   const inputIndexers = input.indexers;
   const inputProperties = input.properties;
@@ -183,7 +183,7 @@ function matchTypeWithIndexers (type: ObjectType, input: ObjectType): boolean {
     for (let j = 0; j < inputProperties.length; j++) {
       const inputProperty = inputProperties[j];
       if (inputProperty.key === property.key) {
-        if (property.matchType(inputProperty)) {
+        if (property.acceptsType(inputProperty)) {
           continue loop;
         }
         else {
@@ -196,29 +196,29 @@ function matchTypeWithIndexers (type: ObjectType, input: ObjectType): boolean {
     const indexer = indexers[i];
     for (let j = 0; j < inputIndexers.length; j++) {
       const inputIndexer = inputIndexers[j];
-      if (indexer.matchType(inputIndexer)) {
+      if (indexer.acceptsType(inputIndexer)) {
         continue loop;
       }
     }
-    // if we got this far, nothing matched
+    // if we got this far, nothing acceptsed
     return false;
   }
   return true;
 }
 
 
-function matchWithoutIndexers (type: ObjectType, input: any): boolean {
+function acceptsWithoutIndexers (type: ObjectType, input: any): boolean {
   const {properties} = type;
   for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
-    if (!property.match(input)) {
+    if (!property.accepts(input)) {
       return false;
     }
   }
   return true;
 }
 
-function matchTypeWithoutIndexers (type: ObjectType, input: ObjectType): boolean {
+function acceptsTypeWithoutIndexers (type: ObjectType, input: ObjectType): boolean {
   const {properties} = type;
   const inputProperties = input.properties;
   loop: for (let i = 0; i < properties.length; i++) {
@@ -226,7 +226,7 @@ function matchTypeWithoutIndexers (type: ObjectType, input: ObjectType): boolean
     for (let j = 0; j < inputProperties.length; j++) {
       const inputProperty = inputProperties[j];
       if (inputProperty.key === property.key) {
-        if (property.matchType(inputProperty)) {
+        if (property.acceptsType(inputProperty)) {
           continue loop;
         }
         else {

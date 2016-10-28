@@ -8,7 +8,7 @@ export default class GeneratorType extends Type {
   returnType: Type;
   nextType: Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return input
       && typeof input.next === 'function'
       && typeof input.return === 'function'
@@ -16,27 +16,27 @@ export default class GeneratorType extends Type {
       ;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (!(input instanceof GeneratorType)) {
-      return this.yieldType.match(input);
+      return this.yieldType.accepts(input);
     }
     return (
-         this.yieldType.matchType(input.yieldType)
-      && this.returnType.matchType(input.returnType)
-      && this.nextType.matchType(input.nextType)
+         this.yieldType.acceptsType(input.yieldType)
+      && this.returnType.acceptsType(input.returnType)
+      && this.nextType.acceptsType(input.nextType)
     );
   }
 
-  matchYield (input: any): boolean {
-    return this.yieldType.match(input);
+  acceptsYield (input: any): boolean {
+    return this.yieldType.accepts(input);
   }
 
-  matchReturn (input: any): boolean {
-    return this.returnType.match(input);
+  acceptsReturn (input: any): boolean {
+    return this.returnType.accepts(input);
   }
 
-  matchNext (input: any): boolean {
-    return this.nextType.match(input);
+  acceptsNext (input: any): boolean {
+    return this.nextType.accepts(input);
   }
 
   assertYield <T> (input: T): T {

@@ -10,12 +10,12 @@ export default class TypeHandler extends Type {
   name: string;
   impl: ? Constructor;
 
-  match (input: any, ...typeInstances: Type[]): boolean {
-    throw new Error(`No matcher for ${this.name}.`);
+  accepts (input: any, ...typeInstances: Type[]): boolean {
+    throw new Error(`No acceptser for ${this.name}.`);
   }
 
-  matchType (input: Type): boolean {
-    throw new Error(`No matcher for ${this.name}.`);
+  acceptsType (input: Type): boolean {
+    throw new Error(`No acceptser for ${this.name}.`);
   }
 
   inferTypeParameters (input: any): Type[] {

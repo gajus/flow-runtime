@@ -8,8 +8,8 @@ const no = (input: any): any => ok(!input);
 describe('Typed API', () => {
   it('should check a string', () => {
     const type = t.string();
-    ok(type.match('helo world'));
-    no(type.match(false));
+    ok(type.accepts('helo world'));
+    no(type.accepts(false));
   });
 
   it('should check a simple object', () => {
@@ -19,7 +19,7 @@ describe('Typed API', () => {
     );
 
     //console.log(type.toString());
-    ok(type.match({
+    ok(type.accepts({
       foo: true,
       bar: 'hello'
     }));
@@ -32,9 +32,9 @@ describe('Typed API', () => {
       t.boolean()
     );
 
-    ok(type.match(['hello', 213, true]));
-    ok(type.match(['hello', 213, true, 'still ok']));
-    no(type.match(['hello', 213, 'nah']));
+    ok(type.accepts(['hello', 213, true]));
+    ok(type.accepts(['hello', 213, true, 'still ok']));
+    no(type.accepts(['hello', 213, 'nah']));
   });
 
   it('should declare a named type', () => {
@@ -46,20 +46,20 @@ describe('Typed API', () => {
     User.addConstraint(input => input.name.length > 2 && input.name.length < 45);
     //console.log(User.toString());
 
-    no(User.match({
+    no(User.accepts({
       id: 123,
       name: false
     }));
 
-    no(User.match({
+    no(User.accepts({
       id: 123,
       name: ''
     }));
-    ok(User.match({
+    ok(User.accepts({
       id: 123,
       name: 'this is valid'
     }));
-    ok(User.match({
+    ok(User.accepts({
       id: 123,
       name: 'this is valid',
       extra: 'okay'
@@ -69,11 +69,11 @@ describe('Typed API', () => {
   it('should use a Map<string, number>', () => {
     const type = t.ref(Map, t.string(), t.number());
     //console.log(type.toString());
-    ok(type.match(new Map()));
-    ok(type.match(new Map([
+    ok(type.accepts(new Map()));
+    ok(type.accepts(new Map([
       ['valid', 123]
     ])));
-    no(type.match(new Map([
+    no(type.accepts(new Map([
       ['valid', 123],
       ['notvalid', false]
     ])));
@@ -91,9 +91,9 @@ describe('Typed API', () => {
     const good = (input: boolean) => input ? 'yes' : 'no';
     const better = (input: boolean, etc: boolean) => input && etc ? 'yes' : 'no';
     const bad = () => undefined;
-    ok(type.match(good));
-    ok(type.match(better));
-    no(type.match(bad));
+    ok(type.accepts(good));
+    ok(type.accepts(better));
+    no(type.accepts(bad));
   });
 
   it('should make a parameterized function type', () => {
@@ -115,9 +115,9 @@ describe('Typed API', () => {
     function bad (): void {
       return;
     }
-    ok(type.match(good));
-    ok(type.match(better));
-    no(type.match(bad));
+    ok(type.accepts(good));
+    ok(type.accepts(better));
+    no(type.accepts(bad));
     //console.log(type.toString());
   });
 
@@ -210,18 +210,18 @@ describe('Typed API', () => {
 
     const IUserClass = t.ref('Class', t.ref(User));
     const IAdminUserClass = t.ref('Class', t.ref(AdminUser));
-    no(IUserClass.match(Role));
-    ok(IUserClass.match(User));
-    ok(IUserClass.match(AdminUser));
+    no(IUserClass.accepts(Role));
+    ok(IUserClass.accepts(User));
+    ok(IUserClass.accepts(AdminUser));
 
-    no(IAdminUserClass.match(Role));
-    no(IAdminUserClass.match(User));
-    ok(IAdminUserClass.match(AdminUser));
+    no(IAdminUserClass.accepts(Role));
+    no(IAdminUserClass.accepts(User));
+    ok(IAdminUserClass.accepts(AdminUser));
 
-    ok(INameableClass.match(User));
-    ok(INameableClass.match(Role));
-    ok(INameableClass.match(AdminUser));
-    no(INomableClass.match(User));
+    ok(INameableClass.accepts(User));
+    ok(INameableClass.accepts(Role));
+    ok(INameableClass.accepts(AdminUser));
+    no(INomableClass.accepts(User));
 
 
     //t.ref(Map, t.string(), t.number()).assert(new Map([['hello', false]]));
@@ -238,11 +238,11 @@ describe('Typed API', () => {
 
     const C = t.ref('$Diff', A, B);
 
-    no(C.match({}));
-    ok(C.match({name: 'Alice'}));
-    ok(C.match({name: 'Alice', email: 'alice@example.com'}));
-    no(C.match({email: 'alice@example.com'}));
-    no(C.match({name: false, email: 'alice@example.com'}));
+    no(C.accepts({}));
+    ok(C.accepts({name: 'Alice'}));
+    ok(C.accepts({name: 'Alice', email: 'alice@example.com'}));
+    no(C.accepts({email: 'alice@example.com'}));
+    no(C.accepts({name: false, email: 'alice@example.com'}));
 
   });
 
@@ -254,12 +254,12 @@ describe('Typed API', () => {
     );
     const B = t.ref('$Shape', A);
 
-    ok(B.match({}));
-    ok(B.match({name: 'Alice'}));
-    ok(B.match({name: 'Alice', email: 'alice@example.com'}));
-    no(B.match({nope: false}));
-    no(B.match({name: false, email: 'alice@example.com'}));
-    no(B.match({name: 'Alice', email: 'alice@example.com', extra: true}));
+    ok(B.accepts({}));
+    ok(B.accepts({name: 'Alice'}));
+    ok(B.accepts({name: 'Alice', email: 'alice@example.com'}));
+    no(B.accepts({nope: false}));
+    no(B.accepts({name: false, email: 'alice@example.com'}));
+    no(B.accepts({name: 'Alice', email: 'alice@example.com', extra: true}));
 
   });
 
@@ -270,11 +270,11 @@ describe('Typed API', () => {
     );
     const B = t.ref('$Keys', A);
 
-    ok(B.match('name'));
-    ok(B.match('email'));
-    no(B.match('nope'));
-    no(B.match(false));
-    no(B.match({}));
+    ok(B.accepts('name'));
+    ok(B.accepts('email'));
+    no(B.accepts('nope'));
+    no(B.accepts(false));
+    no(B.accepts({}));
   });
 
   it('should $Keys<typeOf A>', () => {
@@ -284,11 +284,11 @@ describe('Typed API', () => {
     });
     const B = t.ref('$Keys', A);
 
-    ok(B.match('name'));
-    ok(B.match('email'));
-    no(B.match('nope'));
-    no(B.match(false));
-    no(B.match({}));
+    ok(B.accepts('name'));
+    ok(B.accepts('email'));
+    no(B.accepts('nope'));
+    no(B.accepts(false));
+    no(B.accepts({}));
   });
 
 

@@ -17,9 +17,9 @@ export default class ParameterizedNamedType <T: Type> extends NamedType {
     return target;
   }
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {constraints, partial} = this;
-    if (!partial.match(input)) {
+    if (!partial.accepts(input)) {
       return false;
     }
     const {length} = constraints;
@@ -33,8 +33,8 @@ export default class ParameterizedNamedType <T: Type> extends NamedType {
   }
 
 
-  matchType (input: Type): boolean {
-    return this.partial.matchType(input);
+  acceptsType (input: Type): boolean {
+    return this.partial.acceptsType(input);
   }
 
   makeErrorMessage (): string {

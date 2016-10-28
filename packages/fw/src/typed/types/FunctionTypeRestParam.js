@@ -9,17 +9,17 @@ export default class FunctionTypeRestParam extends Type {
   name: string;
   type: Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {type} = this;
-    return type.match(input);
+    return type.accepts(input);
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (input instanceof FunctionTypeParam || input instanceof FunctionTypeRestParam) {
-      return this.type.matchType(input.type);
+      return this.type.acceptsType(input.type);
     }
     else {
-      return this.type.matchType(input);
+      return this.type.acceptsType(input);
     }
   }
 

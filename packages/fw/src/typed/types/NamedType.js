@@ -15,9 +15,9 @@ export default class NamedType extends Type {
     return this;
   }
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {constraints, type} = this;
-    if (!type.match(input)) {
+    if (!type.accepts(input)) {
       return false;
     }
     const {length} = constraints;
@@ -31,8 +31,8 @@ export default class NamedType extends Type {
   }
 
 
-  matchType (input: Type): boolean {
-    return this.type.matchType(input);
+  acceptsType (input: Type): boolean {
+    return this.type.acceptsType(input);
   }
 
   apply (...typeInstances: Type[]): TypeParameterApplication {

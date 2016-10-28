@@ -8,18 +8,18 @@ export default class ObjectTypeProperty extends Type {
   value: Type;
   optional: boolean;
 
-  match (input: Object): boolean {
+  accepts (input: Object): boolean {
     if (this.optional && input[this.key] === undefined) {
       return true;
     }
-    return this.value.match(input[this.key]);
+    return this.value.accepts(input[this.key]);
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (!(input instanceof ObjectTypeProperty)) {
       return false;
     }
-    return this.value.matchType(input.value);
+    return this.value.acceptsType(input.value);
   }
 
   makeErrorMessage (): string {

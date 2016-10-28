@@ -6,17 +6,17 @@ export default class FunctionTypeReturn extends Type {
   typeName: string = 'FunctionTypeReturn';
   type: Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {type} = this;
-    return type.match(input);
+    return type.accepts(input);
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (input instanceof FunctionTypeReturn) {
-      return this.type.matchType(input.type);
+      return this.type.acceptsType(input.type);
     }
     else {
-      return this.type.matchType(input);
+      return this.type.acceptsType(input);
     }
   }
 

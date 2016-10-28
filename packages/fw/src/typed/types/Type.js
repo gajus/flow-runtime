@@ -19,16 +19,16 @@ export default class Type {
     this.context = context;
   }
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     throw new Error('Not implemented.');
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     throw new Error('Not implemented.');
   }
 
   assert <T> (input: T): T {
-    if (!this.match(input)) {
+    if (!this.accepts(input)) {
       throw makeError(this, input);
     }
     return input;

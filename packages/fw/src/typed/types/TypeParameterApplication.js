@@ -13,13 +13,13 @@ export default class TypeParameterApplication extends Type {
   parent: IApplicableType;
   typeInstances: Type[] = [];
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {parent, typeInstances} = this;
-    return parent.match(input, ...typeInstances);
+    return parent.accepts(input, ...typeInstances);
   }
 
-  matchType (input: Type): boolean {
-    return this.parent.matchType(input);
+  acceptsType (input: Type): boolean {
+    return this.parent.acceptsType(input);
   }
 
   makeErrorMessage (): string {

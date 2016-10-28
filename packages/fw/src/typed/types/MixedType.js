@@ -5,7 +5,7 @@ import Type from './Type';
 export default class MixedType extends Type {
   typeName: string = 'MixedType';
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return true;
   }
 

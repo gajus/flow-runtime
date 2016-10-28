@@ -42,21 +42,21 @@ export default class ParameterizedFunctionType <T: FunctionType> extends Type {
     return this.partial.type.returnType;
   }
 
-  match (input: any): boolean {
-    return this.partial.match(input);
+  accepts (input: any): boolean {
+    return this.partial.accepts(input);
   }
 
 
-  matchType (input: Type): boolean {
-    return this.partial.matchType(input);
+  acceptsType (input: Type): boolean {
+    return this.partial.acceptsType(input);
   }
 
-  matchParams (...args: any[]): boolean {
-    return this.partial.type.matchParams(...args);
+  acceptsParams (...args: any[]): boolean {
+    return this.partial.type.acceptsParams(...args);
   }
 
-  matchReturn (input: any): boolean {
-    return this.partial.type.matchReturn(input);
+  acceptsReturn (input: any): boolean {
+    return this.partial.type.acceptsReturn(input);
   }
 
   assertParams <T> (...args: T[]): T[] {

@@ -8,22 +8,22 @@ export default class FunctionTypeParam extends Type {
   optional: boolean;
   type: Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     const {optional, type} = this;
     if (optional && input === undefined) {
       return true;
     }
     else {
-      return type.match(input);
+      return type.accepts(input);
     }
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (input instanceof FunctionTypeParam) {
-      return this.type.matchType(input.type);
+      return this.type.acceptsType(input.type);
     }
     else {
-      return this.type.matchType(input);
+      return this.type.acceptsType(input);
     }
   }
 

@@ -131,7 +131,7 @@ export class TypeInferer {
       const types = isNaN(+key) ? stringIndexers : numericIndexers;
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
-        if (type.match(value)) {
+        if (type.accepts(value)) {
           continue loop;
         }
       }
@@ -189,7 +189,7 @@ export class TypeInferer {
       const item = input[i];
       for (let j = 0; j < types.length; j++) {
         const type = types[j];
-        if (type.match(item)) {
+        if (type.accepts(item)) {
           continue loop;
         }
       }

@@ -5,11 +5,11 @@ import Type from './Type';
 export default class EmptyType extends Type {
   typeName: string = 'EmptyType';
 
-  match (input: any): boolean {
-    return false; // empty types match nothing.
+  accepts (input: any): boolean {
+    return false; // empty types accepts nothing.
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof EmptyType;
   }
 

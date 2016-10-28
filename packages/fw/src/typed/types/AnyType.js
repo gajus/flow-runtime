@@ -5,11 +5,11 @@ import Type from './Type';
 export default class AnyType extends Type {
   typeName: string = 'AnyType';
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return true;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return true;
   }
 

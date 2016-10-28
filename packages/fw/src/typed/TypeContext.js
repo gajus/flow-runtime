@@ -57,7 +57,7 @@ export type TypeHandlerConfig = {
   name: string;
   impl?: Function;
   typeName: string;
-  match (input: any, ...typeInstances: Type[]): boolean;
+  accepts (input: any, ...typeInstances: Type[]): boolean;
   inferTypeParameters (input: any): Type[];
 };
 
@@ -181,7 +181,7 @@ export default class TypeContext {
     return target;
   }
 
-  declareTypeHandler ({name, impl, typeName, match, inferTypeParameters}: TypeHandlerConfig): TypeHandler {
+  declareTypeHandler ({name, impl, typeName, accepts, inferTypeParameters}: TypeHandlerConfig): TypeHandler {
     // @flowIssue 252
     const nameRegistry = this[NameRegistrySymbol];
 
@@ -193,7 +193,7 @@ export default class TypeContext {
     target.name = name;
     target.typeName = typeName;
     target.impl = impl;
-    target.match = match;
+    target.accepts = accepts;
     target.inferTypeParameters = inferTypeParameters;
 
     nameRegistry[name] = target;

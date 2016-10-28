@@ -6,11 +6,11 @@ export default class StringLiteralType extends Type {
   typeName: string = 'StringLiteralType';
   value: string;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     return input === this.value;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     return input instanceof StringLiteralType && input.value === this.value;
   }
 

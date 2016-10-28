@@ -11,7 +11,7 @@ export default class FunctionType extends Type {
   rest: ? FunctionTypeRestParam;
   returnType: Type;
 
-  match (input: any): boolean {
+  accepts (input: any): boolean {
     if (typeof input !== 'function') {
       return false;
     }
@@ -33,13 +33,13 @@ export default class FunctionType extends Type {
     return true;
   }
 
-  matchType (input: Type): boolean {
+  acceptsType (input: Type): boolean {
     if (!(input instanceof FunctionType)) {
       return false;
     }
     const returnType = this.returnType;
     const inputReturnType = input.returnType;
-    if (!returnType.matchType(inputReturnType)) {
+    if (!returnType.acceptsType(inputReturnType)) {
       return false;
     }
     const params = this.params;
@@ -50,32 +50,32 @@ export default class FunctionType extends Type {
     for (let i = 0; i < params.length; i++) {
       const param = params[i];
       const inputParam = inputParams[i];
-      if (!param.matchType(inputParam)) {
+      if (!param.acceptsType(inputParam)) {
         return false;
       }
     }
     return true;
   }
 
-  matchParams (...args: any[]): boolean {
+  acceptsParams (...args: any[]): boolean {
     const {params, rest} = this;
     const paramsLength = params.length;
     const argsLength = args.length;
     for (let i = 0; i < paramsLength; i++) {
       const param = params[i];
       if (i < argsLength) {
-        if (!param.match(args[i])) {
+        if (!param.accepts(args[i])) {
           return false;
         }
       }
-      else if (!param.match(undefined)) {
+      else if (!param.accepts(undefined)) {
         return false;
       }
     }
 
     if (argsLength > paramsLength && rest) {
       for (let i = paramsLength; i < argsLength; i++) {
-        if (!rest.match(args[i])) {
+        if (!rest.accepts(args[i])) {
           return false;
         }
       }
@@ -84,8 +84,8 @@ export default class FunctionType extends Type {
     return true;
   }
 
-  matchReturn (input: any): boolean {
-    return this.returnType.match(input);
+  acceptsReturn (input: any): boolean {
+    return this.returnType.accepts(input);
   }
 
   assertParams <T> (...args: T[]): T[] {

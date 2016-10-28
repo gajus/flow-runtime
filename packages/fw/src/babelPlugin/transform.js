@@ -61,7 +61,7 @@ export default function transform (input: Node): Node {
           t.unaryExpression('!', t.callExpression(
             t.memberExpression(
               convert(context, typeAnnotation),
-              t.identifier('match')
+              t.identifier('accepts')
             ),
             [expression.node]
           )),
