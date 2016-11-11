@@ -22,7 +22,12 @@ function convert (context: ConversionContext, path: NodePath): Node {
   if (!converter) {
     throw new Error(`Unsupported node type: ${path.type}`);
   }
-  return converter(context, path);
+  try {
+    return converter(context, path);
+  }
+  catch (e) {
+    throw new Error(e.stack);
+  }
 }
 
 function annotationReferencesId (annotation: NodePath, name: string): boolean {
@@ -110,6 +115,85 @@ function getMemberExpressionObject (subject: Node): Node {
     return subject;
   }
 }
+
+converters.DeclareVariable = (context: ConversionContext, path: NodePath): Node => {
+  const id = path.get('id');
+  if (id.has('typeAnnotation')) {
+    return context.call('declare', t.stringLiteral(id.node.name), convert(context, id.get('typeAnnotation')));
+  }
+  else {
+    return context.call('declare', t.stringLiteral(id.node.name));
+  }
+};
+
+
+converters.DeclareTypeAlias = (context: ConversionContext, path: NodePath): Node => {
+  const id = path.get('id');
+  const right = path.get('right');
+  return context.call('declare', t.stringLiteral(id.node.name), convert(context, right));
+};
+
+
+converters.DeclareFunction = (context: ConversionContext, path: NodePath): Node => {
+  const id = path.get('id');
+  if (id.has('typeAnnotation')) {
+    return context.call('declare', t.stringLiteral(id.node.name), convert(context, id.get('typeAnnotation')));
+  }
+  else {
+    return context.call('declare', t.stringLiteral(id.node.name));
+  }
+};
+
+
+converters.DeclareModule = (context: ConversionContext, path: NodePath): Node => {
+  const id = path.get('id');
+  return context.call(
+    'declare',
+    t.stringLiteral(id.node.name),
+    context.call(
+      'module',
+      t.arrowFunctionExpression(
+        [t.identifier(context.libraryId)],
+        t.blockStatement(path.get('body.body').map(item => t.expressionStatement(convert(context, item))))
+      )
+    )
+  );
+
+};
+
+
+converters.DeclareClass = (context: ConversionContext, path: NodePath): Node => {
+  const id = path.get('id');
+  const name = id.node.name;
+
+
+  const typeParameters = getTypeParameters(path);
+  if (typeParameters.length > 0) {
+    const uid = path.scope.generateUidIdentifier(name);
+    return context.call('declare', t.stringLiteral(name), context.call('class', t.stringLiteral(name), t.arrowFunctionExpression(
+      [uid],
+      t.blockStatement([
+        t.variableDeclaration('const', typeParameters.map(typeParameter => t.variableDeclarator(
+            t.identifier(typeParameter.node.name),
+            t.callExpression(
+              t.memberExpression(
+                uid,
+                t.identifier('typeParameter')
+              ),
+              typeParameter.node.bound
+                ? [t.stringLiteral(typeParameter.node.name), convert(context, typeParameter.get('bound'))]
+                : [t.stringLiteral(typeParameter.node.name)]
+            )
+          )
+        )),
+        t.returnStatement(convert(context, path.get('body')))
+      ])
+    )));
+  }
+  else {
+    return context.call('declare', t.stringLiteral(name), context.call('class', t.stringLiteral(name), convert(context, path.get('body'))));
+  }
+};
 
 converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
   const name = path.node.id.name;

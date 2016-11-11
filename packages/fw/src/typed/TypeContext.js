@@ -46,6 +46,7 @@ import {
 import {
   ParentSymbol,
   NameRegistrySymbol,
+  ModuleRegistrySymbol,
   TypeHandlerRegistrySymbol,
   InferrerSymbol,
   TypeSymbol
@@ -78,6 +79,10 @@ type NameRegistry = {
   [name: string]: Type | Class<TypeHandler>;
 };
 
+type ModuleRegistry = {
+  [name: string]: TypeContext;
+};
+
 type TypeHandlerRegistry = Map<Function, Class<TypeHandler>>;
 
 export default class TypeContext {
@@ -93,6 +98,9 @@ export default class TypeContext {
 
   // @flowIssue 252
   [InferrerSymbol]: TypeInferrer = new TypeInferrer(this);
+
+  // @flowIssue 252
+  [ModuleRegistrySymbol]: ModuleRegistry = {};
 
   createContext <T: Type> (body: (context: TypeContext) => T): T {
     const context = new TypeContext();
@@ -179,6 +187,10 @@ export default class TypeContext {
     const target = this.type(name, type);
     nameRegistry[name] = target;
     return target;
+  }
+
+  declareModule (name: string, body: (context: TypeContext) => Type[]) {
+
   }
 
   declareTypeHandler ({name, impl, typeName, accepts, inferTypeParameters}: TypeHandlerConfig): TypeHandler {
