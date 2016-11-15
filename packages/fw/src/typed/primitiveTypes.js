@@ -1,8 +1,8 @@
 /* @flow */
 
 /**
- * This file exports a dictionary of global types that are shared by all contexts.
- * It is populated in [registerSingletonTypes()](./registerSingletonTypes.js).
+ * This file exports a dictionary of global primitive types that are shared by all contexts.
+ * It is populated in [registerPrimitiveTypes()](./registerPrimitiveTypes.js).
  */
 
 import type {
@@ -23,7 +23,7 @@ import type {
 /**
  * Covers our builtin types and makes room for future ones.
  */
-type SingletonTypes = {
+type PrimitiveTypes = {
   null: NullLiteralType;
   empty: EmptyType;
   number: NumberType;
@@ -38,15 +38,8 @@ type SingletonTypes = {
   [name: string]: Type;
 };
 
-/**
- * Returns an object which will contain our types.
- * Tricks flow into propogating the correct type for the export
- * despite it not being populated yet.
- */
-function makeDict (): SingletonTypes {
-  return ({}: any);
-}
+const primitiveTypes: any = {};
 
-const singletonTypes: SingletonTypes = makeDict();
+(primitiveTypes: PrimitiveTypes);
 
-export default singletonTypes;
+export default primitiveTypes;

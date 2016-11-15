@@ -1,7 +1,7 @@
 /* @flow */
 
 import TypeInferrer from './TypeInferrer';
-import singletonTypes from './singletonTypes';
+import primitiveTypes from './primitiveTypes';
 import invariant from './invariant';
 
 import {
@@ -232,7 +232,7 @@ export default class TypeContext {
   }
 
   null (): NullLiteralType {
-    return singletonTypes.null;
+    return primitiveTypes.null;
   }
 
   nullable (type: Type): NullableType {
@@ -242,23 +242,23 @@ export default class TypeContext {
   }
 
   existential (): ExistentialType {
-    return singletonTypes.existential;
+    return primitiveTypes.existential;
   }
 
   empty (): EmptyType {
-    return singletonTypes.empty;
+    return primitiveTypes.empty;
   }
 
   any (): AnyType {
-    return singletonTypes.any;
+    return primitiveTypes.any;
   }
 
   mixed (): MixedType {
-    return singletonTypes.mixed;
+    return primitiveTypes.mixed;
   }
 
   void (): VoidType {
-    return singletonTypes.void;
+    return primitiveTypes.void;
   }
 
   number (input?: number): NumberType | NumericLiteralType {
@@ -268,7 +268,7 @@ export default class TypeContext {
       return target;
     }
     else {
-      return singletonTypes.number;
+      return primitiveTypes.number;
     }
   }
 
@@ -279,7 +279,7 @@ export default class TypeContext {
       return target;
     }
     else {
-      return singletonTypes.boolean;
+      return primitiveTypes.boolean;
     }
   }
 
@@ -290,7 +290,7 @@ export default class TypeContext {
       return target;
     }
     else {
-      return singletonTypes.string;
+      return primitiveTypes.string;
     }
   }
 
@@ -301,7 +301,7 @@ export default class TypeContext {
       return target;
     }
     else {
-      return singletonTypes.symbol;
+      return primitiveTypes.symbol;
     }
   }
 
