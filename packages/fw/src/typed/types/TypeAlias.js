@@ -4,13 +4,13 @@ import type {Constructor, TypeConstraint} from './';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class NamedType extends Type {
-  typeName: string = 'NamedType';
+export default class TypeAlias extends Type {
+  typeName: string = 'TypeAlias';
   name: string;
   type: Type;
   constraints: TypeConstraint[] = [];
 
-  addConstraint (constraint: TypeConstraint): NamedType {
+  addConstraint (constraint: TypeConstraint): TypeAlias {
     this.constraints.push(constraint);
     return this;
   }

@@ -26,7 +26,7 @@ import GeneratorType from './GeneratorType';
 import GenericType from './GenericType';
 import IntersectionType from './IntersectionType';
 import MixedType from './MixedType';
-import NamedType from './NamedType';
+import TypeAlias from './TypeAlias';
 import NullableType from './NullableType';
 import NullLiteralType from './NullLiteralType';
 import NumberType from './NumberType';
@@ -35,7 +35,7 @@ import ObjectType from './ObjectType';
 import ObjectTypeCallProperty from './ObjectTypeCallProperty';
 import ObjectTypeIndexer from './ObjectTypeIndexer';
 import ObjectTypeProperty from './ObjectTypeProperty';
-import ParameterizedNamedType from './ParameterizedNamedType';
+import ParameterizedTypeAlias from './ParameterizedTypeAlias';
 import ParameterizedFunctionType from './ParameterizedFunctionType';
 import PartialType from './PartialType';
 import StringLiteralType from './StringLiteralType';
@@ -66,7 +66,7 @@ export {
   GenericType,
   IntersectionType,
   MixedType,
-  NamedType,
+  TypeAlias,
   NullableType,
   NullLiteralType,
   NumberType,
@@ -75,7 +75,7 @@ export {
   ObjectTypeCallProperty,
   ObjectTypeIndexer,
   ObjectTypeProperty,
-  ParameterizedNamedType,
+  ParameterizedTypeAlias,
   ParameterizedFunctionType,
   PartialType,
   StringLiteralType,

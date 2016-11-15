@@ -29,7 +29,7 @@ export default class IntersectionType extends Type {
             continue loop;
           }
         }
-        // if we got this far then nothing acceptsed this type.
+        // if we got this far then nothing accepted this type.
         return false;
       }
       return true;

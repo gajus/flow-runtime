@@ -1,11 +1,11 @@
 
 import Type from './Type';
 import type {Constructor, TypeCreator} from './';
-import NamedType from './NamedType';
+import TypeAlias from './TypeAlias';
 import PartialType from './PartialType';
 
-export default class ParameterizedNamedType <T: Type> extends NamedType {
-  typeName: string = 'ParameterizedNamedType';
+export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
+  typeName: string = 'ParameterizedTypeAlias';
 
   typeCreator: TypeCreator<T>;
 

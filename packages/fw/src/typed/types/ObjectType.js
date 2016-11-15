@@ -140,7 +140,7 @@ function acceptsTypeCallProperties (type: ObjectType, input: ObjectType): boolea
         continue loop;
       }
     }
-    // If we got this far, nothing acceptsed.
+    // If we got this far, nothing accepted.
     return false;
   }
   return true;
@@ -200,7 +200,7 @@ function acceptsTypeWithIndexers (type: ObjectType, input: ObjectType): boolean 
         continue loop;
       }
     }
-    // if we got this far, nothing acceptsed
+    // if we got this far, nothing accepted
     return false;
   }
   return true;

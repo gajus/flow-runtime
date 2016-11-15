@@ -7,7 +7,7 @@ import {
   FunctionTypeRestParam,
   TypeReference,
   PartialType,
-  NamedType,
+  TypeAlias,
   NullableType,
   ObjectType,
   ObjectTypeIndexer,
@@ -43,7 +43,7 @@ export function resolveType (input: Type) {
   else if (input instanceof TypeParameter) {
     return resolveType(input.recorded || input.bound || input);
   }
-  else if (input instanceof NamedType) {
+  else if (input instanceof TypeAlias) {
     return resolveType(input.type);
   }
   else if (input instanceof ObjectTypeCallProperty) {

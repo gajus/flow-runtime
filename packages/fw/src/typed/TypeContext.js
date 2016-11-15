@@ -8,8 +8,8 @@ import {
   Type,
   TypeParameter,
   TypeReference,
-  ParameterizedNamedType,
-  NamedType,
+  ParameterizedTypeAlias,
+  TypeAlias,
   TypeHandler,
   GenericType,
   NullLiteralType,
@@ -160,22 +160,22 @@ export default class TypeContext {
     return input;
   }
 
-  type <T: Type> (name: string, type: Type | TypeCreator<T>): NamedType | ParameterizedNamedType<T> {
+  type <T: Type> (name: string, type: Type | TypeCreator<T>): TypeAlias | ParameterizedTypeAlias<T> {
     if (typeof type === 'function') {
-      const target = new ParameterizedNamedType(this);
+      const target = new ParameterizedTypeAlias(this);
       target.name = name;
       target.typeCreator = type;
       return target;
     }
     else {
-      const target = new NamedType(this);
+      const target = new TypeAlias(this);
       target.name = name;
       target.type = type;
       return target;
     }
   }
 
-  declare <T: Type> (name: string, type: Type | TypeCreator<T>): NamedType | ParameterizedNamedType<T> {
+  declare <T: Type> (name: string, type: Type | TypeCreator<T>): TypeAlias | ParameterizedTypeAlias<T> {
 
     // @flowIssue 252
     const nameRegistry = this[NameRegistrySymbol];
