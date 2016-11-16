@@ -25,6 +25,24 @@ describe('Typed API', () => {
     }));
   });
 
+
+  it('should check a simple object with shortcut syntax', () => {
+    const type = t.object({
+      foo: t.boolean(),
+      bar: t.string()
+    });
+
+    //console.log(type.toString());
+    ok(type.accepts({
+      foo: true,
+      bar: 'hello'
+    }));
+
+    no(type.accepts({
+      foo: 123,
+    }));
+  });
+
   it('should make a tuple type', () => {
     const type = t.tuple(
       t.string(),

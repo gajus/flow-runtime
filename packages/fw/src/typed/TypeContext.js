@@ -69,6 +69,10 @@ type ValidFunctionBody
  | FunctionTypeReturn
  ;
 
+type ObjectPropertyDict = {
+  [name: string]: Type;
+};
+
 type ValidObjectBody
  = ObjectTypeCallProperty
  | ObjectTypeProperty
@@ -372,22 +376,36 @@ export default class TypeContext {
     return target;
   }
 
-  object (...body: ValidObjectBody[]): ObjectType {
+  object (head: ? ObjectPropertyDict | ValidFunctionBody, ...tail: ValidObjectBody[]): ObjectType {
     const target = new ObjectType(this);
-    const {length} = body;
-    for (let i = 0; i < length; i++) {
-      const item = body[i];
-      if (item instanceof ObjectTypeProperty) {
-        target.properties.push(item);
+    if (head != null && typeof head === 'object' && !(head instanceof Type)) {
+      for (const propertyName in head) { // eslint-disable-line
+        target.properties.push(this.property(propertyName, head[propertyName]));
       }
-      else if (item instanceof ObjectTypeIndexer) {
-        target.indexers.push(item);
-      }
-      else if (item instanceof ObjectTypeCallProperty) {
-        target.callProperties.push(item);
+    }
+    else {
+      let body;
+      if (head) {
+        body = [head, ...tail];
       }
       else {
-        throw new Error('ObjectType cannot contain the given type directly.');
+        body = tail;
+      }
+      const {length} = body;
+      for (let i = 0; i < length; i++) {
+        const item = body[i];
+        if (item instanceof ObjectTypeProperty) {
+          target.properties.push(item);
+        }
+        else if (item instanceof ObjectTypeIndexer) {
+          target.indexers.push(item);
+        }
+        else if (item instanceof ObjectTypeCallProperty) {
+          target.callProperties.push(item);
+        }
+        else {
+          throw new Error('ObjectType cannot contain the given type directly.');
+        }
       }
     }
     return target;
