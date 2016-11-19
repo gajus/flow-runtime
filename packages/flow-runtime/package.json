@@ -1,14 +1,14 @@
 {
   "name": "flow-runtime",
   "version": "0.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "A flow compatible type system for JS.",
+  "main": "flow-runtime.js",
   "scripts": {
     "build": "babel -d ./lib ./src",
     "test": "mocha",
     "watch": "mocha --watch"
   },
-  "author": "",
+  "author": "Charles Pick <charles@codemix.com>",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.16.0",
@@ -30,7 +30,6 @@
     "mocha": "^3.1.2"
   },
   "dependencies": {
-    "camelcase": "^3.0.0"
   },
   "eslintConfig": {
     "extends": "./config/eslint.js"
