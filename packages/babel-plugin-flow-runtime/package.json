@@ -1,0 +1,44 @@
+{
+  "name": "babel-plugin-flow-runtime",
+  "version": "0.0.0",
+  "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel -d ./lib ./src",
+    "test": "mocha",
+    "watch": "mocha --watch"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-cli": "^6.16.0",
+    "babel-core": "^6.17.0",
+    "babel-eslint": "^7.0.0",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-preset-es2015": "^6.16.0",
+    "babel-preset-es2015-node": "^6.1.1",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "eslint": "^3.8.1",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-flowtype": "^2.20.0",
+    "eslint-plugin-import": "^2.0.1",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.4.1",
+    "flow-bin": "^0.33.0",
+    "flow-typed": "^2.0.0",
+    "mocha": "^3.1.2"
+  },
+  "dependencies": {
+    "babel-generator": "^6.17.0",
+    "babel-traverse": "^6.16.0",
+    "babel-types": "^6.16.0",
+    "babylon": "^6.13.0",
+    "flow-config-parser": "^0.0.0",
+    "camelcase": "^3.0.0"
+  },
+  "eslintConfig": {
+    "extends": "./config/eslint.js"
+  },
+  "private": true
+}

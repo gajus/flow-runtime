@@ -1,0 +1,44 @@
+[ignore]
+
+# Ugh
+.*/node_modules/.*/src.*
+.*/node_modules/binary-extensions/.*
+.*/node_modules/url-regex/.*
+.*/node_modules/spdx.*
+.*/node_modules/builtin-modules.*
+.*/node_modules/resolve.*
+.*/test/.*json$
+
+# Ignore tests
+.*/node_modules/.*/test/.*
+
+[include]
+flow-typed
+flow-typed/npm
+
+[libs]
+
+[options]
+module.system=node
+
+munge_underscores=true
+
+module.name_mapper='.*\(.css\)' -> 'empty/object'
+module.name_mapper='.*\(.scss\)' -> 'empty/object'
+module.name_mapper='.*\(.png\)' -> 'empty/object'
+
+suppress_type=$FlowIssue
+suppress_type=$FlowIgnore
+suppress_type=$FlowFixme
+suppress_type=$Fixme
+
+suppress_comment=\\(.\\|\n\\)*\\@flowFixme.*
+suppress_comment=\\(.\\|\n\\)*\\@flowIgnore.*
+suppress_comment=\\(.\\|\n\\)*\\@flowIssue.*
+
+esproposal.class_instance_fields=enable
+esproposal.class_static_fields=enable
+esproposal.decorators=ignore
+unsafe.enable_getters_and_setters=true
+
+[version]
