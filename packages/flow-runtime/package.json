@@ -33,6 +33,5 @@
   },
   "eslintConfig": {
     "extends": "./config/eslint.js"
-  },
-  "private": true
+  }
 }
