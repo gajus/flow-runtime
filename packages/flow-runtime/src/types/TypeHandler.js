@@ -1,28 +1,33 @@
 /* @flow */
 
 import Type from './Type';
+import type Validation, {IdentifierPath} from '../Validation';
 import type {Constructor} from './';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class TypeHandler extends Type {
+export default class TypeHandler<T: Constructor> extends Type {
   typeName: string = 'TypeHandler';
   name: string;
-  impl: ? Constructor;
+  impl: ? T;
 
-  accepts (input: any, ...typeInstances: Type[]): boolean {
-    throw new Error(`No acceptser for ${this.name}.`);
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    throw new Error(`Not implemented: collectErrors().`);
   }
 
-  acceptsType (input: Type): boolean {
-    throw new Error(`No acceptser for ${this.name}.`);
+  accepts <P> (input: any, ...typeInstances: Type<P>[]): boolean {
+    throw new Error(`Not implemented: accepts().`);
   }
 
-  inferTypeParameters (input: any): Type[] {
+  acceptsType (input: Type<any>): boolean {
+    throw new Error(`Not implemented: acceptsType().`);
+  }
+
+  inferTypeParameters <P> (input: any): Type<P>[] {
     throw new Error(`No inferrer for ${this.name}.`);
   }
 
-  apply (...typeInstances: Type[]): TypeParameterApplication {
+  apply <P> (...typeInstances: Type<P>[]): TypeParameterApplication<P, T> {
     const target = new TypeParameterApplication(this.context);
     target.parent = this;
     target.typeInstances = typeInstances;
@@ -36,7 +41,7 @@ export default class TypeHandler extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
+  resolve (): Type<T> | T {
     const {impl} = this;
     if (impl) {
       return impl;

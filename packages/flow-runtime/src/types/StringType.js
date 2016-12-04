@@ -2,15 +2,26 @@
 
 import Type from './Type';
 import StringLiteralType from './StringLiteralType';
+import type Validation, {IdentifierPath} from '../Validation';
 
-export default class StringType extends Type {
+export default class StringType extends Type<string> {
   typeName: string = 'StringType';
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    if (typeof input === 'string') {
+      return false;
+    }
+    else {
+      validation.addError(path, 'ERR_EXPECT_STRING');
+      return true;
+    }
+  }
 
   accepts (input: any): boolean {
     return typeof input === 'string';
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return input instanceof StringType || input instanceof StringLiteralType;
   }
 

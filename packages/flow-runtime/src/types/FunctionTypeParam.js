@@ -2,11 +2,23 @@
 
 import Type from './Type';
 
-export default class FunctionTypeParam extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class FunctionTypeParam<T> extends Type {
   typeName: string = 'FunctionTypeParam';
   name: string;
   optional: boolean;
-  type: Type;
+  type: Type<T>;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {optional, name, type} = this;
+    if (optional && input === undefined) {
+      return false;
+    }
+    else {
+      return type.collectErrors(validation, path.concat(name), input);
+    }
+  }
 
   accepts (input: any): boolean {
     const {optional, type} = this;
@@ -18,7 +30,7 @@ export default class FunctionTypeParam extends Type {
     }
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (input instanceof FunctionTypeParam) {
       return this.type.acceptsType(input.type);
     }

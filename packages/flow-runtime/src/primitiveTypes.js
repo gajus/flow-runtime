@@ -35,7 +35,7 @@ type PrimitiveTypes = {
   void: VoidType;
   existential: ExistentialType;
 
-  [name: string]: Type;
+  [name: string]: Type<any>;
 };
 
 const primitiveTypes: any = {};

@@ -1,16 +1,28 @@
 /* @flow */
 
 import Type from './Type';
+import type Validation, {IdentifierPath} from '../Validation';
 
-export default class StringLiteralType extends Type {
+export default class StringLiteralType<T: string> extends Type<T> {
   typeName: string = 'StringLiteralType';
-  value: string;
+  value: T;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {value} = this;
+    if (input === value) {
+      return false;
+    }
+    else {
+      validation.addError(path, 'ERR_EXPECT_EXACT_VALUE', this.toString());
+      return true;
+    }
+  }
 
   accepts (input: any): boolean {
     return input === this.value;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return input instanceof StringLiteralType && input.value === this.value;
   }
 

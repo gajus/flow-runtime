@@ -4,18 +4,30 @@ import TypeHandler from './TypeHandler';
 
 import type Type from './Type';
 
+import type Validation, {IdentifierPath} from '../Validation';
+
 export default class GenericType extends TypeHandler {
+
   typeName: string = 'GenericType';
 
-  accepts (input: any, ...typeInstances: Type[]): boolean {
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {name, impl} = this;
+    if (input instanceof impl) {
+      return false;
+    }
+    validation.addError(path, 'ERR_EXPECT_INSTANCEOF', name);
+    return true;
+  }
+
+  accepts <P> (input: any, ...typeInstances: Type<P>[]): boolean {
     return input instanceof this.impl;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return input instanceof GenericType && input.impl === this.impl;
   }
 
-  inferTypeParameters (input: any): Type[] {
+  inferTypeParameters <P> (input: any): Type<P>[] {
     return [];
   }
 

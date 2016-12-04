@@ -1,10 +1,24 @@
 /* @flow */
 
 import Type from './Type';
+import type Validation, {IdentifierPath} from '../Validation';
 
-export default class UnionType extends Type {
+export default class UnionType<T> extends Type {
   typeName: string = 'UnionType';
-  types: Type[] = [];
+  types: Type<T>[] = [];
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {types} = this;
+    const {length} = types;
+    for (let i = 0; i < length; i++) {
+      const type = types[i];
+      if (type.accepts(input)) {
+        return false;
+      }
+    }
+    validation.addError(path, 'ERR_NO_UNION', this.toString());
+    return true;
+  }
 
   accepts (input: any): boolean {
     const {types} = this;
@@ -18,7 +32,7 @@ export default class UnionType extends Type {
     return false;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     const types = this.types;
     if (input instanceof UnionType) {
       const inputTypes = input.types;

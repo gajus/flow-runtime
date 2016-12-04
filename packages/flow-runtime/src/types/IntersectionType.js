@@ -2,9 +2,24 @@
 
 import Type from './Type';
 
-export default class IntersectionType extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class IntersectionType<T> extends Type {
   typeName: string = 'IntersectionType';
-  types: Type[] = [];
+  types: Type<T>[] = [];
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {types} = this;
+    const {length} = types;
+    let hasErrors = false;
+    for (let i = 0; i < length; i++) {
+      const type = types[i];
+      if (type.collectErrors(validation, path, input)) {
+        hasErrors = true;
+      }
+    }
+    return hasErrors;
+  }
 
   accepts (input: any): boolean {
     const {types} = this;
@@ -18,7 +33,7 @@ export default class IntersectionType extends Type {
     return true;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     const types = this.types;
     if (input instanceof IntersectionType) {
       const inputTypes = input.types;

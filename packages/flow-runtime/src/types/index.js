@@ -1,13 +1,13 @@
 /* @flow */
 
-export type TypeCreator <T: Type> = (partial: PartialType<T>) => T;
-export type FunctionBodyCreator <T: FunctionType> = (partial: PartialType<T>) => Array<FunctionTypeParam | FunctionTypeRestParam | FunctionTypeReturn>;
+export type TypeCreator <T> = (partial: PartialType<T>) => T;
+export type FunctionBodyCreator <X, P, R> = (partial: PartialType<(...params: P[]) => R>) => Array<FunctionTypeParam<X | P> | FunctionTypeRestParam<X | P> | FunctionTypeReturn<X | R>>;
 
 export type TypeConstraint = (input: any) => boolean;
 
-export type IApplicableType = Type & {
+export type IApplicableType<T> = Type<T> & {
   name: string;
-  apply (...typeParameters: Type[]): TypeParameterApplication;
+  apply <P> (...typeParameters: Type<P>[]): TypeParameterApplication<P, T>;
 };
 
 export type Constructor = Function;

@@ -1,17 +1,18 @@
 
 import Type from './Type';
 import type {Constructor} from './';
+import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameter from './TypeParameter';
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class PartialType<T: Type> extends Type {
+export default class PartialType<X, T> extends Type {
   typeName: string = 'PartialType';
   name: string;
-  type: T;
-  typeParameters: TypeParameter[] = [];
+  type: Type<T>;
+  typeParameters: TypeParameter<X>[] = [];
 
-  typeParameter (id: string, bound?: Type): TypeParameter {
+  typeParameter (id: string, bound?: Type<X>): TypeParameter<X> {
     const target = new TypeParameter(this.context);
     target.id = id;
     target.bound = bound;
@@ -19,11 +20,16 @@ export default class PartialType<T: Type> extends Type {
     return target;
   }
 
-  apply (...typeInstances: Type[]): TypeParameterApplication {
+  apply (...typeInstances: Type<X>[]): TypeParameterApplication<X, T> {
     const target = new TypeParameterApplication(this.context);
     target.parent = this;
     target.typeInstances = typeInstances;
     return target;
+  }
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {type} = this;
+    return type.collectErrors(validation, path, input);
   }
 
   accepts (input: any): boolean {
@@ -31,7 +37,7 @@ export default class PartialType<T: Type> extends Type {
     return type.accepts(input);
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return this.type.acceptsType(input);
   }
 

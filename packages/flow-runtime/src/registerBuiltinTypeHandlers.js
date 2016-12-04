@@ -16,7 +16,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: 'Class',
     typeName: 'ClassType',
-    accepts (input, instanceType: Type): boolean {
+    accepts (input, instanceType: Type<any>): boolean {
       if (typeof input !== 'function') {
         return false;
       }
@@ -54,7 +54,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
           return false;
       }
     },
-    inferTypeParameters (input: any): Type[] {
+    inferTypeParameters (input: any): Type<any>[] {
       return [];
     }
   });
@@ -65,7 +65,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$Diff',
     typeName: '$DiffType',
-    accepts (input, aType: Type, bType: Type): boolean {
+    accepts (input, aType: Type<any>, bType: Type<any>): boolean {
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
         return false;
       }
@@ -84,7 +84,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       return true;
     },
-    inferTypeParameters (input: any): Type[] {
+    inferTypeParameters (input: any): Type<any>[] {
       return [];
     }
   });
@@ -95,7 +95,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$Shape',
     typeName: '$ShapeType',
-    accepts (input, shapeType: Type): boolean {
+    accepts (input, shapeType: Type<any>): boolean {
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
         return false;
       }
@@ -109,7 +109,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       return true;
     },
-    inferTypeParameters (input: any): Type[] {
+    inferTypeParameters (input: any): Type<any>[] {
       return [];
     }
   });
@@ -119,10 +119,10 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$SuperType',
     typeName: '$SuperType',
-    accepts (input, superType: Type): boolean {
+    accepts (input, superType: Type<any>): boolean {
       return superType.accepts(input);
     },
-    inferTypeParameters (input: any): Type[] {
+    inferTypeParameters (input: any): Type<any>[] {
       return [];
     }
   });
@@ -131,10 +131,10 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$SubType',
     typeName: '$SubType',
-    accepts (input, subType: Type): boolean {
+    accepts (input, subType: Type<any>): boolean {
       return subType.accepts(input);
     },
-    inferTypeParameters (input: any): Type[] {
+    inferTypeParameters (input: any): Type<any>[] {
       return [];
     }
   });
@@ -144,7 +144,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: '$Keys',
     typeName: '$KeysType',
-    accepts (input, subject: Type): boolean {
+    accepts (input, subject: Type<any>): boolean {
       subject = subject.resolve();
       invariant(subject instanceof ObjectType, '$Keys<T> - T must be an ObjectType.');
       const properties = subject.properties;
@@ -156,7 +156,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       return false;
     },
-    inferTypeParameters (input: any): Type[] {
+    inferTypeParameters (input: any): Type<any>[] {
       return [];
     }
   });
@@ -168,7 +168,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     accepts (input): boolean {
       return input instanceof Date && !isNaN(input.getTime());
     },
-    inferTypeParameters (input: Date): Type[] {
+    inferTypeParameters (input: Date): Type<any>[] {
       return [];
     }
   });
@@ -176,13 +176,13 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
   t.declareTypeHandler({
     name: 'Iterable',
     typeName: 'IterableType',
-    accepts (input, keyType: Type): boolean {
+    accepts (input, keyType: Type<any>): boolean {
       if (!input || typeof input[Symbol.iterator] !== 'function') {
         return false;
       }
       return true;
     },
-    inferTypeParameters (input: Iterable<*>): Type[] {
+    inferTypeParameters (input: Iterable<*>): Type<any>[] {
       return [];
     }
   });
@@ -194,7 +194,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     accepts (input): boolean {
       return input && typeof input.then === 'function' && input.then.length > 1;
     },
-    inferTypeParameters (input: any): Type[] {
+    inferTypeParameters (input: any): Type<any>[] {
       return [];
     }
   });
@@ -203,7 +203,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
     name: 'Map',
     impl: Map,
     typeName: 'MapType',
-    accepts (input, keyType: Type, valueType: Type): boolean {
+    accepts (input, keyType: Type<any>, valueType: Type<any>): boolean {
       if (!(input instanceof Map)) {
         return false;
       }
@@ -214,7 +214,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       return true;
     },
-    inferTypeParameters (input: Map<*, *>): Type[] {
+    inferTypeParameters (input: Map<*, *>): Type<any>[] {
       const keyTypes = [];
       const valueTypes = [];
       loop: for (const [key, value] of input) {
@@ -277,7 +277,7 @@ export default function registerBuiltinTypeHandlers (t: TypeContext): TypeContex
       }
       return true;
     },
-    inferTypeParameters (input: Set<*>): Type[] {
+    inferTypeParameters (input: Set<*>): Type<any>[] {
       const valueTypes = [];
       loop: for (const value of input) {
         for (let i = 0; i < valueTypes.length; i++) {

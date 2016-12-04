@@ -1,10 +1,28 @@
 /* @flow */
 
 import Type from './Type';
+import type Validation, {IdentifierPath} from '../Validation';
 
-export default class TupleType extends Type {
+export default class TupleType<T> extends Type {
   typeName: string = 'TupleType';
-  types: Type[] = [];
+  types: Type<T>[] = [];
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {types} = this;
+    const {length} = types;
+    if (!Array.isArray(input)) {
+      validation.addError(path, 'ERR_EXPECT_ARRAY');
+      return true;
+    }
+    let hasErrors = false;
+    for (let i = 0; i < length; i++) {
+      const type = types[i];
+      if (type.collectErrors(validation, path.concat(i), input[i])) {
+        hasErrors = true;
+      }
+    }
+    return hasErrors;
+  }
 
   accepts (input: any): boolean {
     const {types} = this;
@@ -21,7 +39,7 @@ export default class TupleType extends Type {
     return true;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (!(input instanceof TupleType)) {
       return false;
     }

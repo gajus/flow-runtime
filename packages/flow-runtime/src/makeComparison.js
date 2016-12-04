@@ -17,7 +17,7 @@ import {
 
 import type {Type} from './types';
 
-export default function makeComparison (expected: Type, inferred: Type): string {
+export default function makeComparison (expected: Type<any>, inferred: Type<any>): string {
   const resolved = resolveType(expected);
   if (resolved instanceof ObjectType && inferred instanceof ObjectType) {
     return makeObjectComparison(resolved, inferred);
@@ -27,7 +27,7 @@ export default function makeComparison (expected: Type, inferred: Type): string 
   }
 }
 
-export function resolveType (input: Type) {
+export function resolveType (input: Type<any>) {
   if (input instanceof FunctionTypeParam || input instanceof FunctionTypeRestParam) {
     return resolveType(input.type);
   }
@@ -63,11 +63,11 @@ export function resolveType (input: Type) {
   }
 }
 
-export function makeSimpleComparison (expected: Type, inferred: Type): string {
+export function makeSimpleComparison (expected: Type<any>, inferred: Type<any>): string {
   return `Expected: ${expected.toString()}\n\nActual: ${inferred.toString()}\n\n`;
 }
 
-export function makeObjectComparison (expected: ObjectType, inferred: ObjectType): string {
+export function makeObjectComparison (expected: ObjectType<Object>, inferred: ObjectType<Object>): string {
   for (const expectedProperty of expected.properties) {
     const inferredProperty = inferred.getProperty(expectedProperty.key);
     if (!inferredProperty) {

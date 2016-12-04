@@ -1,18 +1,38 @@
 
 import Type from './Type';
 import type {Constructor, TypeConstraint} from './';
+import type Validation, {IdentifierPath} from '../Validation';
+
+import type ObjectTypeProperty from './ObjectTypeProperty';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class TypeAlias extends Type {
+export default class TypeAlias<T> extends Type {
   typeName: string = 'TypeAlias';
   name: string;
-  type: Type;
+  type: Type<T>;
   constraints: TypeConstraint[] = [];
 
   addConstraint (constraint: TypeConstraint): TypeAlias {
     this.constraints.push(constraint);
     return this;
+  }
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {constraints, type} = this;
+    if (type.collectErrors(validation, path, input)) {
+      return true;
+    }
+    const {length} = constraints;
+    let hasErrors = false;
+    for (let i = 0; i < length; i++) {
+      const constraint = constraints[i];
+      if (!constraint(input)) {
+        validation.addError(path, 'ERR_CONSTRAINT_VIOLATION');
+        hasErrors = true;
+      }
+    }
+    return hasErrors;
   }
 
   accepts (input: any): boolean {
@@ -31,11 +51,11 @@ export default class TypeAlias extends Type {
   }
 
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return this.type.acceptsType(input);
   }
 
-  apply (...typeInstances: Type[]): TypeParameterApplication {
+  apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, T> {
     const target = new TypeParameterApplication(this.context);
     target.parent = this;
     target.typeInstances = typeInstances;
@@ -49,8 +69,25 @@ export default class TypeAlias extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
+  resolve (): Type<T> | Constructor {
     return this.type.resolve();
+  }
+
+  hasProperty (name: string): boolean {
+    const inner = this.resolve();
+    if (inner && typeof inner.hasProperty === 'function') {
+      return inner.hasProperty(name);
+    }
+    else {
+      return false;
+    }
+  }
+
+  getProperty (name: string): ? ObjectTypeProperty<any> {
+    const inner = this.resolve();
+    if (inner && typeof inner.getProperty === 'function') {
+      return inner.getProperty(name);
+    }
   }
 
   toString (withDeclaration?: boolean): string {

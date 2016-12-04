@@ -2,15 +2,28 @@
 
 import Type from './Type';
 
-export default class NumericLiteralType extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class NumericLiteralType<T: number> extends Type {
   typeName: string = 'NumericLiteralType';
-  value: number;
+  value: T;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {value} = this;
+    if (input === value) {
+      return false;
+    }
+    else {
+      validation.addError(path, 'ERR_EXPECT_EXACT_VALUE', value);
+      return false;
+    }
+  }
 
   accepts (input: any): boolean {
     return input === this.value;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return input instanceof NumericLiteralType && input.value === this.value;
   }
 

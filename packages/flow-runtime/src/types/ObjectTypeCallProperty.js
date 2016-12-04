@@ -2,15 +2,21 @@
 
 import Type from './Type';
 
-export default class ObjectTypeCallProperty extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class ObjectTypeCallProperty<T: Function> extends Type {
   typeName: string = 'ObjectTypeCallProperty';
-  value: Type;
+  value: Type<T>;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    return this.value.collectErrors(validation, path, input);
+  }
 
   accepts (input: any): boolean {
     return this.value.accepts(input);
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (!(input instanceof ObjectTypeCallProperty)) {
       return false;
     }

@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import type Validation, {IdentifierPath} from '../Validation';
 
 import type {IApplicableType} from './';
 
@@ -8,17 +9,22 @@ import type {IApplicableType} from './';
  * # TypeParameterApplication
  *
  */
-export default class TypeParameterApplication extends Type {
+export default class TypeParameterApplication<X, T> extends Type {
   typeName: string = 'TypeParameterApplication';
-  parent: IApplicableType;
-  typeInstances: Type[] = [];
+  parent: IApplicableType<T>;
+  typeInstances: Type<X>[] = [];
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {parent, typeInstances} = this;
+    return parent.collectErrors(validation, path, input, ...typeInstances);
+  }
 
   accepts (input: any): boolean {
     const {parent, typeInstances} = this;
     return parent.accepts(input, ...typeInstances);
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return this.parent.acceptsType(input);
   }
 

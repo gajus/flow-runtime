@@ -2,14 +2,15 @@
 
 import Type from './Type';
 import type {Constructor} from './';
+import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class TypeReference extends Type {
+export default class TypeReference<T> extends Type {
   typeName: string = 'TypeReference';
   name: string;
 
-  get type (): Type {
+  get type (): Type<T> {
     const {context, name} = this;
     const type = context.get(name);
     if (!type) {
@@ -18,15 +19,19 @@ export default class TypeReference extends Type {
     return type;
   }
 
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    return this.type.collectErrors(validation, path, input);
+  }
+
   accepts (input: any): boolean {
     return this.type.accepts(input);
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return this.type.acceptsType(input);
   }
 
-  apply (...typeInstances: Type[]): TypeParameterApplication {
+  apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<T> {
     const target = new TypeParameterApplication(this.context);
     target.parent = this;
     target.typeInstances = typeInstances;
@@ -40,7 +45,7 @@ export default class TypeReference extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
+  resolve (): Type<T> | Constructor {
     return this.type.resolve();
   }
 

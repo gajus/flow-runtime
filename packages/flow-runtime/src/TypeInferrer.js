@@ -8,7 +8,7 @@ import type {
   ObjectType
 } from './types';
 
-type Inferred = Map<Object, Type>;
+type Inferred = Map<Object, Type<any>>;
 
 export class TypeInferer {
   context: TypeContext;
@@ -17,7 +17,7 @@ export class TypeInferer {
     this.context = context;
   }
 
-  infer (input: any): Type {
+  infer <T> (input: T): Type<T> {
     const primitive = this.inferPrimitive(input);
     if (primitive) {
       return primitive;
@@ -26,7 +26,7 @@ export class TypeInferer {
     return this.inferComplex(input, inferred);
   }
 
-  inferInternal (input: any, inferred: Inferred): Type {
+  inferInternal <T> (input: T, inferred: Inferred): Type<T> {
     const primitive = this.inferPrimitive(input);
     if (primitive) {
       return primitive;
@@ -34,47 +34,47 @@ export class TypeInferer {
     return this.inferComplex(input, inferred);
   }
 
-  inferPrimitive (input: any): ? Type {
+  inferPrimitive <T> (input: T): ? Type<T> {
     const {context} = this;
     if (input === null) {
-      return context.null();
+      return (context.null(): any);
     }
     else if (input === undefined) {
-      return context.void();
+      return (context.void(): any);
     }
     else if (typeof input === 'number') {
-      return context.number();
+      return (context.number(): any);
     }
     else if (typeof input === 'boolean') {
-      return context.boolean();
+      return (context.boolean(): any);
     }
     else if (typeof input === 'string') {
-      return context.string();
+      return (context.string(): any);
     }
     // @flowIssue 252
     else if (typeof input === 'symbol') {
-      return context.symbol();
+      return (context.symbol(): any);
     }
     else {
       return undefined;
     }
   }
 
-  inferComplex (input: any, inferred: Inferred) {
+  inferComplex <T> (input: T, inferred: Inferred): Type<T> {
     const {context} = this;
 
     if (typeof input === 'function') {
-      return this.inferFunction(input, inferred);
+      return (this.inferFunction(input, inferred): any);
     }
-    else if (typeof input === 'object') {
-      return this.inferObject(input, inferred);
+    else if (input !== null && typeof input === 'object') {
+      return (this.inferObject(input, inferred): any);
     }
     else {
-      return context.any();
+      return (context.any(): any);
     }
   }
 
-  inferFunction (input: Function, inferred: Inferred): Type {
+  inferFunction <T: Function> (input: T, inferred: Inferred): Type<T> {
     const {context} = this;
     const {length} = input;
     const body = new Array(length + 1);
@@ -85,10 +85,10 @@ export class TypeInferer {
       );
     }
     body[length] = context.return(context.existential());
-    return context.fn(...body);
+    return (context.fn(...body): any);
   }
 
-  inferObject (input: Object, inferred: Inferred): Type {
+  inferObject <T: Object> (input: T, inferred: Inferred): Type<T> {
     const existing = inferred.get(input);
     if (existing) {
       return existing;
@@ -120,10 +120,10 @@ export class TypeInferer {
       type = context.object(...body);
     }
     inferred.set(input, type);
-    return type;
+    return (type: any);
   }
 
-  inferDict (input: Object, inferred: Inferred): ObjectType {
+  inferDict <T: Object> (input: T, inferred: Inferred): ObjectType<T> {
     const numericIndexers = [];
     const stringIndexers = [];
     loop: for (const key in input) { // eslint-disable-line
@@ -181,7 +181,7 @@ export class TypeInferer {
     return context.object(...body);
   }
 
-  inferArray (input: any[], inferred: Inferred): ArrayType {
+  inferArray <T> (input: T[], inferred: Inferred): ArrayType<T> {
     const {context} = this;
     const types = [];
     const {length} = input;
@@ -196,7 +196,7 @@ export class TypeInferer {
       types.push(this.inferInternal(item, inferred));
     }
     if (types.length === 0) {
-      return context.array(context.any());
+      return (context.array(context.any()): any);
     }
     else if (types.length === 1) {
       return context.array(types[0]);

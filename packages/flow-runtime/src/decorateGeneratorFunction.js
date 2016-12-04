@@ -10,7 +10,7 @@ import type {
 
 export type DecoratedGeneratorFunction<P, G> = (...args: P[]) => G;
 
-export default function decorateGeneratorFunction <P, Y, R, N, G: Generator<Y, R, N>, F: (...args: P[]) => G> (type: FunctionType | ParameterizedFunctionType<FunctionType>, fn: F): DecoratedGeneratorFunction<P, G> {
+export default function decorateGeneratorFunction <X, P, Y, R, N, G: Generator<Y, R, N>, F: (...args: P[]) => G> (type: FunctionType<P, R> | ParameterizedFunctionType<X, P, R>, fn: F): DecoratedGeneratorFunction<P, G> {
 
 
   const generatorType = type.returnType;

@@ -1,6 +1,7 @@
 
 import Type from './Type';
 import type {Constructor, TypeCreator} from './';
+import type Validation, {IdentifierPath} from '../Validation';
 import TypeAlias from './TypeAlias';
 import PartialType from './PartialType';
 
@@ -15,6 +16,23 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
     target.name = name;
     target.type = typeCreator(target);
     return target;
+  }
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {constraints, partial} = this;
+    if (partial.collectErrors(validation, path, input)) {
+      return true;
+    }
+    const {length} = constraints;
+    let hasErrors = false;
+    for (let i = 0; i < length; i++) {
+      const constraint = constraints[i];
+      if (!constraint(input)) {
+        validation.addError(path, 'ERR_CONSTRAINT_VIOLATION');
+        hasErrors = true;
+      }
+    }
+    return hasErrors;
   }
 
   accepts (input: any): boolean {

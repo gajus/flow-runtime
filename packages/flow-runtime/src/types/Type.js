@@ -4,6 +4,8 @@ import makeError from '../makeError';
 
 import type TypeContext from '../TypeContext';
 
+import type Validation, {IdentifierPath} from '../Validation';
+
 import type {Constructor} from './';
 
 /**
@@ -11,7 +13,7 @@ import type {Constructor} from './';
  *
  * This is the base class for all types.
  */
-export default class Type {
+export default class Type <T> {
   typeName: string = 'Type';
   context: TypeContext;
 
@@ -19,17 +21,25 @@ export default class Type {
     this.context = context;
   }
 
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    return false;
+  }
+
   accepts (input: any): boolean {
     throw new Error('Not implemented.');
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     throw new Error('Not implemented.');
   }
 
-  assert <T> (input: T): T {
+  assert (input: T): T {
     if (!this.accepts(input)) {
-      throw makeError(this, input);
+      const error = makeError(this, input);
+      if (typeof Error.captureStackTrace === 'function') {
+        Error.captureStackTrace(error, this.assert);
+      }
+      throw error;
     }
     return input;
   }
@@ -41,8 +51,13 @@ export default class Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
+  resolve (): Type<T> | Constructor {
     return this;
+  }
+
+  // @flowIssue 252
+  [Symbol.hasInstance] (input: any) {
+    return this.accepts(input);
   }
 
   toString () {

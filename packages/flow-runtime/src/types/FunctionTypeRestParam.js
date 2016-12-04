@@ -4,17 +4,24 @@ import Type from './Type';
 
 import FunctionTypeParam from './FunctionTypeParam';
 
-export default class FunctionTypeRestParam extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class FunctionTypeRestParam<T> extends Type {
   typeName: string = 'FunctionTypeRestParam';
   name: string;
-  type: Type;
+  type: Type<T>;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {name, type} = this;
+    return type.collectErrors(validation, path.concat(name), input);
+  }
 
   accepts (input: any): boolean {
     const {type} = this;
     return type.accepts(input);
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (input instanceof FunctionTypeParam || input instanceof FunctionTypeRestParam) {
       return this.type.acceptsType(input.type);
     }

@@ -1,10 +1,29 @@
 /* @flow */
 
 import Type from './Type';
+import type Validation, {IdentifierPath} from '../Validation';
 
-export default class ArrayType extends Type {
+
+export default class ArrayType <T> extends Type {
   typeName: string = 'ArrayType';
-  elementType: Type;
+  elementType: Type<T>;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    if (!Array.isArray(input)) {
+      validation.addError(path, 'ERR_EXPECT_ARRAY');
+      return true;
+    }
+    const {elementType} = this;
+    const {length} = input;
+
+    let hasErrors = false;
+    for (let i = 0; i < length; i++) {
+      if (elementType.collectErrors(validation, path.concat(i), input[i])) {
+        hasErrors = true;
+      }
+    }
+    return hasErrors;
+  }
 
   accepts (input: any): boolean {
     if (!Array.isArray(input)) {
@@ -20,7 +39,7 @@ export default class ArrayType extends Type {
     return true;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return input instanceof ArrayType && this.elementType.acceptsType(input.elementType);
   }
 

@@ -2,15 +2,26 @@
 
 import Type from './Type';
 
+import type Validation, {IdentifierPath} from '../Validation';
 
 export default class VoidType extends Type {
   typeName: string = 'VoidType';
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    if (input === undefined) {
+      return false;
+    }
+    else {
+      validation.addError(path, 'ERR_EXPECT_VOID');
+      return true;
+    }
+  }
 
   accepts (input: any): boolean {
     return input === undefined;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return input instanceof VoidType;
   }
 

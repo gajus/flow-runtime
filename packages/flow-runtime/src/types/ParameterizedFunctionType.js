@@ -4,21 +4,21 @@ import Type from './Type';
 import type {Constructor} from './';
 
 import PartialType from './PartialType';
-import type FunctionType from './FunctionType';
 import type FunctionTypeParam from './FunctionTypeParam';
 import type FunctionTypeRestParam from './FunctionTypeRestParam';
 import type FunctionTypeReturn from './FunctionTypeReturn';
 import type TypeParameter from './TypeParameter';
 
+import type Validation, {IdentifierPath} from '../Validation';
 
-export type FunctionBodyCreator <T: FunctionType> = (partial: PartialType<T>) => Array<FunctionTypeParam | FunctionTypeRestParam | FunctionTypeReturn>;
+export type FunctionBodyCreator <P, R> = (partial: PartialType<(...params: P[]) => R>) => Array<FunctionTypeParam<P> | FunctionTypeRestParam<P> | FunctionTypeReturn<R>>;
 
 
-export default class ParameterizedFunctionType <T: FunctionType> extends Type {
+export default class ParameterizedFunctionType <X, P, R> extends Type {
   typeName: string = 'ParameterizedFunctionType';
-  bodyCreator: FunctionBodyCreator<T>;
+  bodyCreator: FunctionBodyCreator<P, R>;
 
-  get partial (): PartialType<T> {
+  get partial (): PartialType<(...params: P[]) => R> {
     const {context, bodyCreator} = this;
     const target = new PartialType(context);
     const body = bodyCreator(target);
@@ -26,20 +26,24 @@ export default class ParameterizedFunctionType <T: FunctionType> extends Type {
     return target;
   }
 
-  get typeParameters (): TypeParameter[] {
+  get typeParameters (): TypeParameter<X>[] {
     return this.partial.typeParameters;
   }
 
-  get params (): FunctionTypeParam[] {
+  get params (): FunctionTypeParam<P>[] {
     return this.partial.type.params;
   }
 
-  get rest (): ? FunctionTypeRestParam {
+  get rest (): ? FunctionTypeRestParam<P> {
     return this.partial.type.rest;
   }
 
-  get returnType (): Type {
+  get returnType (): Type<R> {
     return this.partial.type.returnType;
+  }
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    return this.partial.collectErrors(validation, path, input);
   }
 
   accepts (input: any): boolean {
@@ -47,7 +51,7 @@ export default class ParameterizedFunctionType <T: FunctionType> extends Type {
   }
 
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return this.partial.acceptsType(input);
   }
 
@@ -74,7 +78,7 @@ export default class ParameterizedFunctionType <T: FunctionType> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
+  resolve (): Type<(...params: P[]) => R> | Constructor {
     return this.partial.resolve();
   }
 

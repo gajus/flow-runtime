@@ -2,11 +2,28 @@
 
 import Type from './Type';
 
-export default class GeneratorType extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class GeneratorType<Y, R, N> extends Type {
   typeName: string = 'GeneratorType';
-  yieldType: Type;
-  returnType: Type;
-  nextType: Type;
+  yieldType: Type<Y>;
+  returnType: Type<R>;
+  nextType: Type<N>;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const isValid = input
+      && typeof input.next === 'function'
+      && typeof input.return === 'function'
+      && typeof input.throw === 'function'
+      ;
+    if (isValid) {
+      return false;
+    }
+    else {
+      validation.addError(path, 'ERR_EXPECT_GENERATOR');
+      return true;
+    }
+  }
 
   accepts (input: any): boolean {
     return input
@@ -16,7 +33,7 @@ export default class GeneratorType extends Type {
       ;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (!(input instanceof GeneratorType)) {
       return this.yieldType.accepts(input);
     }
@@ -39,15 +56,15 @@ export default class GeneratorType extends Type {
     return this.nextType.accepts(input);
   }
 
-  assertYield <T> (input: T): T {
+  assertYield (input: Y): Y {
     return this.yieldType.assert(input);
   }
 
-  assertReturn <T> (input: T): T {
+  assertReturn (input: R): R {
     return this.returnType.assert(input);
   }
 
-  assertNext <T> (input: T): T {
+  assertNext (input: N): N {
     return this.nextType.assert(input);
   }
 

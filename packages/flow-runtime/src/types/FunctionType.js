@@ -5,11 +5,37 @@ import Type from './Type';
 import FunctionTypeParam from './FunctionTypeParam';
 import FunctionTypeRestParam from './FunctionTypeRestParam';
 
-export default class FunctionType extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class FunctionType<P, R> extends Type {
   typeName: string = 'FunctionType';
-  params: FunctionTypeParam[] = [];
-  rest: ? FunctionTypeRestParam;
-  returnType: Type;
+  params: FunctionTypeParam<P>[] = [];
+  rest: ? FunctionTypeRestParam<P>;
+  returnType: Type<R>;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    if (typeof input !== 'function') {
+      validation.addError(path, 'ERR_EXPECT_FUNCTION');
+      return true;
+    }
+    const {params} = this;
+    if (params.length > input.length) {
+      // function might not have enough parameters,
+      // see how many are really required.
+      let needed = 0;
+      for (let i = 0; i < params.length; i++) {
+        const param = params[i];
+        if (!param.optional) {
+          needed++;
+        }
+      }
+      if (needed > input.length) {
+        validation.addError(path, 'ERR_EXPECT_N_ARGUMENTS', needed);
+        return true;
+      }
+    }
+    return false;
+  }
 
   accepts (input: any): boolean {
     if (typeof input !== 'function') {
@@ -33,7 +59,7 @@ export default class FunctionType extends Type {
     return true;
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (!(input instanceof FunctionType)) {
       return false;
     }
@@ -88,7 +114,7 @@ export default class FunctionType extends Type {
     return this.returnType.accepts(input);
   }
 
-  assertParams <T> (...args: T[]): T[] {
+  assertParams (...args: any[]): P[] {
     const {params, rest} = this;
     const paramsLength = params.length;
     const argsLength = args.length;
@@ -111,8 +137,9 @@ export default class FunctionType extends Type {
     return args;
   }
 
-  assertReturn <T> (input: T): T {
-    return this.returnType.assert(input);
+  assertReturn <T> (input: any): T {
+    this.returnType.assert(input);
+    return input;
   }
 
   makeErrorMessage (): string {

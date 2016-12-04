@@ -3,9 +3,20 @@
 import Type from './Type';
 import type {Constructor} from './';
 
-export default class NullableType extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class NullableType<T> extends Type {
   typeName: string = 'NullableType';
-  type: Type;
+  type: Type<T>;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    if (input === null) {
+      return false;
+    }
+    else {
+      return this.type.collectErrors(validation, path, input);
+    }
+  }
 
   accepts (input: any): boolean {
     if (input == null) {
@@ -16,7 +27,7 @@ export default class NullableType extends Type {
     }
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (input instanceof NullableType) {
       return this.type.acceptsType(input.type);
     }
@@ -32,7 +43,7 @@ export default class NullableType extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
+  resolve (): Type<T> | Constructor {
     return this.type.resolve();
   }
 

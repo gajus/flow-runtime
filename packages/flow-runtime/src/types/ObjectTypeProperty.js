@@ -2,11 +2,21 @@
 
 import Type from './Type';
 
-export default class ObjectTypeProperty extends Type {
+import type Validation, {IdentifierPath} from '../Validation';
+
+export default class ObjectTypeProperty<T> extends Type {
   typeName: string = 'ObjectTypeProperty';
   key: string;
-  value: Type;
+  value: Type<T>;
   optional: boolean;
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {optional, key, value} = this;
+    if (optional && input[key] === undefined) {
+      return false;
+    }
+    return value.collectErrors(validation, path.concat(key), input[key]);
+  }
 
   accepts (input: Object): boolean {
     if (this.optional && input[this.key] === undefined) {
@@ -15,7 +25,7 @@ export default class ObjectTypeProperty extends Type {
     return this.value.accepts(input[this.key]);
   }
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     if (!(input instanceof ObjectTypeProperty)) {
       return false;
     }
