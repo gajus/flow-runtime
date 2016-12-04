@@ -4,6 +4,7 @@ import * as t from 'babel-types';
 import typeAnnotationIterator from './typeAnnotationIterator';
 import type ConversionContext from './ConversionContext';
 import convert from './convert';
+import attachImport from './attachImport';
 
 import getTypeParameters from './getTypeParameters';
 import {ok as invariant} from 'assert';
@@ -53,27 +54,53 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       const name = expression.node.name;
       const binding = path.scope.getBinding(name);
-      if (binding && binding.path.isCatchClause()) {
-        // special case typecasts for error handlers.
-        path.parentPath.replaceWith(t.ifStatement(
-          t.unaryExpression('!', t.callExpression(
-            t.memberExpression(
-              convert(context, typeAnnotation),
-              t.identifier('accepts')
-            ),
-            [expression.node]
-          )),
-          t.blockStatement([t.throwStatement(expression.node)])
-        ));
-        return;
+      if (binding) {
+        if (binding.path.isCatchClause()) {
+          // special case typecasts for error handlers.
+          path.parentPath.replaceWith(t.ifStatement(
+            t.unaryExpression('!', t.callExpression(
+              t.memberExpression(
+                convert(context, typeAnnotation),
+                t.identifier('accepts')
+              ),
+              [expression.node]
+            )),
+            t.blockStatement([t.throwStatement(expression.node)])
+          ));
+          return;
+        }
+        else if (name === 'reify') {
+          if (typeAnnotation.isTypeAnnotation()) {
+            const annotation = typeAnnotation.get('typeAnnotation');
+            const isTypeWrapper = (
+              annotation.isGenericTypeAnnotation() &&
+              annotation.node.id.name === 'Type' &&
+              annotation.node.typeParameters &&
+              annotation.node.typeParameters.params &&
+              annotation.node.typeParameters.params.length === 1
+            );
+            if (isTypeWrapper) {
+              path.replaceWith(
+                convert(
+                  context,
+                  annotation.get('typeParameters.params')[0]
+                )
+              );
+              return;
+            }
+          }
+          path.replaceWith(
+            convert(context, typeAnnotation)
+          );
+          return;
+        }
       }
 
       let valueUid = path.scope.getData(`valueUid:${name}`);
-
       if (!valueUid) {
         valueUid = path.scope.generateUidIdentifier(`${name}Type`);
         path.scope.setData(`valueUid:${name}`, valueUid);
-        path.insertBefore(t.variableDeclaration('let', [
+        path.getStatementParent().insertBefore(t.variableDeclaration('let', [
           t.variableDeclarator(
             valueUid,
             convert(context, typeAnnotation)
@@ -81,7 +108,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         ]));
       }
       else {
-        path.insertBefore(t.expressionStatement(
+        path.getStatementParent().insertBefore(t.expressionStatement(
           t.assignmentExpression(
             '=',
             valueUid,
@@ -513,20 +540,6 @@ export default function transformVisitors (context: ConversionContext): Object {
       path.pushContainer('decorators', decorator);
     }
   };
-}
-
-function attachImport (context: ConversionContext, container: NodePath) {
-  for (const item of container.get('body')) {
-    if (item.type === 'Directive') {
-      continue;
-    }
-    const importDeclaration = t.importDeclaration(
-      [t.importDefaultSpecifier(t.identifier(context.libraryId))],
-      t.stringLiteral(context.libraryName)
-    );
-    item.insertBefore(importDeclaration);
-    return;
-  }
 }
 
 
