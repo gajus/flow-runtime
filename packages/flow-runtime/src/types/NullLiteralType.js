@@ -11,7 +11,7 @@ export default class NullLiteralType extends Type {
     if (input === null) {
       return false;
     }
-    validation.addError(path, 'ERR_EXPECT_NULL');
+    validation.addError(path, this, 'ERR_EXPECT_NULL');
     return true;
   }
 

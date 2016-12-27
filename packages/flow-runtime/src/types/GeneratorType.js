@@ -20,7 +20,7 @@ export default class GeneratorType<Y, R, N> extends Type {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_GENERATOR');
+      validation.addError(path, this, 'ERR_EXPECT_GENERATOR');
       return true;
     }
   }

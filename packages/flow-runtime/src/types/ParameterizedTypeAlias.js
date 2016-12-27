@@ -4,6 +4,7 @@ import type {Constructor, TypeCreator} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 import TypeAlias from './TypeAlias';
 import PartialType from './PartialType';
+import type ObjectTypeProperty from './ObjectTypeProperty';
 
 export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   typeName: string = 'ParameterizedTypeAlias';
@@ -28,7 +29,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
     for (let i = 0; i < length; i++) {
       const constraint = constraints[i];
       if (!constraint(input)) {
-        validation.addError(path, 'ERR_CONSTRAINT_VIOLATION');
+        validation.addError(path, this, 'ERR_CONSTRAINT_VIOLATION');
         hasErrors = true;
       }
     }
@@ -59,11 +60,28 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
     return `Invalid value for polymorphic type: ${this.toString()}.`;
   }
 
+  hasProperty (name: string, ...typeInstances: Type<any>[]): boolean {
+    const inner = this.resolve(...typeInstances);
+    if (inner && typeof inner.hasProperty === 'function') {
+      return inner.hasProperty(name, ...typeInstances);
+    }
+    else {
+      return false;
+    }
+  }
+
+  getProperty (name: string, ...typeInstances: Type<any>[]): ? ObjectTypeProperty<any> {
+    const inner = this.resolve(...typeInstances);
+    if (inner && typeof inner.getProperty === 'function') {
+      return inner.getProperty(name, ...typeInstances);
+    }
+  }
+
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
-    return this.partial.resolve();
+  resolve (...typeInstances: Type<any>[]): Type | Constructor {
+    return this.partial.resolve(...typeInstances);
   }
 
   toString (withDeclaration?: boolean): string {

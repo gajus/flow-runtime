@@ -1,12 +1,12 @@
 /* @flow */
 
-import TypeHandler from './TypeHandler';
+import TypeConstructor from './TypeConstructor';
 
 import type Type from './Type';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class GenericType extends TypeHandler {
+export default class GenericType extends TypeConstructor {
 
   typeName: string = 'GenericType';
 
@@ -15,7 +15,7 @@ export default class GenericType extends TypeHandler {
     if (input instanceof impl) {
       return false;
     }
-    validation.addError(path, 'ERR_EXPECT_INSTANCEOF', name);
+    validation.addError(path, this, 'ERR_EXPECT_INSTANCEOF', name);
     return true;
   }
 

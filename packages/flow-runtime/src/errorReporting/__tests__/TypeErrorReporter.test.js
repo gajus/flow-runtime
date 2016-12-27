@@ -18,7 +18,8 @@ describe('TypeErrorReporter', () => {
     const type = t.string();
     const validation = t.validate(type, false);
     const reporter = new TypeErrorReporter(validation);
-    console.log(reporter.report());
+    const err = reporter.report();
+    ok(err instanceof TypeError);
   });
 
   describe('Objects', () => {
@@ -38,13 +39,15 @@ describe('TypeErrorReporter', () => {
     it('should reject an invalid value', () => {
       const validation = t.validate(type, false);
       const reporter = new TypeErrorReporter(validation);
-      console.log('yp', reporter.report());
+      const err = reporter.report();
+      ok(err instanceof TypeError);
     });
 
     it('should reject another invalid value', () => {
       const validation = t.validate(type, {name: false, address: {}});
       const reporter = new TypeErrorReporter(validation);
-      console.log('yp', reporter.report());
+      const err = reporter.report();
+      ok(err instanceof TypeError);
     });
   });
 });

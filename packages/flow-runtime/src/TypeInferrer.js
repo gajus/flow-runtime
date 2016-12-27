@@ -102,7 +102,7 @@ export class TypeInferer {
       type = this.inferDict(input, inferred);
     }
     else if (input.constructor !== Object) {
-      const handler = context.getTypeHandler(input.constructor);
+      const handler = context.getTypeConstructor(input.constructor);
       if (handler) {
         const typeParameters = handler.inferTypeParameters(input);
         type = handler.apply(...typeParameters);

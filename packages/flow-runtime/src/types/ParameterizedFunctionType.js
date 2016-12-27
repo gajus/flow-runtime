@@ -78,8 +78,8 @@ export default class ParameterizedFunctionType <X, P, R> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type<(...params: P[]) => R> | Constructor {
-    return this.partial.resolve();
+  resolve (...typeInstances: Type<any>[]): Type<(...params: P[]) => R> | Constructor {
+    return this.partial.resolve(...typeInstances);
   }
 
   toString (): string {

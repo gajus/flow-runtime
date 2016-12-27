@@ -4,7 +4,7 @@ import Type from './Type';
 import StringLiteralType from './StringLiteralType';
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class StringType extends Type<string> {
+export default class StringType extends Type {
   typeName: string = 'StringType';
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
@@ -12,7 +12,7 @@ export default class StringType extends Type<string> {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_STRING');
+      validation.addError(path, this, 'ERR_EXPECT_STRING');
       return true;
     }
   }

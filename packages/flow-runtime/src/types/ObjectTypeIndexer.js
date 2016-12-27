@@ -18,8 +18,16 @@ export default class ObjectTypeIndexer<K: string | number, V> extends Type {
     return hasErrors;
   }
 
-  accepts (key: any, value: any): boolean {
-    return this.key.accepts(key) && this.value.accepts(value);
+  accepts (value: any): boolean {
+    return this.value.accepts(value);
+  }
+
+  acceptsKey (key: any): boolean {
+    return this.key.accepts(key);
+  }
+
+  acceptsValue (value: any): boolean {
+    return this.value.accepts(value);
   }
 
   acceptsType (input: Type<any>): boolean {

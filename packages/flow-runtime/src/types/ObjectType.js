@@ -6,18 +6,23 @@ import ObjectTypeProperty from './ObjectTypeProperty';
 import ObjectTypeIndexer from './ObjectTypeIndexer';
 import ObjectTypeCallProperty from './ObjectTypeCallProperty';
 
+export type Property<K: string | number, V>
+ = ObjectTypeProperty<K, V>
+ | ObjectTypeIndexer<K, V>
+ ;
+
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class ObjectType<T: Object> extends Type {
   typeName: string = 'ObjectType';
-  properties: ObjectTypeProperty<any>[] = [];
-  indexers: ObjectTypeIndexer<string | number, any>[] = [];
+  properties: ObjectTypeProperty<$Keys<T>, any>[] = [];
+  indexers: ObjectTypeIndexer<any, any>[] = [];
   callProperties: ObjectTypeCallProperty<any>[] = [];
 
   /**
    * Get a property with the given name, or undefined if it does not exist.
    */
-  getProperty (key: string): ? ObjectTypeProperty<any> {
+  getProperty (key: string | number): ? Property<$Keys<T>, any> {
     const {properties} = this;
     const {length} = properties;
     for (let i = 0; i < length; i++) {
@@ -26,6 +31,7 @@ export default class ObjectType<T: Object> extends Type {
         return property;
       }
     }
+    return this.getIndexer(key);
   }
 
   /**
@@ -40,12 +46,44 @@ export default class ObjectType<T: Object> extends Type {
         return true;
       }
     }
+    return this.hasIndexer(key);
+  }
+
+
+  /**
+   * Get an indexer with which matches the given key type.
+   */
+  getIndexer <K: string | number> (key: K): ? ObjectTypeIndexer<K, any> {
+    const {indexers} = this;
+    const {length} = indexers;
+    for (let i = 0; i < length; i++) {
+      const indexer = indexers[i];
+      if (indexer.acceptsKey(key)) {
+        return indexer;
+      }
+    }
+  }
+
+  /**
+   * Determine whether an indexer exists which matches the given key type.
+   */
+  hasIndexer (key: string | number): boolean {
+    const {indexers} = this;
+    const {length} = indexers;
+    for (let i = 0; i < length; i++) {
+      const indexer = indexers[i];
+      if (indexer.acceptsKey(key)) {
+        return true;
+      }
+    }
     return false;
   }
 
+
+
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (input === null) {
-      validation.addError(path, 'ERR_EXPECT_OBJECT');
+      validation.addError(path, this, 'ERR_EXPECT_OBJECT');
       return true;
     }
 
@@ -53,11 +91,11 @@ export default class ObjectType<T: Object> extends Type {
 
     if (hasCallProperties) {
       if (!acceptsCallProperties(this, input)) {
-        validation.addError(path, 'ERR_EXPECT_CALLABLE');
+        validation.addError(path, this, 'ERR_EXPECT_CALLABLE');
       }
     }
     else if (typeof input !== 'object') {
-      validation.addError(path, 'ERR_EXPECT_OBJECT');
+      validation.addError(path, this, 'ERR_EXPECT_OBJECT');
       return true;
     }
 
@@ -189,7 +227,7 @@ function acceptsWithIndexers (type: ObjectType<any>, input: any): boolean {
     const value = input[key];
     for (let i = 0; i < indexers.length; i++) {
       const indexer = indexers[i];
-      if (indexer.accepts(key, value)) {
+      if (indexer.acceptsKey(key) && indexer.acceptsValue(value)) {
         continue loop;
       }
     }
@@ -284,13 +322,13 @@ function collectErrorsWithIndexers (type: ObjectType<any>, validation: Validatio
     const value = input[key];
     for (let i = 0; i < indexers.length; i++) {
       const indexer = indexers[i];
-      if (indexer.accepts(key, value)) {
+      if (indexer.acceptsKey(key) && indexer.acceptsValue(value)) {
         continue loop;
       }
     }
 
     // if we got this far the key / value was not accepted by any indexers.
-    validation.addError(path.concat(key), 'ERR_NO_INDEXER');
+    validation.addError(path.concat(key), type, 'ERR_NO_INDEXER');
     hasErrors = true;
   }
   return hasErrors;

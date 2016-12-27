@@ -13,7 +13,7 @@ export default class SymbolLiteralType<T: Symbol> extends Type {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_EXACT_VALUE', this.toString());
+      validation.addError(path, this, 'ERR_EXPECT_EXACT_VALUE', this.toString());
       return true;
     }
   }

@@ -10,7 +10,7 @@ export default class BooleanType extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (typeof input !== 'boolean') {
-      validation.addError(path, 'ERR_EXPECT_BOOLEAN');
+      validation.addError(path, this, 'ERR_EXPECT_BOOLEAN');
       return true;
     }
     return false;

@@ -1,12 +1,12 @@
 /* @flow */
 
 import registerPrimitiveTypes from './registerPrimitiveTypes';
-import registerBuiltinTypeHandlers from './registerBuiltinTypeHandlers';
+import registerBuiltinTypeConstructors from './registerBuiltins';
 
 import TypeContext from './TypeContext';
 
 const globalContext = new TypeContext();
 registerPrimitiveTypes(globalContext);
-registerBuiltinTypeHandlers(globalContext);
+registerBuiltinTypeConstructors(globalContext);
 
 export default globalContext;

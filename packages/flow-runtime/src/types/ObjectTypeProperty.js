@@ -4,10 +4,10 @@ import Type from './Type';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class ObjectTypeProperty<T> extends Type {
+export default class ObjectTypeProperty<K: string | number, V> extends Type {
   typeName: string = 'ObjectTypeProperty';
-  key: string;
-  value: Type<T>;
+  key: K;
+  value: Type<K>;
   optional: boolean;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {

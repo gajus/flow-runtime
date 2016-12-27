@@ -11,7 +11,7 @@ export default class TupleType<T> extends Type {
     const {types} = this;
     const {length} = types;
     if (!Array.isArray(input)) {
-      validation.addError(path, 'ERR_EXPECT_ARRAY');
+      validation.addError(path, this, 'ERR_EXPECT_ARRAY');
       return true;
     }
     let hasErrors = false;

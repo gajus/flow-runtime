@@ -3,7 +3,7 @@
 import Type from './Type';
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class StringLiteralType<T: string> extends Type<T> {
+export default class StringLiteralType<T: string> extends Type {
   typeName: string = 'StringLiteralType';
   value: T;
 
@@ -13,7 +13,7 @@ export default class StringLiteralType<T: string> extends Type<T> {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_EXACT_VALUE', this.toString());
+      validation.addError(path, this, 'ERR_EXPECT_EXACT_VALUE', this.toString());
       return true;
     }
   }

@@ -3,7 +3,9 @@
 import Type from './Type';
 import type Validation, {IdentifierPath} from '../Validation';
 
-import type {IApplicableType} from './';
+import type {ApplicableType} from './';
+
+import type ObjectTypeProperty from './ObjectTypeProperty';
 
 /**
  * # TypeParameterApplication
@@ -11,7 +13,7 @@ import type {IApplicableType} from './';
  */
 export default class TypeParameterApplication<X, T> extends Type {
   typeName: string = 'TypeParameterApplication';
-  parent: IApplicableType<T>;
+  parent: ApplicableType<T>;
   typeInstances: Type<X>[] = [];
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
@@ -30,6 +32,23 @@ export default class TypeParameterApplication<X, T> extends Type {
 
   makeErrorMessage (): string {
     return 'Invalid type parameter application.';
+  }
+
+  hasProperty (name: string): boolean {
+    const inner = this.parent;
+    if (inner && typeof (inner: $FlowIgnore).hasProperty === 'function') {
+      return (inner: $FlowIgnore).hasProperty(name, ...this.typeInstances);
+    }
+    else {
+      return false;
+    }
+  }
+
+  getProperty (name: string): ? ObjectTypeProperty<any> {
+    const inner = this.parent;
+    if (inner && typeof (inner: $FlowIgnore).getProperty === 'function') {
+      return (inner: $FlowIgnore).getProperty(name, ...this.typeInstances);
+    }
   }
 
   toString (): string {

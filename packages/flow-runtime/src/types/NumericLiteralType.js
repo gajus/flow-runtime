@@ -14,7 +14,7 @@ export default class NumericLiteralType<T: number> extends Type {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_EXACT_VALUE', value);
+      validation.addError(path, this, 'ERR_EXPECT_EXACT_VALUE', value);
       return false;
     }
   }

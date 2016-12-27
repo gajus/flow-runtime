@@ -59,7 +59,14 @@ export default class PartialType<X, T> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type | Constructor {
+  resolve (...typeInstances: Type<any>[]): Type | Constructor {
+    const {length} = typeInstances;
+    for (let i = 0; i < length; i++) {
+      const typeParameter = this.typeParameters[i];
+      if (typeParameter) {
+        typeParameter.recorded = typeInstances[i];
+      }
+    }
     return this.type.resolve();
   }
 

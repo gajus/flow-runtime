@@ -1,11 +1,33 @@
 /* @flow */
 
+
 export type TypeCreator <T> = (partial: PartialType<T>) => T;
-export type FunctionBodyCreator <X, P, R> = (partial: PartialType<(...params: P[]) => R>) => Array<FunctionTypeParam<X | P> | FunctionTypeRestParam<X | P> | FunctionTypeReturn<X | R>>;
+
+export type FunctionBodyCreator <X, P, R> = (
+  partial: PartialType<(...params: P[]) => R>
+) => Array<ValidFunctionBody<X, P, R>>;
+
+export type ValidFunctionBody<X, P, R>
+ = TypeParameter<X>
+ | FunctionTypeParam<X | P>
+ | FunctionTypeRestParam<X | P>
+ | FunctionTypeReturn<R>
+ ;
+
+export type ObjectPropertyDict<T> = {
+  [name: $Keys<T>]: Type<any>;
+};
+
+export type ValidObjectBody<O: Object>
+ = ObjectTypeCallProperty<any>
+ | ObjectTypeProperty<$Keys<O>, $ObjMap<O, <K>(k: Type<K>) => K>>
+ //| ObjectTypeProperty<$Keys<O>, any>
+ | ObjectTypeIndexer<string | number, any>
+ ;
 
 export type TypeConstraint = (input: any) => boolean;
 
-export type IApplicableType<T> = Type<T> & {
+export type ApplicableType<T> = Type<T> & {
   name: string;
   apply <P> (...typeParameters: Type<P>[]): TypeParameterApplication<P, T>;
 };
@@ -44,7 +66,7 @@ import SymbolLiteralType from './SymbolLiteralType';
 import SymbolType from './SymbolType';
 import TupleType from './TupleType';
 import Type from './Type';
-import TypeHandler from './TypeHandler';
+import TypeConstructor from './TypeConstructor';
 import TypeParameter from './TypeParameter';
 import TypeParameterApplication from './TypeParameterApplication';
 import TypeReference from './TypeReference';
@@ -84,7 +106,7 @@ export {
   SymbolType,
   TupleType,
   Type,
-  TypeHandler,
+  TypeConstructor,
   TypeParameter,
   TypeParameterApplication,
   TypeReference,

@@ -6,8 +6,8 @@ import type {Constructor} from './';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class TypeHandler<T: Constructor> extends Type {
-  typeName: string = 'TypeHandler';
+export default class TypeConstructor<T: Constructor> extends Type {
+  typeName: string = 'TypeConstructor';
   name: string;
   impl: ? T;
 

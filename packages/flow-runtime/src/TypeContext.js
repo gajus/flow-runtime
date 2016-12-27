@@ -5,6 +5,7 @@ import primitiveTypes from './primitiveTypes';
 import invariant from './invariant';
 
 import Validation from './Validation';
+import type {IdentifierPath} from './Validation';
 
 import {
   Type,
@@ -12,7 +13,7 @@ import {
   TypeReference,
   ParameterizedTypeAlias,
   TypeAlias,
-  TypeHandler,
+  TypeConstructor,
   GenericType,
   NullLiteralType,
   NumberType,
@@ -46,50 +47,51 @@ import {
 } from './types';
 
 import {
+  ClassDeclaration,
+  ExtendsDeclaration
+} from './declarations';
+
+import {
   ParentSymbol,
   NameRegistrySymbol,
   ModuleRegistrySymbol,
-  TypeHandlerRegistrySymbol,
+  TypeConstructorRegistrySymbol,
   InferrerSymbol,
   TypeSymbol
 } from './symbols';
 
-import type {TypeCreator, FunctionBodyCreator, IApplicableType} from './types';
+import type {
+  TypeCreator,
+  FunctionBodyCreator,
+  ApplicableType,
+  ValidFunctionBody,
+  ObjectPropertyDict,
+  ValidObjectBody
+} from './types';
 
-export type TypeHandlerConfig = {
+import type {
+  ClassBodyCreator,
+  ValidClassBody
+} from './declarations';
+
+export type TypeConstructorConfig = {
   name: string;
   impl?: Function;
   typeName: string;
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, instanceType: Type<any>): boolean;
   accepts (input: any, ...typeInstances: Type<any>[]): boolean;
   inferTypeParameters (input: any): Type<any>[];
 };
 
-type ValidFunctionBody
- = TypeParameter<any>
- | FunctionTypeParam<any>
- | FunctionTypeRestParam<any>
- | FunctionTypeReturn<any>
- ;
-
-type ObjectPropertyDict<T> = {
-  [name: $Keys<T>]: Type<any>;
-};
-
-type ValidObjectBody
- = ObjectTypeCallProperty<any>
- | ObjectTypeProperty<any>
- | ObjectTypeIndexer<any, any>
- ;
-
 type NameRegistry = {
-  [name: string]: Type<any> | Class<TypeHandler<any>>;
+  [name: string]: Type<any> | Class<TypeConstructor<any>>;
 };
 
 type ModuleRegistry = {
   [name: string]: TypeContext;
 };
 
-type TypeHandlerRegistry = Map<Function, Class<TypeHandler<any>>>;
+type TypeConstructorRegistry = Map<Function, Class<TypeConstructor<any>>>;
 
 export default class TypeContext {
 
@@ -100,13 +102,51 @@ export default class TypeContext {
   [NameRegistrySymbol]: NameRegistry = {};
 
   // @flowIssue 252
-  [TypeHandlerRegistrySymbol]: TypeHandlerRegistry = new Map();
+  [TypeConstructorRegistrySymbol]: TypeConstructorRegistry = new Map();
 
   // @flowIssue 252
   [InferrerSymbol]: TypeInferrer = new TypeInferrer(this);
 
   // @flowIssue 252
   [ModuleRegistrySymbol]: ModuleRegistry = {};
+
+
+  Type: typeof Type = Type;
+  TypeParameter: typeof TypeParameter = TypeParameter;
+  TypeReference: typeof TypeReference = TypeReference;
+  ParameterizedTypeAlias: typeof ParameterizedTypeAlias = ParameterizedTypeAlias;
+  TypeAlias: typeof TypeAlias = TypeAlias;
+  TypeConstructor: typeof TypeConstructor = TypeConstructor;
+  GenericType: typeof GenericType = GenericType;
+  NullLiteralType: typeof NullLiteralType = NullLiteralType;
+  NumberType: typeof NumberType = NumberType;
+  NumericLiteralType: typeof NumericLiteralType = NumericLiteralType;
+  BooleanType: typeof BooleanType = BooleanType;
+  BooleanLiteralType: typeof BooleanLiteralType = BooleanLiteralType;
+  SymbolType: typeof SymbolType = SymbolType;
+  SymbolLiteralType: typeof SymbolLiteralType = SymbolLiteralType;
+  StringType: typeof StringType = StringType;
+  StringLiteralType: typeof StringLiteralType = StringLiteralType;
+  ArrayType: typeof ArrayType = ArrayType;
+  ObjectType: typeof ObjectType = ObjectType;
+  ObjectTypeCallProperty: typeof ObjectTypeCallProperty = ObjectTypeCallProperty;
+  ObjectTypeIndexer: typeof ObjectTypeIndexer = ObjectTypeIndexer;
+  ObjectTypeProperty: typeof ObjectTypeProperty = ObjectTypeProperty;
+  FunctionType: typeof FunctionType = FunctionType;
+  ParameterizedFunctionType: typeof ParameterizedFunctionType = ParameterizedFunctionType;
+  FunctionTypeParam: typeof FunctionTypeParam = FunctionTypeParam;
+  FunctionTypeRestParam: typeof FunctionTypeRestParam = FunctionTypeRestParam;
+  FunctionTypeReturn: typeof FunctionTypeReturn = FunctionTypeReturn;
+  GeneratorType: typeof GeneratorType = GeneratorType;
+  ExistentialType: typeof ExistentialType = ExistentialType;
+  AnyType: typeof AnyType = AnyType;
+  MixedType: typeof MixedType = MixedType;
+  EmptyType: typeof EmptyType = EmptyType;
+  NullableType: typeof NullableType = NullableType;
+  TupleType: typeof TupleType = TupleType;
+  UnionType: typeof UnionType = UnionType;
+  IntersectionType: typeof IntersectionType = IntersectionType;
+  VoidType: typeof VoidType = VoidType;
 
   createContext <T> (body: (context: TypeContext) => Type<T>): Type<T> {
     const context = new TypeContext();
@@ -151,15 +191,40 @@ export default class TypeContext {
   /**
    * Returns a decorator for a function or object with the given type.
    */
-  annotate (type: Type<any>): * {
-    return function <T: Object | Function> (input: T): T {
-      input[TypeSymbol] = type;
-      return input;
+  decorate (type: Type<any>): * {
+    return (input: Object | Function, propertyName?: string, descriptor?: Object): * => {
+      if (descriptor && typeof propertyName === 'string') {
+        if (typeof descriptor.get === 'function' || typeof descriptor.set === 'function') {
+          return descriptor; // @todo decorate getters/setters
+        }
+        else {
+          return {
+            enumerable: true,
+            writable: true,
+            configurable: true,
+            value: descriptor.value,
+            initializer: descriptor.initializer
+          };
+        }
+      }
+      else {
+        return this.annotate(input, type);
+      }
     };
+  }
+
+
+  /**
+   * Returns a decorator for a function or object with the given type.
+   */
+  annotate <T: Object | Function> (input: T, type: Type<any>): T {
+    input[TypeSymbol] = type;
+    return input;
   }
 
   getAnnotation <T> (input: T): ? Type<T> {
     if ((input !== null && typeof input === 'object') || typeof input === 'function') {
+      // @flowIssue 252
       return input[TypeSymbol];
     }
   }
@@ -211,7 +276,7 @@ export default class TypeContext {
 
   }
 
-  declareTypeHandler ({name, impl, typeName, accepts, inferTypeParameters}: TypeHandlerConfig): TypeHandler<any> {
+  declareTypeConstructor ({name, impl, typeName, collectErrors, accepts, inferTypeParameters}: TypeConstructorConfig): TypeConstructor<any> {
     // @flowIssue 252
     const nameRegistry = this[NameRegistrySymbol];
 
@@ -219,10 +284,11 @@ export default class TypeContext {
       throw new Error(`Cannot redeclare type: ${name}`);
     }
 
-    const target = new TypeHandler(this);
+    const target = new TypeConstructor(this);
     target.name = name;
     target.typeName = typeName;
     target.impl = impl;
+    target.collectErrors = collectErrors;
     target.accepts = accepts;
     target.inferTypeParameters = inferTypeParameters;
 
@@ -230,8 +296,8 @@ export default class TypeContext {
 
     if (typeof impl === 'function') {
       // @flowIssue 252
-      const handlerRegistry = this[TypeHandlerRegistrySymbol];
-      (handlerRegistry: TypeHandlerRegistry);
+      const handlerRegistry = this[TypeConstructorRegistrySymbol];
+      (handlerRegistry: TypeConstructorRegistry);
 
       if (handlerRegistry.has(impl)) {
         throw new Error(`A type handler already exists for the given implementation.`);
@@ -241,10 +307,10 @@ export default class TypeContext {
     return target;
   }
 
-  getTypeHandler (impl: Function): ? TypeHandler<any> {
+  getTypeConstructor (impl: Function): ? TypeConstructor<any> {
     // @flowIssue 252
-    const handlerRegistry = this[TypeHandlerRegistrySymbol];
-    (handlerRegistry: TypeHandlerRegistry);
+    const handlerRegistry = this[TypeConstructorRegistrySymbol];
+    (handlerRegistry: TypeConstructorRegistry);
 
     return handlerRegistry.get(impl);
   }
@@ -330,11 +396,60 @@ export default class TypeContext {
     return target;
   }
 
-  fn <X, P, R> (head: FunctionBodyCreator<X, P, R> | ValidFunctionBody, ...tail: Array<ValidFunctionBody>): ParameterizedFunctionType<X, P, R> | FunctionType<P, R> {
+  class <X, O: Object> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
+    const target = new ClassDeclaration(this);
+    if (typeof head === 'function') {
+      return target;
+    }
+    target.name = name;
+    tail.unshift(head);
+    const {length} = tail;
+    const properties = [];
+    let body;
+
+    for (let i = 0; i < length; i++) {
+      const item = tail[i];
+      if (item instanceof ObjectTypeProperty) {
+        properties.push(item);
+      }
+      else if (item instanceof ObjectType) {
+        invariant(!body, 'Class body must only be declared once.');
+        body = item;
+      }
+      else if (item instanceof ExtendsDeclaration) {
+        invariant(!target.superClass, 'Classes can only have one super class.');
+        target.superClass = item;
+      }
+      else if (item != null && typeof item === 'object' && !(item instanceof Type)) {
+        for (const propertyName in item) { // eslint-disable-line
+          properties.push(this.property(propertyName, item[propertyName]));
+        }
+      }
+      else {
+        throw new Error('ClassDeclaration cannot contain the given type directly.');
+      }
+    }
+    if (!body) {
+      body = new ObjectType(this);
+    }
+    if (properties.length) {
+      body.properties.push(...properties);
+    }
+    target.body = body;
+    return target;
+  }
+
+  extends <T, P> (subject: string | ApplicableType<T> | Function, ...typeInstances: Type<P>[]): ExtendsDeclaration<T> {
+    const target = new ExtendsDeclaration(this);
+    target.type = this.ref(subject, ...typeInstances);
+    return target;
+  }
+
+  fn <X, P, R> (head: FunctionBodyCreator<X, P, R> | ValidFunctionBody<X, P, R>, ...tail: Array<ValidFunctionBody<X, P, R>>): ParameterizedFunctionType<X, P, R> | FunctionType<P, R> {
     return this.function(head, ...tail);
   }
 
-  function <X, P, R> (head: FunctionBodyCreator<X, P, R> | ValidFunctionBody, ...tail: Array<ValidFunctionBody>): ParameterizedFunctionType<X, P, R> | FunctionType<P, R> {
+  function <X, P, R> (head: FunctionBodyCreator<X, P, R> | ValidFunctionBody<X, P, R>, ...tail: Array<ValidFunctionBody<X, P, R>>): ParameterizedFunctionType<X, P, R> | FunctionType<P, R> {
     if (typeof head === 'function') {
       const target = new ParameterizedFunctionType(this);
       target.bodyCreator = head;
@@ -390,7 +505,7 @@ export default class TypeContext {
     return target;
   }
 
-  object <T: Object> (head: ? ObjectPropertyDict<T> | ValidFunctionBody, ...tail: ValidObjectBody[]): ObjectType<T> {
+  object <T: Object> (head: ? ValidObjectBody<T> | Object, ...tail: ValidObjectBody<T>[]): ObjectType<T> {
     const target = new ObjectType(this);
     if (head != null && typeof head === 'object' && !(head instanceof Type)) {
       for (const propertyName in head) { // eslint-disable-line
@@ -431,7 +546,7 @@ export default class TypeContext {
     return target;
   }
 
-  property <T> (key: string, value: Type<T> | ObjectPropertyDict<Object>, optional: boolean = false): ObjectTypeProperty<T> {
+  property <K: string | number, V> (key: K, value: Type<V> | ObjectPropertyDict<Object>, optional: boolean = false): ObjectTypeProperty<K, V> {
     const target = new ObjectTypeProperty(this);
     target.key = key;
     if (value instanceof Type) {
@@ -452,7 +567,7 @@ export default class TypeContext {
     return target;
   }
 
-  method <X, P, R> (name: string, head: FunctionBodyCreator<X, P, R> | ValidFunctionBody, ...tail: Array<ValidFunctionBody>): ObjectTypeProperty<(...params: P[]) => R> {
+  method <K: string | number, X, P, R> (name: K, head: FunctionBodyCreator<X, P, R> | ValidFunctionBody<X, P, R>, ...tail: Array<ValidFunctionBody<X, P, R>>): ObjectTypeProperty<K, (...params: P[]) => R> {
     const target = new ObjectTypeProperty(this);
     target.key = name;
     target.value = this.function(head, ...tail);
@@ -483,7 +598,7 @@ export default class TypeContext {
     return target;
   }
 
-  ref <T, P> (subject: string | IApplicableType<T> | Function, ...typeInstances: Type<P>[]): Type<T | any> {
+  ref <T, P> (subject: string | ApplicableType<T> | Function, ...typeInstances: Type<P>[]): Type<T | any> {
     let target;
     if (typeof subject === 'string') {
       // try and eagerly resolve the reference
@@ -496,10 +611,10 @@ export default class TypeContext {
     }
     else if (typeof subject === 'function') {
       // @flowIssue 252
-      const handlerRegistry = this[TypeHandlerRegistrySymbol];
-      (handlerRegistry: TypeHandlerRegistry);
+      const handlerRegistry = this[TypeConstructorRegistrySymbol];
+      (handlerRegistry: TypeConstructorRegistry);
 
-      // see if we have a dedicated TypeHandler for this.
+      // see if we have a dedicated TypeConstructor for this.
       target = handlerRegistry.get(subject);
 
       if (!target) {
@@ -528,6 +643,9 @@ export default class TypeContext {
 
   validate <T> (type: Type<T>, input: any): Validation<T> {
     const validation = new Validation(this, input);
+    if (typeof type.name === 'string') {
+      validation.inputName = type.name;
+    }
     type.collectErrors(validation, [], input);
     return validation;
   }

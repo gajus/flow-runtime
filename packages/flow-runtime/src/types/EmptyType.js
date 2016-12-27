@@ -8,7 +8,7 @@ export default class EmptyType extends Type {
   typeName: string = 'EmptyType';
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    validation.addError(path, 'ERR_EXPECT_EMPTY');
+    validation.addError(path, this, 'ERR_EXPECT_EMPTY');
     return true;
   }
 

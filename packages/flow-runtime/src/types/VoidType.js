@@ -12,7 +12,7 @@ export default class VoidType extends Type {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_VOID');
+      validation.addError(path, this, 'ERR_EXPECT_VOID');
       return true;
     }
   }

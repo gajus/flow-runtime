@@ -27,6 +27,10 @@ export default class FunctionTypeReturn<T> extends Type {
     }
   }
 
+  resolve (): Type<T> {
+    return this.type;
+  }
+
   makeErrorMessage (): string {
     return 'Invalid function return type.';
   }

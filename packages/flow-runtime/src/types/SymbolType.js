@@ -13,7 +13,7 @@ export default class SymbolType extends Type {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_SYMBOL');
+      validation.addError(path, this, 'ERR_EXPECT_SYMBOL');
       return true;
     }
   }

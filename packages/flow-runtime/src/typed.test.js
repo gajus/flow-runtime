@@ -18,7 +18,6 @@ describe('Typed API', () => {
       t.property('bar', t.string('hello'))
     );
 
-    //console.log(type.toString());
     ok(type.accepts({
       foo: true,
       bar: 'hello'
@@ -32,7 +31,6 @@ describe('Typed API', () => {
       bar: t.string()
     });
 
-    //console.log(type.toString());
     ok(type.accepts({
       foo: true,
       bar: 'hello'
@@ -62,7 +60,6 @@ describe('Typed API', () => {
     ));
 
     User.addConstraint(input => input.name.length > 2 && input.name.length < 45);
-    //console.log(User.toString());
 
     no(User.accepts({
       id: 123,
@@ -86,7 +83,6 @@ describe('Typed API', () => {
 
   it('should use a Map<string, number>', () => {
     const type = t.ref(Map, t.string(), t.number());
-    //console.log(type.toString());
     ok(type.accepts(new Map()));
     ok(type.accepts(new Map([
       ['valid', 123]
@@ -105,7 +101,6 @@ describe('Typed API', () => {
       t.return(t.string())
     );
 
-    //console.log(type.toString());
     const good = (input: boolean) => input ? 'yes' : 'no';
     const better = (input: boolean, etc: boolean) => input && etc ? 'yes' : 'no';
     const bad = () => undefined;
@@ -136,7 +131,6 @@ describe('Typed API', () => {
     ok(type.accepts(good));
     ok(type.accepts(better));
     no(type.accepts(bad));
-    //console.log(type.toString());
   });
 
   it('should build a tree-like object', () => {
@@ -153,7 +147,6 @@ describe('Typed API', () => {
         t.property('right', t.nullable(t.ref(Tree, T))),
       );
     });
-    //console.log(Tree.toString(true));
     const candidate = {
       value: 'hello world',
       left: null,
@@ -164,7 +157,6 @@ describe('Typed API', () => {
       }
     };
     ok(Tree.assert(candidate));
-    //console.log(JSON.stringify(Tree, null, 2))
 
   });
 
@@ -178,7 +170,6 @@ describe('Typed API', () => {
       t.property('email', UserEmailAddress)
     ));
 
-    //console.log(User.toString(true));
 
     const sally = {
       id: 123,
@@ -194,7 +185,7 @@ describe('Typed API', () => {
 
   it('should handle Class<User>', () => {
 
-    @t.annotate(t.object(
+    @t.decorate(t.object(
       t.property('id', t.number()),
       t.property('name', t.string()),
       t.property('email', t.string())
@@ -210,7 +201,7 @@ describe('Typed API', () => {
 
     }
 
-    @t.annotate(t.object(
+    @t.decorate(t.object(
       t.property('name', t.string()),
     ))
     class Role {
@@ -310,6 +301,34 @@ describe('Typed API', () => {
   });
 
 
+  it.skip('should $ObjMap<K, V>', () => {
+    const K = t.object(
+      t.property('name', t.string()),
+      t.property('email', t.string()),
+    );
+    const V = t.fn(fn => {
+      const K = fn.typeParameter('K');
+      const V = fn.typeParameter('V');
+      return [
+        t.param('key', K),
+        t.param('value', V),
+        t.return(t.tuple(K, V))
+      ];
+    });
+    const B = t.ref('$ObjMap', K, V);
+
+    B.assert({
+      name: ['name', 'Hello'],
+      email: ['email', 'World']
+    });
+    ok(B.accepts({}));
+    ok(B.accepts({name: 'Alice'}));
+    ok(B.accepts({name: 'Alice', email: 'alice@example.com'}));
+    no(B.accepts({nope: false}));
+    no(B.accepts({name: false, email: 'alice@example.com'}));
+    no(B.accepts({name: 'Alice', email: 'alice@example.com', extra: true}));
+
+  });
 
   it('should build an object', () => {
     const type = t.object(
@@ -347,8 +366,5 @@ describe('Typed API', () => {
         ))
       ))
     );
-    //console.log('\n');
-    //console.log(type.toString());
-    //console.log('\n');
   });
 });

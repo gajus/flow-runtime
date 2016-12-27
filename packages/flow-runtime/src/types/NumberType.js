@@ -13,7 +13,7 @@ export default class NumberType extends Type {
       return false;
     }
     else {
-      validation.addError(path, 'ERR_EXPECT_NUMBER');
+      validation.addError(path, this, 'ERR_EXPECT_NUMBER');
       return false;
     }
   }

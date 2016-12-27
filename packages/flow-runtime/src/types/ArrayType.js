@@ -10,7 +10,7 @@ export default class ArrayType <T> extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (!Array.isArray(input)) {
-      validation.addError(path, 'ERR_EXPECT_ARRAY');
+      validation.addError(path, this, 'ERR_EXPECT_ARRAY');
       return true;
     }
     const {elementType} = this;

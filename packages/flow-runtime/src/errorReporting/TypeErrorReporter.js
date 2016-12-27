@@ -13,7 +13,7 @@ export default class TypeErrorReporter<T> {
 
   report () {
     const {validation} = this;
-    if (!validation.hasErrors) {
+    if (!validation.hasErrors()) {
       return;
     }
     const {context, errors} = validation;
@@ -28,5 +28,13 @@ export default class TypeErrorReporter<T> {
       collected.push(makeErrorMessage(path, key, params, actual));
     }
     return new TypeError(collected.join('\n\n'));
+  }
+}
+
+function collateErrors <T> (validation: Validation<T>) {
+  const roots = new Map();
+  const {context, errors} = validation;
+  for (const [path, key, params] of errors) {
+
   }
 }

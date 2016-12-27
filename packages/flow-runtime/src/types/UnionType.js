@@ -16,7 +16,7 @@ export default class UnionType<T> extends Type {
         return false;
       }
     }
-    validation.addError(path, 'ERR_NO_UNION', this.toString());
+    validation.addError(path, this, 'ERR_NO_UNION', this.toString());
     return true;
   }
 

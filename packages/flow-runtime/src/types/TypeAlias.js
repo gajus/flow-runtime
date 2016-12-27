@@ -28,7 +28,7 @@ export default class TypeAlias<T> extends Type {
     for (let i = 0; i < length; i++) {
       const constraint = constraints[i];
       if (!constraint(input)) {
-        validation.addError(path, 'ERR_CONSTRAINT_VIOLATION');
+        validation.addError(path, this, 'ERR_CONSTRAINT_VIOLATION');
         hasErrors = true;
       }
     }

@@ -10,7 +10,7 @@ export default class BooleanLiteralType <T: boolean> extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (input !== this.value) {
-      validation.addError(path, this.value ? 'ERR_EXPECT_TRUE' : 'ERR_EXPECT_FALSE');
+      validation.addError(path, this, this.value ? 'ERR_EXPECT_TRUE' : 'ERR_EXPECT_FALSE');
       return true;
     }
     return false;
