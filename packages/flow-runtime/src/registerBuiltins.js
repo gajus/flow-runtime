@@ -23,7 +23,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         validation.addError(path, this, 'ERR_EXPECT_CLASS', instanceType.toString());
         return true;
       }
-      const expectedType = instanceType.resolve();
+      const expectedType = instanceType.unwrap();
       if (input === expectedType) {
         return false;
       }
@@ -74,7 +74,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       if (typeof input !== 'function') {
         return false;
       }
-      let expectedType = instanceType.resolve();
+      let expectedType = instanceType.unwrap();
       if (input === expectedType) {
         return true;
       }
@@ -139,9 +139,9 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         validation.addError(path, this, 'ERR_EXPECT_OBJECT');
         return true;
       }
-      aType = aType.resolve();
+      aType = aType.unwrap();
       invariant(bType, "Must specify two type parameters.");
-      bType = bType.resolve();
+      bType = bType.unwrap();
       invariant(aType instanceof ObjectType && bType instanceof ObjectType, "Can only $Diff object types.");
       let hasErrors = false;
       const properties = aType.properties;
@@ -160,8 +160,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
         return false;
       }
-      aType = aType.resolve();
-      bType = bType.resolve();
+      aType = aType.unwrap();
+      bType = bType.unwrap();
       invariant(aType instanceof ObjectType && bType instanceof ObjectType, "Can only $Diff object types.");
       const properties = aType.properties;
       for (let i = 0; i < properties.length; i++) {
@@ -191,7 +191,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         validation.addError(path, this, 'ERR_EXPECT_OBJECT');
         return true;
       }
-      shapeType = shapeType.resolve();
+      shapeType = shapeType.unwrap();
       invariant(typeof shapeType.getProperty === 'function', "Can only $Shape<T> object types.");
 
       let hasErrors = false;
@@ -211,7 +211,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
         return false;
       }
-      shapeType = shapeType.resolve();
+      shapeType = shapeType.unwrap();
       invariant(typeof shapeType.getProperty === 'function', "Can only $Shape<T> object types.");
       for (const key in input) {
         const property = shapeType.getProperty(key);
@@ -263,19 +263,19 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: '$ObjMap',
     typeName: '$ObjMap',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, object: Type<Object>, mapper?: Type<Function>): boolean {
-      const target = object.resolve();
+      const target = object.unwrap();
       invariant(mapper, 'Must specify at least two type parameters.');
       invariant(Array.isArray(target.properties), 'Target must be an object type.');
 
       let hasErrors = false;
       for (const prop: any of target.properties) {
         (prop: ObjectTypeProperty<any, any>);
-        const applied: any = mapper.resolve(
-          prop.value.resolve()
+        const applied: any = mapper.unwrap(
+          prop.value.unwrap()
         );
         (applied: FunctionTypeReturn<any>);
 
-        const returnType = applied.returnType.resolve();
+        const returnType = applied.returnType.unwrap();
         const value = input[prop.key];
         if (returnType.collectErrors(validation, path.concat(prop.key), value)) {
           hasErrors = true;
@@ -285,17 +285,17 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       return hasErrors;
     },
     accepts (input, object: Type<Object>, mapper: Type<Function>): boolean {
-      const target = object.resolve();
+      const target = object.unwrap();
       invariant(Array.isArray(target.properties), 'Target must be an object type.');
 
       for (const prop: any of target.properties) {
         (prop: ObjectTypeProperty<any, any>);
-        const applied: any = mapper.resolve(
-          prop.value.resolve()
+        const applied: any = mapper.unwrap(
+          prop.value.unwrap()
         );
         (applied: FunctionTypeReturn<any>);
 
-        const returnType = applied.returnType.resolve();
+        const returnType = applied.returnType.unwrap();
         if (!returnType.accepts(input[prop.key])) {
           return false;
         }
@@ -313,21 +313,21 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: '$ObjMapi',
     typeName: '$ObjMapi',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, object: Type<Object>, mapper?: Type<Function>): boolean {
-      const target = object.resolve();
+      const target = object.unwrap();
       invariant(mapper, 'Must specify at least two type parameters.');
       invariant(Array.isArray(target.properties), 'Target must be an object type.');
 
       let hasErrors = false;
       for (const prop: any of target.properties) {
         (prop: ObjectTypeProperty<any, any>);
-        const applied: any = mapper.resolve(
+        const applied: any = mapper.unwrap(
           this.context.string(prop.key),
-          prop.value.resolve()
+          prop.value.unwrap()
         );
         (applied: FunctionTypeReturn<any>);
 
         const value = input[prop.key];
-        const returnType = applied.returnType.resolve();
+        const returnType = applied.returnType.unwrap();
         if (returnType.collectErrors(validation, path.concat(prop.key), value)) {
           hasErrors = true;
         }
@@ -336,19 +336,19 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       return hasErrors;
     },
     accepts (input, object: Type<Object>, mapper: Type<Function>): boolean {
-      const target = object.resolve();
+      const target = object.unwrap();
       invariant(Array.isArray(target.properties), 'Target must be an object type.');
 
       for (const prop: any of target.properties) {
         (prop: ObjectTypeProperty<any, any>);
-        const applied: any = mapper.resolve(
+        const applied: any = mapper.unwrap(
           this.context.string(prop.key),
-          prop.value.resolve()
+          prop.value.unwrap()
         );
         (applied: FunctionTypeReturn<any>);
 
         const value = input[prop.key];
-        const returnType = applied.returnType.resolve();
+        const returnType = applied.returnType.unwrap();
         if (!returnType.accepts(value)) {
           return false;
         }
@@ -366,7 +366,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: '$Keys',
     typeName: '$KeysType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, subject: Type<any>): boolean {
-      subject = subject.resolve();
+      subject = subject.unwrap();
       invariant(subject instanceof ObjectType, '$Keys<T> - T must be an ObjectType.');
       const properties = subject.properties;
       const length = properties.length;
@@ -384,7 +384,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       return true;
     },
     accepts (input, subject: Type<any>): boolean {
-      subject = subject.resolve();
+      subject = subject.unwrap();
       invariant(subject instanceof ObjectType, '$Keys<T> - T must be an ObjectType.');
       const properties = subject.properties;
       for (let i = 0; i < properties.length; i++) {

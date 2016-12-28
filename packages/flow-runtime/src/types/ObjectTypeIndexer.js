@@ -37,6 +37,10 @@ export default class ObjectTypeIndexer<K: string | number, V> extends Type {
     return this.key.acceptsType(input.key) && this.value.acceptsType(input.value);
   }
 
+  unwrap (): Type<V> {
+    return this.value.unwrap();
+  }
+
   makeErrorMessage (): string {
     return `Invalid object indexer: ${this.id}.`;
   }

@@ -15,7 +15,7 @@ export default class ExtendsDeclaration<T> extends Declaration {
     return this.type.collectErrors(validation, path, input);
   }
 
-  resolve () {
-    return this.type.resolve();
+  unwrap () {
+    return this.type.unwrap();
   }
 }

@@ -41,7 +41,7 @@ export default class TypeConstructor<T: Constructor> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type<T> | T {
+  unwrap (): Type<T> | T {
     const {impl} = this;
     if (impl) {
       return impl;

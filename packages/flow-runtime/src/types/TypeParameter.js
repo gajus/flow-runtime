@@ -73,13 +73,13 @@ export default class TypeParameter<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type<T> | Constructor {
+  unwrap (): Type<T> | Constructor {
     const {recorded, bound} = this;
     if (recorded) {
-      return recorded.resolve();
+      return recorded.unwrap();
     }
     else if (bound) {
-      return bound.resolve();
+      return bound.unwrap();
     }
     else {
       return this;

@@ -69,12 +69,12 @@ export default class TypeAlias<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type<T> | Constructor {
-    return this.type.resolve();
+  unwrap (): Type<T> | Constructor {
+    return this.type.unwrap();
   }
 
   hasProperty (name: string): boolean {
-    const inner = this.resolve();
+    const inner = this.unwrap();
     if (inner && typeof inner.hasProperty === 'function') {
       return inner.hasProperty(name);
     }
@@ -84,7 +84,7 @@ export default class TypeAlias<T> extends Type {
   }
 
   getProperty (name: string): ? ObjectTypeProperty<any> {
-    const inner = this.resolve();
+    const inner = this.unwrap();
     if (inner && typeof inner.getProperty === 'function') {
       return inner.getProperty(name);
     }

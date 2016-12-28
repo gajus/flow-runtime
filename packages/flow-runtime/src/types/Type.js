@@ -51,7 +51,7 @@ export default class Type <T> {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type<T> | Constructor {
+  unwrap (): Type<T> | Constructor {
     return this;
   }
 

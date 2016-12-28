@@ -59,7 +59,7 @@ export default class PartialType<X, T> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (...typeInstances: Type<any>[]): Type | Constructor {
+  unwrap (...typeInstances: Type<any>[]): Type | Constructor {
     const {length} = typeInstances;
     for (let i = 0; i < length; i++) {
       const typeParameter = this.typeParameters[i];
@@ -67,7 +67,7 @@ export default class PartialType<X, T> extends Type {
         typeParameter.recorded = typeInstances[i];
       }
     }
-    return this.type.resolve();
+    return this.type.unwrap();
   }
 
   toJSON () {

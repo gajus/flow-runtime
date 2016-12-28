@@ -43,8 +43,8 @@ export default class NullableType<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  resolve (): Type<T> | Constructor {
-    return this.type.resolve();
+  unwrap (): Type<T> | Constructor {
+    return this.type.unwrap();
   }
 
   toString (): string {

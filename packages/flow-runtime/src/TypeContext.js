@@ -215,7 +215,7 @@ export default class TypeContext {
 
 
   /**
-   * Returns a decorator for a function or object with the given type.
+   * Annotates an object or function with the given type.
    */
   annotate <T: Object | Function> (input: T, type: Type<any>): T {
     input[TypeSymbol] = type;
@@ -505,7 +505,7 @@ export default class TypeContext {
     return target;
   }
 
-  object <T: Object> (head: ? ValidObjectBody<T> | Object, ...tail: ValidObjectBody<T>[]): ObjectType<T> {
+  object <T: {}> (head: ? ValidObjectBody<T> | $ObjMap<T, <V>(v: V) => Type<V>>, ...tail: ValidObjectBody<T>[]): ObjectType<T> {
     const target = new ObjectType(this);
     if (head != null && typeof head === 'object' && !(head instanceof Type)) {
       for (const propertyName in head) { // eslint-disable-line

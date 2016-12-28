@@ -30,6 +30,11 @@ export default class Validation<T> {
 
   errors: Array<[IdentifierPath, ErrorKey, any[]]> = [];
 
+  constructor (context: TypeContext, input: T) {
+    this.context = context;
+    this.input = input;
+  }
+
   hasErrors (path: ? IdentifierPath): boolean {
     if (path) {
       for (const [candidate] of this.errors) {
@@ -42,11 +47,6 @@ export default class Validation<T> {
     else {
       return this.errors.length > 0;
     }
-  }
-
-  constructor (context: TypeContext, input: T) {
-    this.context = context;
-    this.input = input;
   }
 
   addError (path: IdentifierPath, expectedType: Type<any>, key: ErrorKey, ...params: any[]): this {

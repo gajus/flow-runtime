@@ -7,7 +7,7 @@ import type Validation, {IdentifierPath} from '../Validation';
 export default class ObjectTypeProperty<K: string | number, V> extends Type {
   typeName: string = 'ObjectTypeProperty';
   key: K;
-  value: Type<K>;
+  value: Type<V>;
   optional: boolean;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
@@ -30,6 +30,10 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
       return false;
     }
     return this.value.acceptsType(input.value);
+  }
+
+  unwrap (): Type<V> {
+    return this.value.unwrap();
   }
 
   makeErrorMessage (): string {

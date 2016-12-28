@@ -184,16 +184,19 @@ export class TypeInferer {
   inferArray <T> (input: T[], inferred: Inferred): ArrayType<T> {
     const {context} = this;
     const types = [];
+    const values = [];
     const {length} = input;
     loop: for (let i = 0; i < length; i++) {
       const item = input[i];
+      const inferredType = this.inferInternal(item, inferred);
       for (let j = 0; j < types.length; j++) {
         const type = types[j];
-        if (type.accepts(item)) {
+        if (type.accepts(item) && inferredType.accepts(values[j])) {
           continue loop;
         }
       }
-      types.push(this.inferInternal(item, inferred));
+      types.push(inferredType);
+      values.push(item);
     }
     if (types.length === 0) {
       return (context.array(context.any()): any);

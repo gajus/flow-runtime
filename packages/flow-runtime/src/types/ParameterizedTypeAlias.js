@@ -61,7 +61,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   }
 
   hasProperty (name: string, ...typeInstances: Type<any>[]): boolean {
-    const inner = this.resolve(...typeInstances);
+    const inner = this.unwrap(...typeInstances);
     if (inner && typeof inner.hasProperty === 'function') {
       return inner.hasProperty(name, ...typeInstances);
     }
@@ -71,7 +71,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   }
 
   getProperty (name: string, ...typeInstances: Type<any>[]): ? ObjectTypeProperty<any> {
-    const inner = this.resolve(...typeInstances);
+    const inner = this.unwrap(...typeInstances);
     if (inner && typeof inner.getProperty === 'function') {
       return inner.getProperty(name, ...typeInstances);
     }
@@ -80,8 +80,8 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   /**
    * Get the inner type or value.
    */
-  resolve (...typeInstances: Type<any>[]): Type | Constructor {
-    return this.partial.resolve(...typeInstances);
+  unwrap (...typeInstances: Type<any>[]): Type | Constructor {
+    return this.partial.unwrap(...typeInstances);
   }
 
   toString (withDeclaration?: boolean): string {

@@ -27,7 +27,7 @@ export default class FunctionTypeReturn<T> extends Type {
     }
   }
 
-  resolve (): Type<T> {
+  unwrap (): Type<T> {
     return this.type;
   }
 

@@ -17,6 +17,21 @@ describe('TypeInferrer', () => {
     });
   }
 
+  const sally = {
+    id: 123,
+    name: 'Sally',
+    addresses: [
+      {
+        line1: '123 Fake Street',
+        isActive: true
+      },
+      {
+        line1: '456 Fake Street',
+        isActive: false
+      }
+    ]
+  };
+
   test('hello world', 'string');
   test(123, 'number');
   test(false, 'boolean');
@@ -41,6 +56,14 @@ describe('TypeInferrer', () => {
   bar: boolean;
   baz: Map<string | boolean | number, number | boolean | string>;
   method: (a: *, b: *) => *;
-}`
-  );
+}`);
+  test(sally, `{
+  id: number;
+  name: string;
+  addresses: Array<{
+    line1: string;
+    isActive: boolean;
+  }>;
+}`);
+
 });

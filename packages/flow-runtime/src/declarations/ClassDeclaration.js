@@ -17,7 +17,7 @@ export default class ClassDeclaration<O: Object> extends Declaration {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {body} = this;
-    const superClass = this.superClass && this.superClass.resolve();
+    const superClass = this.superClass && this.superClass.unwrap();
     if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
       validation.addError(path, this, 'ERR_EXPECT_INSTANCEOF', this.name);
       return true;

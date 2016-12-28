@@ -23,6 +23,10 @@ export default class ObjectTypeCallProperty<T: Function> extends Type {
     return this.value.acceptsType(input.value);
   }
 
+  unwrap (): Type<T> {
+    return this.value.unwrap();
+  }
+
   makeErrorMessage (): string {
     return 'Invalid object call property.';
   }
