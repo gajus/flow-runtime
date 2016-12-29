@@ -267,6 +267,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       invariant(mapper, 'Must specify at least two type parameters.');
       invariant(Array.isArray(target.properties), 'Target must be an object type.');
 
+
       let hasErrors = false;
       for (const prop: any of target.properties) {
         (prop: ObjectTypeProperty<any, any>);

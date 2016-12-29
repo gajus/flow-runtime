@@ -53,6 +53,14 @@ function annotationParentHasTypeParameter (annotation: NodePath, name: string): 
   return false;
 }
 
+function parentIsStaticMethod (subject: NodePath): boolean {
+  const fn = subject.findParent(item => item.isClassMethod());
+  if (!fn) {
+    return false;
+  }
+  return fn.node.static;
+}
+
 function parentIsClassConstructorWithSuper (subject: NodePath): boolean {
   const fn = subject.findParent(item => item.isClassMethod() && item.node.kind === 'constructor');
   if (!fn) {
@@ -356,7 +364,13 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   else if (entity.isClassTypeParameter) {
     let target;
     const typeParametersUid = path.scope.getData('typeParametersUid');
-    if (typeParametersUid && parentIsClassConstructorWithSuper(path)) {
+    if (typeParametersUid && parentIsStaticMethod(path)) {
+      target = t.memberExpression(
+        t.identifier(typeParametersUid),
+        subject
+      );
+    }
+    else if (typeParametersUid && parentIsClassConstructorWithSuper(path)) {
       target = t.memberExpression(
         t.identifier(typeParametersUid),
         subject

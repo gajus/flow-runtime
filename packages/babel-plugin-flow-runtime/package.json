@@ -34,8 +34,9 @@
     "babel-traverse": "^6.16.0",
     "babel-types": "^6.16.0",
     "babylon": "^6.13.0",
-    "flow-config-parser": "^0.0.0",
-    "camelcase": "^3.0.0"
+    "bluebird": "^3.4.7",
+    "camelcase": "^3.0.0",
+    "flow-config-parser": "^0.0.0"
   },
   "eslintConfig": {
     "extends": "./config/eslint.js"

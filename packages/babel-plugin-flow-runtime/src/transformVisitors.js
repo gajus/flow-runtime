@@ -11,6 +11,7 @@ import {ok as invariant} from 'assert';
 import type {NodePath} from 'babel-traverse';
 
 export default function transformVisitors (context: ConversionContext): Object {
+  const shouldAssert = context.shouldAssert;
   return {
     Program (path: NodePath) {
       attachImport(context, path);
@@ -42,7 +43,7 @@ export default function transformVisitors (context: ConversionContext): Object {
     TypeCastExpression (path: NodePath) {
       const expression = path.get('expression');
       const typeAnnotation = path.get('typeAnnotation');
-      if (!expression.isIdentifier()) {
+      if (shouldAssert && !expression.isIdentifier()) {
         path.replaceWith(t.callExpression(
           t.memberExpression(
             convert(context, typeAnnotation),
@@ -116,21 +117,44 @@ export default function transformVisitors (context: ConversionContext): Object {
           )
         ));
       }
-      path.replaceWith(t.callExpression(
-        t.memberExpression(
-          valueUid,
-          t.identifier('assert')
-        ),
-        [expression.node]
-      ));
+      if (shouldAssert) {
+        path.replaceWith(t.callExpression(
+          t.memberExpression(
+            valueUid,
+            t.identifier('assert')
+          ),
+          [expression.node]
+        ));
+      }
+      else {
+        path.replaceWith(expression.node);
+      }
     },
     VariableDeclarator (path: NodePath) {
       const id = path.get('id');
-      const {name} = id.node;
-
       if (!id.has('typeAnnotation')) {
         return;
       }
+      if (!id.isIdentifier()) {
+        invariant(id.isArrayPattern() || id.isObjectPattern());
+        const init = path.get('init');
+        let wrapped = init.node;
+        if (shouldAssert) {
+          wrapped = t.callExpression(
+            t.memberExpression(
+              convert(context, id.get('typeAnnotation')),
+              t.identifier('assert')
+            ),
+            [wrapped]
+          );
+        }
+        if (wrapped !== init.node) {
+          init.replaceWith(wrapped);
+        }
+        return;
+      }
+      const {name} = id.node;
+
       if (!path.has('init') || path.parentPath.node.kind !== 'const') {
         const valueUid = path.scope.generateUidIdentifier(`${name}Type`);
         path.scope.setData(`valueUid:${name}`, valueUid);
@@ -138,7 +162,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           valueUid,
           convert(context, id.get('typeAnnotation'))
         ));
-        if (path.has('init')) {
+        if (shouldAssert && path.has('init')) {
           const wrapped = t.callExpression(
             t.memberExpression(
               valueUid,
@@ -152,12 +176,10 @@ export default function transformVisitors (context: ConversionContext): Object {
           ));
         }
         else {
-          path.replaceWith(t.variableDeclarator(
-            t.identifier(name)
-          ));
+          id.replaceWith(t.identifier(name));
         }
       }
-      else {
+      else if (shouldAssert) {
         const wrapped = t.callExpression(
           t.memberExpression(
             convert(context, id.get('typeAnnotation')),
@@ -170,10 +192,13 @@ export default function transformVisitors (context: ConversionContext): Object {
           wrapped
         ));
       }
+      else {
+        id.replaceWith(t.identifier(name));
+      }
     },
     AssignmentExpression (path: NodePath) {
       const left = path.get('left');
-      if (!left.isIdentifier()) {
+      if (!shouldAssert || !left.isIdentifier()) {
         return;
       }
       const name = left.node.name;
@@ -229,42 +254,44 @@ export default function transformVisitors (context: ConversionContext): Object {
         const typeAnnotation = param.get('typeAnnotation');
 
         if (param.isObjectPattern() || param.isArrayPattern()) {
-          shouldShadow = true;
+          if (shouldAssert) {
+            shouldShadow = true;
 
-          const args = [
-            t.stringLiteral(`arguments[${argumentIndex}]`),
-            convert(context, typeAnnotation)
-          ];
-          if (param.has('optional')) {
-            args.push(t.booleanLiteral(true));
-          }
+            const args = [
+              t.stringLiteral(`arguments[${argumentIndex}]`),
+              convert(context, typeAnnotation)
+            ];
+            if (param.has('optional')) {
+              args.push(t.booleanLiteral(true));
+            }
 
-          const ref = t.memberExpression(
-            t.identifier('arguments'),
-            t.numericLiteral(argumentIndex),
-            true
-          );
+            const ref = t.memberExpression(
+              t.identifier('arguments'),
+              t.numericLiteral(argumentIndex),
+              true
+            );
 
-          const expression = t.expressionStatement(
-            t.callExpression(
-              t.memberExpression(context.call('param', ...args), t.identifier('assert')),
-              [ref]
-            )
-          );
-          if (assignmentRight) {
-            invocations.push(
-              t.ifStatement(
-                t.binaryExpression(
-                  '!==',
-                  ref,
-                  t.identifier('undefined')
-                ),
-                t.blockStatement([expression])
+            const expression = t.expressionStatement(
+              t.callExpression(
+                t.memberExpression(context.call('param', ...args), t.identifier('assert')),
+                [ref]
               )
             );
-          }
-          else {
-            invocations.push(expression);
+            if (assignmentRight) {
+              invocations.push(
+                t.ifStatement(
+                  t.binaryExpression(
+                    '!==',
+                    ref,
+                    t.identifier('undefined')
+                  ),
+                  t.blockStatement([expression])
+                )
+              );
+            }
+            else {
+              invocations.push(expression);
+            }
           }
         }
         else {
@@ -285,20 +312,19 @@ export default function transformVisitors (context: ConversionContext): Object {
               convert(context, typeAnnotation)
             )
           ]));
-          const args = [t.stringLiteral(name), valueUid];
-          if (param.has('optional')) {
-            args.push(t.booleanLiteral(true));
+          if (shouldAssert) {
+            const args = [t.stringLiteral(name), valueUid];
+            if (param.has('optional')) {
+              args.push(t.booleanLiteral(true));
+            }
+            invocations.push(t.expressionStatement(
+              t.callExpression(
+                t.memberExpression(context.call(methodName, ...args), t.identifier('assert')),
+                [t.identifier(name)]
+              )
+            ));
           }
-          invocations.push(t.expressionStatement(
-            t.callExpression(
-              t.memberExpression(context.call(methodName, ...args), t.identifier('assert')),
-              [t.identifier(name)]
-            )
-          ));
         }
-
-
-
       }
 
       if (path.has('returnType')) {
@@ -344,19 +370,22 @@ export default function transformVisitors (context: ConversionContext): Object {
           )
         ]));
       }
-      if (shouldShadow && path.isArrowFunctionExpression()) {
-        path.arrowFunctionToShadowed();
-        path.get('body').unshiftContainer('body', definitions.concat(invocations));
-      }
-      else {
-        body.unshiftContainer('body', definitions.concat(invocations));
+      if (definitions.length > 0 || invocations.length > 0) {
+
+        if (shouldShadow && path.isArrowFunctionExpression()) {
+          path.arrowFunctionToShadowed();
+          path.get('body').unshiftContainer('body', definitions.concat(invocations));
+        }
+        else {
+          body.unshiftContainer('body', definitions.concat(invocations));
+        }
       }
 
     },
 
     ReturnStatement (path: NodePath) {
       const fn = path.scope.getFunctionParent().path;
-      if (!fn.has('returnType')) {
+      if (!shouldAssert || !fn.has('returnType')) {
         return;
       }
       const returnTypeUid = path.scope.getData('returnTypeUid');
@@ -370,7 +399,7 @@ export default function transformVisitors (context: ConversionContext): Object {
 
     YieldExpression (path: NodePath) {
       const fn = path.scope.getFunctionParent().path;
-      if (!fn.has('returnType')) {
+      if (!shouldAssert || !fn.has('returnType')) {
         return;
       }
       if (context.visited.has(path.node)) {
@@ -412,6 +441,30 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
 
     Class: {
+      enter (path: NodePath) {
+        const superTypeParameters
+            = path.has('superTypeParameters')
+            ? path.get('superTypeParameters.params')
+            : []
+            ;
+        const hasSuperTypeParameters = superTypeParameters.length > 0;
+        if (path.has('superClass') && isReactComponentClass(path.get('superClass'))) {
+          const annotation = hasSuperTypeParameters
+                           ? superTypeParameters[1]
+                           : getClassPropertyAnnotation(path, 'props')
+                           ;
+
+          if (annotation) {
+            const body = path.get('body');
+            const propTypes = t.classProperty(
+              t.identifier('propTypes'),
+              context.call('propTypes', convert(context, annotation))
+            );
+            propTypes.static = true;
+            body.unshiftContainer('body', propTypes);
+          }
+        }
+      },
       exit (path: NodePath) {
         const typeParameters = getTypeParameters(path);
         const superTypeParameters
@@ -428,9 +481,9 @@ export default function transformVisitors (context: ConversionContext): Object {
         const [constructor] = path.get('body.body').filter(
           item => item.node.kind === 'constructor'
         );
+        const typeParametersUid = t.identifier(path.scope.getData('typeParametersUid'));
         if (path.has('superClass')) {
           const body = constructor.get('body');
-          const typeParametersUid = t.identifier(path.scope.getData('typeParametersUid'));
 
           const trailer = [];
           if (hasTypeParameters) {
@@ -509,7 +562,23 @@ export default function transformVisitors (context: ConversionContext): Object {
             )
           ));
         }
+        const staticMethods = path.get('body.body').filter(
+          item => item.isClassMethod() && item.node.static
+        );
 
+        for (const method of staticMethods) {
+          method.get('body').unshiftContainer('body', t.variableDeclaration('const', [
+            t.variableDeclarator(
+              typeParametersUid,
+              t.objectExpression(typeParameters.map(typeParameter => {
+                return t.objectProperty(
+                  t.identifier(typeParameter.node.name),
+                  convert(context, typeParameter)
+                );
+              }))
+            )
+          ]));
+        }
       }
     },
 
@@ -519,7 +588,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       const typeAnnotation = path.get('typeAnnotation');
       let decorator;
-      if (annotationReferencesClassEntity (context, typeAnnotation)) {
+      if (annotationReferencesClassEntity(context, typeAnnotation)) {
         decorator = t.decorator(context.call(
           'decorate',
           t.functionExpression(
@@ -542,6 +611,37 @@ export default function transformVisitors (context: ConversionContext): Object {
   };
 }
 
+function isReactComponentClass (path: NodePath): boolean {
+  if (path.isIdentifier()) {
+    return path.node.name === path.scope.getData('reactComponentClass')
+        || path.node.name === path.scope.getData('reactPureComponentClass')
+        ;
+  }
+  else if (path.isMemberExpression() && !path.node.computed) {
+    const object = path.get('object');
+    const property = path.get('property');
+    if (!object.isIdentifier() || object.node.name !== path.scope.getData('reactLib')) {
+      return false;
+    }
+    return property.isIdentifier()
+        && (
+             property.node.name === 'Component'
+          || property.node.name === 'PureComponent'
+        )
+        ;
+  }
+  else {
+    return false;
+  }
+}
+
+function getClassPropertyAnnotation (path: NodePath, name: string): ? NodePath {
+  for (const item of path.get('body.body')) {
+    if (item.isClassProperty() && item.node.key.name === name) {
+      return item.get('typeAnnotation');
+    }
+  }
+}
 
 function annotationReferencesClassEntity (context: ConversionContext, annotation: NodePath): boolean {
   for (const item of typeAnnotationIterator(annotation)) {

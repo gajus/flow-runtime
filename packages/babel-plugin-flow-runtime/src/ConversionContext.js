@@ -11,6 +11,8 @@ export default class ConversionContext {
 
   libraryName: string = 'flow-runtime';
   libraryId: string = 't';
+  shouldAssert: boolean = true;
+  shouldDecorate: boolean = true;
 
   /**
    * A map of global entity definitions.

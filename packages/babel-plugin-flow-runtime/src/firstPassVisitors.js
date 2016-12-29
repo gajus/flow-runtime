@@ -14,6 +14,16 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       context.defineTypeAlias(path.node.id.name, path);
     },
     ImportDeclaration (path: NodePath) {
+      const source = path.get('source').node.value;
+
+      const isReact = path.node.importKind === 'value'
+                    && (source === 'react' || source === 'preact')
+                    ;
+
+      if (isReact) {
+        path.parentPath.scope.setData('importsReact', true);
+      }
+
       path.get('specifiers').forEach(specifier => {
         const local = specifier.get('local');
         const {name} = local.node;
@@ -22,6 +32,17 @@ export default function firstPassVisitors (context: ConversionContext): Object {
         }
         else {
           context.defineValue(name, path);
+          if (isReact) {
+            if (specifier.isImportDefaultSpecifier()) {
+              path.parentPath.scope.setData('reactLib', name);
+            }
+            else if (specifier.node.imported.name === 'Component') {
+              path.parentPath.scope.setData('reactComponentClass', name);
+            }
+            else if (specifier.node.imported.name === 'PureComponent') {
+              path.parentPath.scope.setData('reactPureComponentClass', name);
+            }
+          }
         }
       });
     },

@@ -5,6 +5,9 @@ import primitiveTypes from './primitiveTypes';
 import invariant from './invariant';
 
 import Validation from './Validation';
+
+import makeReactPropTypes from './makeReactPropTypes';
+import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
 
 import {
@@ -56,6 +59,7 @@ import {
   NameRegistrySymbol,
   ModuleRegistrySymbol,
   TypeConstructorRegistrySymbol,
+  TypeParametersSymbol,
   InferrerSymbol,
   TypeSymbol
 } from './symbols';
@@ -396,6 +400,20 @@ export default class TypeContext {
     return target;
   }
 
+  bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
+    // @flowIssue 252
+    const typeParameters = subject[TypeParametersSymbol];
+    if (typeParameters) {
+      const keys = Object.keys(typeParameters);
+      const length = Math.min(keys.length, typeInstances.length);
+      for (let i = 0; i < length; i++) {
+        const typeParam = typeParameters[keys[i]];
+        typeParam.bound = typeInstances[i];
+      }
+    }
+    return subject;
+  }
+
   class <X, O: Object> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
     const target = new ClassDeclaration(this);
     if (typeof head === 'function') {
@@ -648,6 +666,10 @@ export default class TypeContext {
     }
     type.collectErrors(validation, [], input);
     return validation;
+  }
+
+  propTypes <T: {}> (type: Type<T>): PropTypeDict<T> {
+    return makeReactPropTypes((type.unwrap(): $FlowIgnore));
   }
 }
 
