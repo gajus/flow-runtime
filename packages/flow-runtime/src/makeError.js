@@ -1,16 +1,10 @@
 /* @flow */
 
 import type {Type} from './types';
+import makeTypeError from './errorReporting/makeTypeError';
 
-import makeComparison from './makeComparison';
-
-export default function makeError (expected: Type<any>, actual: any): TypeError {
+export default function makeError (expected: Type<any>, input: any): ? TypeError {
   const {context} = expected;
-  const inferred = context.typeOf(actual);
-  const message = `${expected.makeErrorMessage()}\n\n${makeComparison(expected, inferred)}`;
-
-  const error = new TypeError(message);
-
-  error.name = 'RuntimeTypeError';
-  return error;
+  const validation = context.validate(expected, input);
+  return makeTypeError(validation);
 }

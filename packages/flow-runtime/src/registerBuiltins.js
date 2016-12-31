@@ -1,12 +1,13 @@
 /* @flow */
-
-import type TypeContext from './TypeContext';
-import type Validation, {IdentifierPath} from './Validation';
+import getErrorMessage from "./getErrorMessage";
 
 import invariant from './invariant';
 
 import {Type, TypeParameterApplication, GenericType, ObjectType} from './types';
 import type {FunctionTypeReturn, ObjectTypeProperty} from './types';
+
+import type TypeContext from './TypeContext';
+import type Validation, {IdentifierPath} from './Validation';
 
 export default function registerBuiltinTypeConstructors (t: TypeContext): TypeContext {
 
@@ -20,7 +21,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: 'ClassType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, instanceType: Type<any>): boolean {
       if (typeof input !== 'function') {
-        validation.addError(path, this, 'ERR_EXPECT_CLASS', instanceType.toString());
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()));
         return true;
       }
       const expectedType = instanceType.unwrap();
@@ -32,7 +33,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
           return false;
         }
         else {
-          validation.addError(path, this, 'ERR_EXPECT_CLASS', instanceType.toString());
+          validation.addError(path, this, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()));
           return true;
         }
       }
@@ -66,7 +67,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         return false;
       }
       else {
-        validation.addError(path, this, 'ERR_EXPECT_CLASS', instanceType.toString());
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()));
         return true;
       }
     },
@@ -136,7 +137,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: '$DiffType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, aType: Type<any>, bType?: Type<any>): boolean {
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
-        validation.addError(path, this, 'ERR_EXPECT_OBJECT');
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
         return true;
       }
       aType = aType.unwrap();
@@ -188,7 +189,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: '$ShapeType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, shapeType: Type<any>): boolean {
       if (input === null || (typeof input !== "object" && typeof input !== "function")) {
-        validation.addError(path, this, 'ERR_EXPECT_OBJECT');
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
         return true;
       }
       shapeType = shapeType.unwrap();
@@ -381,7 +382,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       for (let i = 0; i < length; i++) {
         keys[i] = properties[i].key;
       }
-      validation.addError(path, this, 'ERR_NO_UNION', keys.join(' | '));
+      validation.addError(path, this, getErrorMessage('ERR_NO_UNION', keys.join(' | ')));
       return true;
     },
     accepts (input, subject: Type<any>): boolean {
@@ -407,11 +408,11 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: 'DateType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
       if (!(input instanceof Date)) {
-        validation.addError(path, this, 'ERR_EXPECT_INSTANCEOF', Date);
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', Date));
         return true;
       }
       else if (isNaN(input.getTime())) {
-        validation.addError(path, this, 'ERR_INVALID_DATE');
+        validation.addError(path, this, getErrorMessage('ERR_INVALID_DATE'));
         return true;
       }
       else {
@@ -431,11 +432,11 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: 'IterableType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, keyType: Type<any>): boolean {
       if (!input) {
-        validation.addError(path, this, 'ERR_EXPECT_OBJECT');
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
         return true;
       }
       else if (typeof input[Symbol.iterator] !== 'function') {
-        validation.addError(path, this, 'ERR_EXPECT_ITERABLE');
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_ITERABLE'));
         return true;
       }
       return false;
@@ -457,7 +458,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: 'PromiseType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, futureType: Type<any>): boolean {
       if (!input || typeof input.then !== 'function') {
-        validation.addError(path, this, 'ERR_EXPECT_PROMISE', futureType);
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_PROMISE', futureType));
         return true;
       }
       return false;
@@ -477,13 +478,13 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, keyType: Type<any>, valueType?: Type<any>): boolean {
       invariant(valueType, "Must specify two type parameters.");
       if (!(input instanceof Map)) {
-        validation.addError(path, this, 'ERR_EXPECT_INSTANCEOF', 'Map');
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Map'));
         return true;
       }
       let hasErrors = false;
       for (const [key, value] of input) {
         if (!keyType.accepts(key)) {
-          validation.addError(path, this, 'ERR_EXPECT_KEY_TYPE', keyType);
+          validation.addError(path, this, getErrorMessage('ERR_EXPECT_KEY_TYPE', keyType));
           hasErrors = true;
         }
         if (valueType.collectErrors(validation, path.concat(key), value)) {
@@ -557,7 +558,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: 'SetType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, valueType: Type<any>): boolean {
       if (!(input instanceof Set)) {
-        validation.addError(path, this, 'ERR_EXPECT_INSTANCEOF', 'Set');
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Set'));
         return true;
       }
       let hasErrors = false;

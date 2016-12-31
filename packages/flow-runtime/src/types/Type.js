@@ -34,22 +34,14 @@ export default class Type <T> {
   }
 
   assert (input: T): T {
-    if (!this.accepts(input)) {
-      const error = this.makeError(input);
+    const error = makeError(this, input);
+    if (error) {
       if (typeof Error.captureStackTrace === 'function') {
         Error.captureStackTrace(error, this.assert);
       }
       throw error;
     }
     return input;
-  }
-
-  makeError (input: T): Error {
-    return makeError(this, input);
-  }
-
-  makeErrorMessage (): string {
-    return 'Invalid value for type.';
   }
 
   /**

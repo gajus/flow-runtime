@@ -2,6 +2,7 @@
 
 import Type from './Type';
 import SymbolLiteralType from './SymbolLiteralType';
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class SymbolType extends Type {
@@ -13,7 +14,7 @@ export default class SymbolType extends Type {
       return false;
     }
     else {
-      validation.addError(path, this, 'ERR_EXPECT_SYMBOL');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_SYMBOL'));
       return true;
     }
   }
@@ -24,10 +25,6 @@ export default class SymbolType extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof SymbolType || input instanceof SymbolLiteralType;
-  }
-
-  makeErrorMessage (): string {
-    return 'Invalid value for type: Symbol.';
   }
 
   toString () {

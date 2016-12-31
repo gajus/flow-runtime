@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class SymbolLiteralType<T: Symbol> extends Type {
@@ -13,7 +14,7 @@ export default class SymbolLiteralType<T: Symbol> extends Type {
       return false;
     }
     else {
-      validation.addError(path, this, 'ERR_EXPECT_EXACT_VALUE', this.toString());
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_EXACT_VALUE', this.toString()));
       return true;
     }
   }
@@ -24,10 +25,6 @@ export default class SymbolLiteralType<T: Symbol> extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof SymbolLiteralType && input.value === this.value;
-  }
-
-  makeErrorMessage (): string {
-    return `Value must be exactly: ${this.value.toString()}.`;
   }
 
   toString () {

@@ -558,6 +558,12 @@ export default class TypeContext {
     return target;
   }
 
+  exactObject <T: {}> (head: ? ValidObjectBody<T> | $ObjMap<T, <V>(v: V) => Type<V>>, ...tail: ValidObjectBody<T>[]): ObjectType<T> {
+    const object = this.object(head, ...tail);
+    object.exact = true;
+    return object;
+  }
+
   callProperty <T> (value: Type<T>): ObjectTypeCallProperty<T> {
     const target = new ObjectTypeCallProperty(this);
     target.value = value;

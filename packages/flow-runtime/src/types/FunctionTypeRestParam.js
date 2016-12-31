@@ -30,10 +30,6 @@ export default class FunctionTypeRestParam<T> extends Type {
     }
   }
 
-  makeErrorMessage (): string {
-    return `Invalid value for rest argument: ${this.name}.`;
-  }
-
   toString (): string {
     const {type} = this;
     return `...${this.name}: ${type.toString()}`;

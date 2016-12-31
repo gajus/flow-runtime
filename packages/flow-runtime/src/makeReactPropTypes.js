@@ -1,5 +1,7 @@
 /* @flow */
 
+import makeError from './makeError';
+
 import type ObjectType from './types/ObjectType';
 
 export type PropType<T: {}> = (props: T, propName: string, componentName: string) => ? Error;
@@ -10,9 +12,7 @@ export default function makeReactPropTypes <T: {}> (objectType: ObjectType<T>): 
   const output = {};
   for (const property of objectType.properties) {
     output[property.key] = (props, propName, componentName) => {
-      if (!property.accepts(props)) {
-        return property.makeError(props[propName]);
-      }
+      return makeError(property, props);
     };
   }
   return output;

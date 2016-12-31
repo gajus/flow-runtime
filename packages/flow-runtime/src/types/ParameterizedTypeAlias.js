@@ -16,20 +16,22 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
     const target = new PartialType(this.context);
     target.name = name;
     target.type = typeCreator(target);
+    target.constraints = this.constraints;
     return target;
   }
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {constraints, partial} = this;
+    let hasErrors = false;
     if (partial.collectErrors(validation, path, input)) {
-      return true;
+      hasErrors = true;
     }
     const {length} = constraints;
-    let hasErrors = false;
     for (let i = 0; i < length; i++) {
       const constraint = constraints[i];
-      if (!constraint(input)) {
-        validation.addError(path, this, 'ERR_CONSTRAINT_VIOLATION');
+      const violation = constraint(input);
+      if (typeof violation === 'string') {
+        validation.addError(path, this, violation);
         hasErrors = true;
       }
     }
@@ -44,7 +46,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
     const {length} = constraints;
     for (let i = 0; i < length; i++) {
       const constraint = constraints[i];
-      if (!constraint(input)) {
+      if (typeof constraint(input) === 'string') {
         return false;
       }
     }
@@ -54,10 +56,6 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
 
   acceptsType (input: Type): boolean {
     return this.partial.acceptsType(input);
-  }
-
-  makeErrorMessage (): string {
-    return `Invalid value for polymorphic type: ${this.toString()}.`;
   }
 
   hasProperty (name: string, ...typeInstances: Type<any>[]): boolean {

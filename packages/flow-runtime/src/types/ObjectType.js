@@ -11,6 +11,7 @@ export type Property<K: string | number, V>
  | ObjectTypeIndexer<K, V>
  ;
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class ObjectType<T: Object> extends Type {
@@ -18,6 +19,7 @@ export default class ObjectType<T: Object> extends Type {
   properties: ObjectTypeProperty<$Keys<T>, any>[] = [];
   indexers: ObjectTypeIndexer<any, any>[] = [];
   callProperties: ObjectTypeCallProperty<any>[] = [];
+  exact: boolean = false;
 
   /**
    * Get a property with the given name, or undefined if it does not exist.
@@ -83,7 +85,7 @@ export default class ObjectType<T: Object> extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (input === null) {
-      validation.addError(path, this, 'ERR_EXPECT_OBJECT');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
       return true;
     }
 
@@ -91,16 +93,19 @@ export default class ObjectType<T: Object> extends Type {
 
     if (hasCallProperties) {
       if (!acceptsCallProperties(this, input)) {
-        validation.addError(path, this, 'ERR_EXPECT_CALLABLE');
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_CALLABLE'));
       }
     }
     else if (typeof input !== 'object') {
-      validation.addError(path, this, 'ERR_EXPECT_OBJECT');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
       return true;
     }
 
     if (this.indexers.length > 0) {
       return collectErrorsWithIndexers(this, validation, path, input);
+    }
+    else if (this.exact) {
+      return collectErrorsExact(this, validation, path, input);
     }
     else {
       return collectErrorsWithoutIndexers(this, validation, path, input);
@@ -125,6 +130,9 @@ export default class ObjectType<T: Object> extends Type {
     if (this.indexers.length > 0) {
       return acceptsWithIndexers(this, input);
     }
+    else if (this.exact) {
+      return acceptsExact(this, input);
+    }
     else {
       return acceptsWithoutIndexers(this, input);
     }
@@ -148,10 +156,6 @@ export default class ObjectType<T: Object> extends Type {
     }
   }
 
-  makeErrorMessage (): string {
-    return 'Invalid object.';
-  }
-
   toString (): string {
     const {callProperties, properties, indexers} = this;
     const body = [];
@@ -164,7 +168,12 @@ export default class ObjectType<T: Object> extends Type {
     for (let i = 0; i < indexers.length; i++) {
       body.push(indexers[i].toString());
     }
-    return `{\n${indent(body.join('\n'))}\n}`;
+    if (this.exact) {
+      return `{|\n${indent(body.join('\n'))}\n|}`;
+    }
+    else {
+      return `{\n${indent(body.join('\n'))}\n}`;
+    }
   }
 
   toJSON () {
@@ -172,7 +181,8 @@ export default class ObjectType<T: Object> extends Type {
       typeName: this.typeName,
       callProperties: this.callProperties,
       properties: this.properties,
-      indexers: this.indexers
+      indexers: this.indexers,
+      exact: this.exact
     };
   }
 }
@@ -210,7 +220,7 @@ function acceptsTypeCallProperties (type: ObjectType<any>, input: ObjectType<any
   return true;
 }
 
-function acceptsWithIndexers (type: ObjectType<any>, input: any): boolean {
+function acceptsWithIndexers (type: ObjectType<any>, input: Object): boolean {
   const {properties, indexers} = type;
   const seen = [];
   for (let i = 0; i < properties.length; i++) {
@@ -271,13 +281,33 @@ function acceptsTypeWithIndexers (type: ObjectType<any>, input: ObjectType<any>)
 }
 
 
-function acceptsWithoutIndexers (type: ObjectType<any>, input: any): boolean {
+function acceptsWithoutIndexers (type: ObjectType<any>, input: Object): boolean {
   const {properties} = type;
   for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
     if (!property.accepts(input)) {
       return false;
     }
+  }
+  return true;
+}
+
+
+function acceptsExact (type: ObjectType<any>, input: Object): boolean {
+  const {properties} = type;
+  const {length} = properties;
+  loop: for (const key in input) {
+    for (let i = 0; i < length; i++) {
+      const property = properties[i];
+      if (property.key === key) {
+        if (!property.accepts(input)) {
+          return false;
+        }
+        continue loop;
+      }
+    }
+    // if we got this far the property does not exist in the object.
+    return false;
   }
   return true;
 }
@@ -304,7 +334,7 @@ function acceptsTypeWithoutIndexers (type: ObjectType<any>, input: ObjectType<an
 }
 
 
-function collectErrorsWithIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+function collectErrorsWithIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): boolean {
   const {properties, indexers} = type;
   const seen = [];
   let hasErrors = false;
@@ -328,14 +358,14 @@ function collectErrorsWithIndexers (type: ObjectType<any>, validation: Validatio
     }
 
     // if we got this far the key / value was not accepted by any indexers.
-    validation.addError(path.concat(key), type, 'ERR_NO_INDEXER');
+    validation.addError(path.concat(key), type, getErrorMessage('ERR_NO_INDEXER'));
     hasErrors = true;
   }
   return hasErrors;
 }
 
 
-function collectErrorsWithoutIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+function collectErrorsWithoutIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): boolean {
   const {properties} = type;
   let hasErrors = false;
   for (let i = 0; i < properties.length; i++) {
@@ -343,6 +373,28 @@ function collectErrorsWithoutIndexers (type: ObjectType<any>, validation: Valida
     if (property.collectErrors(validation, path, input)) {
       hasErrors = true;
     }
+  }
+  return hasErrors;
+}
+
+
+function collectErrorsExact (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): boolean {
+  const {properties} = type;
+  const {length} = properties;
+  let hasErrors = false;
+  loop: for (const key in input) {
+    for (let i = 0; i < length; i++) {
+      const property = properties[i];
+      if (property.key === key) {
+        if (property.collectErrors(validation, path, input)) {
+          hasErrors = true;
+        }
+        continue loop;
+      }
+    }
+    // if we got this far the property does not exist in the object.
+    validation.addError(path, type, getErrorMessage('ERR_UNKNOWN_KEY', key));
+    hasErrors = true;
   }
   return hasErrors;
 }

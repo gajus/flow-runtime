@@ -1,7 +1,7 @@
 /* @flow */
 import {ok, equal} from 'assert';
 import invariant from '../../invariant';
-import JSONErrorReporter from '../JSONErrorReporter';
+import makeJSONError from '../makeJSONError';
 import t from '../../globalContext';
 
 const no = (input: any): any => ok(!input);
@@ -22,19 +22,19 @@ function normalize (input: string): string {
   return input.trim().replace(/(\s+)/gm, ' ');
 }
 
-describe('JSONErrorReporter', () => {
+describe('makeJSONError', () => {
   it('should accept a valid value', () => {
     const type = t.string();
     const validation = t.validate(type, "hello world");
-    const reporter = new JSONErrorReporter(validation);
-    no(reporter.report());
+    const report = makeJSONError(validation);
+    no(report);
   });
 
   it('should reject an invalid value', () => {
     const type = t.string();
     const validation = t.validate(type, false);
-    const reporter = new JSONErrorReporter(validation);
-    expect(reporter.report(), [
+    const report = makeJSONError(validation);
+    expect(report, [
       'Value must be a string, got boolean'
     ]);
   });
@@ -49,22 +49,22 @@ describe('JSONErrorReporter', () => {
 
     it('should accept a valid value', () => {
       const validation = t.validate(type, {name: "foo", address: { line1: 'bar' }});
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
       const validation = t.validate(type, false);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'Value must be an object, got boolean'
       ]);
     });
 
     it('should reject another invalid value', () => {
       const validation = t.validate(type, {name: false, address: {}});
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'name must be a string, got boolean',
         'address.line1 must be a string, got void'
       ]);
@@ -77,14 +77,14 @@ describe('JSONErrorReporter', () => {
 
     it('should accept a valid value', () => {
       const validation = t.validate(type, [1, 2, 3]);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
       const validation = t.validate(type, [1, 2, "foo"]);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         '[2] must be a number, got string'
       ]);
     });
@@ -95,14 +95,14 @@ describe('JSONErrorReporter', () => {
 
     it('should accept a valid value', () => {
       const validation = t.validate(type, [{name: 'foo'}]);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
       const validation = t.validate(type, [{name: 'foo'}, {name: 123}]);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         '[1].name must be a string, got number'
       ]);
     });
@@ -113,15 +113,15 @@ describe('JSONErrorReporter', () => {
 
     it('should accept a valid value', () => {
       const validation = t.validate(type, [{items: [1, 2, 3]}]);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
       const validation = t.validate(type, [{items: [1, 2, 3]}, {items: [1, 2, "foo"]}]);
       validation.inputName = 'input';
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'input[1].items[2] must be a number, got string'
       ]);
     });
@@ -145,15 +145,15 @@ describe('JSONErrorReporter', () => {
 
     it('should accept a valid value', () => {
       const validation = t.validate(type, valid);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
       const validation = t.validate(type, invalid);
       validation.inputName = 'input';
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'input requires 2 argument(s), got (a: number) => number'
       ]);
     });
@@ -188,58 +188,58 @@ describe('JSONErrorReporter', () => {
 
     it('should accept a valid Thing', () => {
       const validation = t.validate(Thing, validThing);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid Thing', () => {
       const validation = t.validate(Thing, invalidThing);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'Thing.name must be a string, got boolean'
       ]);
     });
 
     it('should accept a valid AnyThing', () => {
       const validation = t.validate(AnyThing, validAnyThing);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid AnyThing', () => {
       const validation = t.validate(AnyThing, invalidAnyThing);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'AnyThing.url must be a string, got void'
       ]);
     });
 
     it('should reject another invalid AnyThing', () => {
       const validation = t.validate(AnyThing, invalidAnyThing2);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'AnyThing.name must be one of: string | boolean, got void'
       ]);
     });
 
     it('should accept a valid Person', () => {
       const validation = t.validate(Person, validPerson);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid Person', () => {
       const validation = t.validate(Person, invalidPerson);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'Person.age must be a number, got boolean'
       ]);
     });
 
     it('should reject another invalid Person', () => {
       const validation = t.validate(Person, invalidPerson2);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'Person.name must be a string, got void'
       ]);
 
@@ -271,14 +271,14 @@ describe('JSONErrorReporter', () => {
 
     it('should accept a valid value', () => {
       const validation = t.validate(ThingClass, Thing);
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
       const validation = t.validate(ThingClass, AnotherThing);
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         `
         Value must be a Class of Thing, got class IInvalid {
           num: number;
@@ -307,8 +307,8 @@ describe('JSONErrorReporter', () => {
         name: ['name', 'Hello'],
         email: ['email', 'World']
       });
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
@@ -316,8 +316,8 @@ describe('JSONErrorReporter', () => {
         name: [false, 'Hello'],
         email: ['email', 'World']
       });
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'name[0] must be a string, got boolean'
       ]);
     });
@@ -326,8 +326,8 @@ describe('JSONErrorReporter', () => {
       const validation = t.validate(PropTuples, {
         name: ['name', 'Hello'],
       });
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'email must be an Array, got void'
       ]);
     });
@@ -337,8 +337,8 @@ describe('JSONErrorReporter', () => {
         name: ['name', 'Hello'],
         email: ['email', false]
       });
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'email[1] must be a string, got boolean'
       ]);
     });
@@ -365,8 +365,8 @@ describe('JSONErrorReporter', () => {
         id: ['id', 123],
         name: ['name', 'World']
       });
-      const reporter = new JSONErrorReporter(validation);
-      no(reporter.report());
+      const report = makeJSONError(validation);
+      no(report);
     });
 
     it('should reject an invalid value', () => {
@@ -374,8 +374,8 @@ describe('JSONErrorReporter', () => {
         id: ['id', false],
         name: ['name', 'World']
       });
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'id[1] must be a number, got boolean'
       ]);
     });
@@ -384,8 +384,8 @@ describe('JSONErrorReporter', () => {
         id: ['i d', 123],
         name: ['name', 'World']
       });
-      const reporter = new JSONErrorReporter(validation);
-      expect(reporter.report(), [
+      const report = makeJSONError(validation);
+      expect(report, [
         'id[0] must be exactly "id", got string'
       ]);
     });

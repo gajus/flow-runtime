@@ -21,11 +21,10 @@ export type ObjectPropertyDict<T> = {
 export type ValidObjectBody<O: Object>
  = ObjectTypeCallProperty<any>
  | ObjectTypeProperty<$Keys<O>, $ObjMap<O, <K>(k: Type<K>) => K>>
- //| ObjectTypeProperty<$Keys<O>, any>
  | ObjectTypeIndexer<string | number, any>
  ;
 
-export type TypeConstraint = (input: any) => boolean;
+export type TypeConstraint = (input: any) => ? string;
 
 export type ApplicableType<T> = Type<T> & {
   name: string;

@@ -1,20 +1,19 @@
 /* @flow */
-
-import getErrorMessage from './getErrorMessage';
+import makeJSONError from './errorReporting/makeJSONError';
 
 import type TypeContext from './TypeContext';
 import type Type from './types/Type';
 
-import type {ErrorKey} from './errorMessages';
-
 export type IdentifierPath = Array<string | number>;
+export type ErrorTuple = [IdentifierPath, string, Type<any>];
 
 export type ValidationJSON<T> = {
   input: T;
   errors: Array<{
-    path: IdentifierPath;
-    code: ErrorKey;
-
+    pointer: string;
+    message: string;
+    expected: Type<any>;
+    actual: Type<any>;
   }>
 };
 
@@ -28,7 +27,7 @@ export default class Validation<T> {
 
   inputName: string = '';
 
-  errors: Array<[IdentifierPath, ErrorKey, any[]]> = [];
+  errors: ErrorTuple[] = [];
 
   constructor (context: TypeContext, input: T) {
     this.context = context;
@@ -49,8 +48,8 @@ export default class Validation<T> {
     }
   }
 
-  addError (path: IdentifierPath, expectedType: Type<any>, key: ErrorKey, ...params: any[]): this {
-    this.errors.push([path, key, params, expectedType]);
+  addError (path: IdentifierPath, expectedType: Type<any>, message: string): this {
+    this.errors.push([path, message, expectedType]);
     return this;
   }
 
@@ -80,18 +79,7 @@ export default class Validation<T> {
   }
 
   toJSON (): * {
-    const {input, context, errors} = this;
-    const {length} = errors;
-    const normalized = new Array(length);
-    for (let i = 0; i < length; i++) {
-      const [path, code, params, expected] = errors[i];
-      const actual = context.typeOf(resolvePath(input, path));
-      const message = params ? getErrorMessage(code, ...params)
-                             : getErrorMessage(code)
-                             ;
-      normalized[i] = {path, code, message, actual, expected};
-    }
-    return {input, errors: normalized};
+    return makeJSONError(this);
   }
 
 }

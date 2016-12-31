@@ -66,10 +66,6 @@ export default class TypeParameter<T> extends Type {
     }
   }
 
-  makeErrorMessage (): string {
-    return `Invalid value for type parameter: ${this.id}`;
-  }
-
   /**
    * Get the inner type or value.
    */

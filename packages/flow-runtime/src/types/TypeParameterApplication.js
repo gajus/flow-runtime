@@ -30,10 +30,6 @@ export default class TypeParameterApplication<X, T> extends Type {
     return this.parent.acceptsType(input);
   }
 
-  makeErrorMessage (): string {
-    return 'Invalid type parameter application.';
-  }
-
   hasProperty (name: string): boolean {
     const inner = this.parent;
     if (inner && typeof (inner: $FlowIgnore).hasProperty === 'function') {

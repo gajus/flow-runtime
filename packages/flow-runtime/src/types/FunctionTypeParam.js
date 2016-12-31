@@ -39,10 +39,6 @@ export default class FunctionTypeParam<T> extends Type {
     }
   }
 
-  makeErrorMessage (): string {
-    return `Invalid value for ${this.optional ? 'optional ' : ''}argument: ${this.name}.`;
-  }
-
   toString (): string {
     const {optional, type} = this;
     return `${this.name}${optional ? '?' : ''}: ${type.toString()}`;

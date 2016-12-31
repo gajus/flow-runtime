@@ -2,6 +2,7 @@
 
 import Type from './Type';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class BooleanLiteralType <T: boolean> extends Type {
@@ -10,7 +11,7 @@ export default class BooleanLiteralType <T: boolean> extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (input !== this.value) {
-      validation.addError(path, this, this.value ? 'ERR_EXPECT_TRUE' : 'ERR_EXPECT_FALSE');
+      validation.addError(path, this, getErrorMessage(this.value ? 'ERR_EXPECT_TRUE' : 'ERR_EXPECT_FALSE'));
       return true;
     }
     return false;
@@ -22,10 +23,6 @@ export default class BooleanLiteralType <T: boolean> extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof BooleanLiteralType && input.value === this.value;
-  }
-
-  makeErrorMessage (): string {
-    return `Value must be exactly: ${this.toString()}.`;
   }
 
   toString (): string {

@@ -2,6 +2,7 @@
 
 import Type from './Type';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class NumericLiteralType<T: number> extends Type {
@@ -14,7 +15,7 @@ export default class NumericLiteralType<T: number> extends Type {
       return false;
     }
     else {
-      validation.addError(path, this, 'ERR_EXPECT_EXACT_VALUE', value);
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_EXACT_VALUE', value));
       return false;
     }
   }
@@ -25,10 +26,6 @@ export default class NumericLiteralType<T: number> extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof NumericLiteralType && input.value === this.value;
-  }
-
-  makeErrorMessage (): string {
-    return `Value must be exactly: ${this.toString()}.`;
   }
 
   toString (): string {

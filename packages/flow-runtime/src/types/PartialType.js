@@ -1,6 +1,6 @@
 
 import Type from './Type';
-import type {Constructor} from './';
+import type {Constructor, TypeConstraint} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameter from './TypeParameter';
@@ -11,6 +11,7 @@ export default class PartialType<X, T> extends Type {
   name: string;
   type: Type<T>;
   typeParameters: TypeParameter<X>[] = [];
+  constraints: ? TypeConstraint[];
 
   typeParameter (id: string, bound?: Type<X>): TypeParameter<X> {
     const target = new TypeParameter(this.context);
@@ -27,28 +28,55 @@ export default class PartialType<X, T> extends Type {
     return target;
   }
 
+  addConstraint (constraint: TypeConstraint): TypeAlias {
+    if (!this.constraints) {
+      this.constraints = [constraint];
+    }
+    else {
+      this.constraints.push(constraint);
+    }
+    return this;
+  }
+
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    const {type} = this;
-    return type.collectErrors(validation, path, input);
+    const {constraints, type} = this;
+    let hasErrors = false;
+    if (type.collectErrors(validation, path, input)) {
+      hasErrors = true;
+    }
+    if (constraints) {
+      const {length} = constraints;
+      for (let i = 0; i < length; i++) {
+        const constraint = constraints[i];
+        const violation = constraint(input);
+        if (typeof violation === 'string') {
+          validation.addError(path, this, violation);
+          hasErrors = true;
+        }
+      }
+    }
+    return hasErrors;
   }
 
   accepts (input: any): boolean {
-    const {type} = this;
-    return type.accepts(input);
+    const {constraints, type} = this;
+    if (!type.accepts(input)) {
+      return false;
+    }
+    if (constraints) {
+      const {length} = constraints;
+      for (let i = 0; i < length; i++) {
+        const constraint = constraints[i];
+        if (typeof constraint(input) === 'string') {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   acceptsType (input: Type<any>): boolean {
     return this.type.acceptsType(input);
-  }
-
-  makeErrorMessage (): string {
-    const {type} = this;
-    if (type) {
-      return type.makeErrorMessage();
-    }
-    else {
-      return `Invalid value for partial type: ${this.name}.`;
-    }
   }
 
   toString (expand?: boolean): string {

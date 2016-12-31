@@ -34,10 +34,6 @@ export default class TypeConstructor<T: Constructor> extends Type {
     return target;
   }
 
-  makeErrorMessage (): string {
-    return `Invalid value for type handler: ${this.name}.`;
-  }
-
   /**
    * Get the inner type or value.
    */

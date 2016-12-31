@@ -3,6 +3,7 @@
 import Type from './Type';
 import NumericLiteralType from './NumericLiteralType';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class NumberType extends Type {
@@ -13,7 +14,7 @@ export default class NumberType extends Type {
       return false;
     }
     else {
-      validation.addError(path, this, 'ERR_EXPECT_NUMBER');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_NUMBER'));
       return false;
     }
   }
@@ -24,10 +25,6 @@ export default class NumberType extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof NumberType || input instanceof NumericLiteralType;
-  }
-
-  makeErrorMessage (): string {
-    return 'Value is not a number.';
   }
 
   toString (): string {

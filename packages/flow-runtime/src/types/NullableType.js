@@ -36,10 +36,6 @@ export default class NullableType<T> extends Type {
     }
   }
 
-  makeErrorMessage (): string {
-    return this.type.makeErrorMessage();
-  }
-
   /**
    * Get the inner type or value.
    */

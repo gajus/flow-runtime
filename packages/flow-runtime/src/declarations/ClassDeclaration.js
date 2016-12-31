@@ -2,6 +2,7 @@
 
 import Declaration from './Declaration';
 import TypeParameterApplication from '../types/TypeParameterApplication';
+import getErrorMessage from "../getErrorMessage";
 
 import type {Type, ObjectType} from '../types';
 
@@ -19,7 +20,7 @@ export default class ClassDeclaration<O: Object> extends Declaration {
     const {body} = this;
     const superClass = this.superClass && this.superClass.unwrap();
     if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
-      validation.addError(path, this, 'ERR_EXPECT_INSTANCEOF', this.name);
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', this.name));
       return true;
     }
     let hasSuperErrors = false;

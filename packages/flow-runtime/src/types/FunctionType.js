@@ -5,6 +5,7 @@ import Type from './Type';
 import FunctionTypeParam from './FunctionTypeParam';
 import FunctionTypeRestParam from './FunctionTypeRestParam';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class FunctionType<P, R> extends Type {
@@ -15,7 +16,7 @@ export default class FunctionType<P, R> extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (typeof input !== 'function') {
-      validation.addError(path, this, 'ERR_EXPECT_FUNCTION');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_FUNCTION'));
       return true;
     }
     const {params} = this;
@@ -30,7 +31,7 @@ export default class FunctionType<P, R> extends Type {
         }
       }
       if (needed > input.length) {
-        validation.addError(path, this, 'ERR_EXPECT_N_ARGUMENTS', needed);
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_N_ARGUMENTS', needed));
         return true;
       }
     }
@@ -140,10 +141,6 @@ export default class FunctionType<P, R> extends Type {
   assertReturn <T> (input: any): T {
     this.returnType.assert(input);
     return input;
-  }
-
-  makeErrorMessage (): string {
-    return `Invalid function.`;
   }
 
   toString (): string {

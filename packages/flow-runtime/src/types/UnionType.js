@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class UnionType<T> extends Type {
@@ -16,7 +17,7 @@ export default class UnionType<T> extends Type {
         return false;
       }
     }
-    validation.addError(path, this, 'ERR_NO_UNION', this.toString());
+    validation.addError(path, this, getErrorMessage('ERR_NO_UNION', this.toString()));
     return true;
   }
 
@@ -57,10 +58,6 @@ export default class UnionType<T> extends Type {
       }
       return false;
     }
-  }
-
-  makeErrorMessage (): string {
-    return 'Invalid union element.';
   }
 
   toString (): string {

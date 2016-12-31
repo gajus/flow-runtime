@@ -2,6 +2,7 @@
 
 import Type from './Type';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class GeneratorType<Y, R, N> extends Type {
@@ -20,7 +21,7 @@ export default class GeneratorType<Y, R, N> extends Type {
       return false;
     }
     else {
-      validation.addError(path, this, 'ERR_EXPECT_GENERATOR');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_GENERATOR'));
       return true;
     }
   }
@@ -66,10 +67,6 @@ export default class GeneratorType<Y, R, N> extends Type {
 
   assertNext (input: N): N {
     return this.nextType.assert(input);
-  }
-
-  makeErrorMessage (): string {
-    return `Invalid generator function.`;
   }
 
   toString (): string {

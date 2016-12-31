@@ -26,6 +26,28 @@ describe('Typed API', () => {
 
 
   it('should check a simple object with shortcut syntax', () => {
+    const type = t.exactObject({
+      foo: t.boolean(),
+      bar: t.string()
+    });
+
+    ok(type.accepts({
+      foo: true,
+      bar: 'hello'
+    }));
+
+    no(type.accepts({
+      foo: true,
+      bar: 'hello',
+      baz: 44
+    }));
+
+    no(type.accepts({
+      foo: 123,
+    }));
+  });
+
+  it('should check an exact object', () => {
     const type = t.object({
       foo: t.boolean(),
       bar: t.string()
@@ -59,7 +81,14 @@ describe('Typed API', () => {
       t.property('name', t.string())
     ));
 
-    User.addConstraint(input => input.name.length > 2 && input.name.length < 45);
+    User.addConstraint(input => {
+      if (input.name.length <= 2) {
+        return "Name is too short!";
+      }
+      else if (input.name.length >= 45) {
+        return "Name is too long!";
+      }
+    });
 
     no(User.accepts({
       id: 123,
@@ -162,7 +191,11 @@ describe('Typed API', () => {
 
   it('should handle named types', () => {
     const UserEmailAddress = t.type('UserEmailAddress', t.string());
-    UserEmailAddress.addConstraint(input => /@/.test(input));
+    UserEmailAddress.addConstraint(input => {
+      if (!/@/.test(input)) {
+        return "must be a valid email address";
+      }
+    });
 
     const User = t.type('User', t.object(
       t.property('id', t.number()),

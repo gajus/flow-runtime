@@ -71,10 +71,6 @@ export default class ParameterizedFunctionType <X, P, R> extends Type {
     return this.partial.type.assertReturn(input);
   }
 
-  makeErrorMessage (): string {
-    return 'Invalid function.';
-  }
-
   /**
    * Get the inner type or value.
    */

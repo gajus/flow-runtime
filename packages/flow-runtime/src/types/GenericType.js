@@ -4,6 +4,7 @@ import TypeConstructor from './TypeConstructor';
 
 import type Type from './Type';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class GenericType extends TypeConstructor {
@@ -15,7 +16,7 @@ export default class GenericType extends TypeConstructor {
     if (input instanceof impl) {
       return false;
     }
-    validation.addError(path, this, 'ERR_EXPECT_INSTANCEOF', name);
+    validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', name));
     return true;
   }
 
@@ -30,9 +31,4 @@ export default class GenericType extends TypeConstructor {
   inferTypeParameters <P> (input: any): Type<P>[] {
     return [];
   }
-
-  makeErrorMessage (): string {
-    return `Invalid value for generic type: ${this.name}.`;
-  }
-
 }

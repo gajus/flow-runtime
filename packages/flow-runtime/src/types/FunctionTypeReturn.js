@@ -31,10 +31,6 @@ export default class FunctionTypeReturn<T> extends Type {
     return this.type;
   }
 
-  makeErrorMessage (): string {
-    return 'Invalid function return type.';
-  }
-
   toString (): string {
     const {type} = this;
     return type.toString();

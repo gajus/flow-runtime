@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class TupleType<T> extends Type {
@@ -11,7 +12,7 @@ export default class TupleType<T> extends Type {
     const {types} = this;
     const {length} = types;
     if (!Array.isArray(input)) {
-      validation.addError(path, this, 'ERR_EXPECT_ARRAY');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
       return true;
     }
     let hasErrors = false;
@@ -54,10 +55,6 @@ export default class TupleType<T> extends Type {
       }
     }
     return true;
-  }
-
-  makeErrorMessage (): string {
-    return 'Invalid tuple.';
   }
 
   toString (): string {

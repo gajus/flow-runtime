@@ -2,6 +2,7 @@
 
 import Type from './Type';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class NullLiteralType extends Type {
@@ -11,7 +12,7 @@ export default class NullLiteralType extends Type {
     if (input === null) {
       return false;
     }
-    validation.addError(path, this, 'ERR_EXPECT_NULL');
+    validation.addError(path, this, getErrorMessage('ERR_EXPECT_NULL'));
     return true;
   }
 
@@ -21,10 +22,6 @@ export default class NullLiteralType extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof NullLiteralType;
-  }
-
-  makeErrorMessage (): string {
-    return 'Value is not null.';
   }
 
   toString (): string {

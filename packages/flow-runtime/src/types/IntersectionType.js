@@ -60,10 +60,6 @@ export default class IntersectionType<T> extends Type {
     }
   }
 
-  makeErrorMessage (): string {
-    return 'Invalid intersection element.';
-  }
-
   toString (): string {
     return this.types.join(' & ');
   }

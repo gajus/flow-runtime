@@ -2,6 +2,7 @@
 
 import Type from './Type';
 import StringLiteralType from './StringLiteralType';
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class StringType extends Type {
@@ -12,7 +13,7 @@ export default class StringType extends Type {
       return false;
     }
     else {
-      validation.addError(path, this, 'ERR_EXPECT_STRING');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_STRING'));
       return true;
     }
   }
@@ -23,10 +24,6 @@ export default class StringType extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof StringType || input instanceof StringLiteralType;
-  }
-
-  makeErrorMessage (): string {
-    return 'Value must be a string.';
   }
 
   toString () {

@@ -2,6 +2,7 @@
 
 import Type from './Type';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class VoidType extends Type {
@@ -12,7 +13,7 @@ export default class VoidType extends Type {
       return false;
     }
     else {
-      validation.addError(path, this, 'ERR_EXPECT_VOID');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_VOID'));
       return true;
     }
   }
@@ -23,10 +24,6 @@ export default class VoidType extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof VoidType;
-  }
-
-  makeErrorMessage (): string {
-    return 'Value must be undefined.';
   }
 
   toString (): string {

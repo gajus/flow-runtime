@@ -27,9 +27,6 @@ export default class ObjectTypeCallProperty<T: Function> extends Type {
     return this.value.unwrap();
   }
 
-  makeErrorMessage (): string {
-    return 'Invalid object call property.';
-  }
 
   toString (): string {
     return `${this.value.toString()};`;

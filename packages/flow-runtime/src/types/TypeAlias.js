@@ -20,15 +20,16 @@ export default class TypeAlias<T> extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {constraints, type} = this;
+    let hasErrors = false;
     if (type.collectErrors(validation, path, input)) {
-      return true;
+      hasErrors = true;
     }
     const {length} = constraints;
-    let hasErrors = false;
     for (let i = 0; i < length; i++) {
       const constraint = constraints[i];
-      if (!constraint(input)) {
-        validation.addError(path, this, 'ERR_CONSTRAINT_VIOLATION');
+      const violation = constraint(input);
+      if (typeof violation === 'string') {
+        validation.addError(path, this, violation);
         hasErrors = true;
       }
     }
@@ -43,7 +44,7 @@ export default class TypeAlias<T> extends Type {
     const {length} = constraints;
     for (let i = 0; i < length; i++) {
       const constraint = constraints[i];
-      if (!constraint(input)) {
+      if (typeof constraint(input) === 'string') {
         return false;
       }
     }
@@ -60,10 +61,6 @@ export default class TypeAlias<T> extends Type {
     target.parent = this;
     target.typeInstances = typeInstances;
     return target;
-  }
-
-  makeErrorMessage (): string {
-    return `Invalid value for type: ${this.name}.`;
   }
 
   /**

@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 
@@ -10,7 +11,7 @@ export default class ArrayType <T> extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (!Array.isArray(input)) {
-      validation.addError(path, this, 'ERR_EXPECT_ARRAY');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
       return true;
     }
     const {elementType} = this;
@@ -41,10 +42,6 @@ export default class ArrayType <T> extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof ArrayType && this.elementType.acceptsType(input.elementType);
-  }
-
-  makeErrorMessage (): string {
-    return 'Invalid array.';
   }
 
   toString (): string {

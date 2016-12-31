@@ -3,6 +3,7 @@
 import Type from './Type';
 import BooleanLiteralType from './BooleanLiteralType';
 
+import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class BooleanType extends Type {
@@ -10,7 +11,7 @@ export default class BooleanType extends Type {
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (typeof input !== 'boolean') {
-      validation.addError(path, this, 'ERR_EXPECT_BOOLEAN');
+      validation.addError(path, this, getErrorMessage('ERR_EXPECT_BOOLEAN'));
       return true;
     }
     return false;
@@ -22,10 +23,6 @@ export default class BooleanType extends Type {
 
   acceptsType (input: Type<any>): boolean {
     return input instanceof BooleanType || input instanceof BooleanLiteralType;
-  }
-
-  makeErrorMessage (): string {
-    return 'Value must be true or false.';
   }
 
   toString () {

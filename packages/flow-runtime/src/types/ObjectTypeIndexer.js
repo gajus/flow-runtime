@@ -41,10 +41,6 @@ export default class ObjectTypeIndexer<K: string | number, V> extends Type {
     return this.value.unwrap();
   }
 
-  makeErrorMessage (): string {
-    return `Invalid object indexer: ${this.id}.`;
-  }
-
   toString (): string {
     return `[${this.id}: ${this.key.toString()}]: ${this.value.toString()};`;
   }

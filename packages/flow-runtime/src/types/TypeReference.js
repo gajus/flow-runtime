@@ -38,10 +38,6 @@ export default class TypeReference<T> extends Type {
     return target;
   }
 
-  makeErrorMessage (): string {
-    return `Invalid value for type: ${this.name}.`;
-  }
-
   /**
    * Get the inner type or value.
    */

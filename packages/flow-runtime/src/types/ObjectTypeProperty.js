@@ -36,10 +36,6 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
     return this.value.unwrap();
   }
 
-  makeErrorMessage (): string {
-    return `Invalid value for property: ${this.key}.`;
-  }
-
   toString (): string {
     return `${this.key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
   }
