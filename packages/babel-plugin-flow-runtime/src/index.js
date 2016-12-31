@@ -15,8 +15,10 @@ export default function () {
         const context = new ConversionContext();
         context.shouldAssert = opts.assert ? true : false;
         context.shouldDecorate = opts.decorate ? true : false;
-        attachImport(context, path);
         path.traverse(firstPassVisitors(context));
+        if (context.shouldImport) {
+          attachImport(context, path);
+        }
         path.traverse(transformVisitors(context));
       }
     }

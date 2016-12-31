@@ -14,7 +14,9 @@ export default function transformVisitors (context: ConversionContext): Object {
   const shouldAssert = context.shouldAssert;
   return {
     Program (path: NodePath) {
-      attachImport(context, path);
+      if (context.shouldImport) {
+        attachImport(context, path);
+      }
     },
     'DeclareVariable|DeclareTypeAlias|DeclareFunction|DeclareClass|DeclareModule' (path: NodePath) {
       const replacement = convert(context, path);

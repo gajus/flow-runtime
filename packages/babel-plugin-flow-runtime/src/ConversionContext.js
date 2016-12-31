@@ -11,6 +11,7 @@ export default class ConversionContext {
 
   libraryName: string = 'flow-runtime';
   libraryId: string = 't';
+  shouldImport: boolean = true;
   shouldAssert: boolean = true;
   shouldDecorate: boolean = true;
 
@@ -31,6 +32,13 @@ export default class ConversionContext {
    */
   defineTypeAlias (name: string, path: NodePath): Entity {
     return this.defineEntity(name, 'TypeAlias', path);
+  }
+
+  /**
+   * Define a type alias with the given name and path.
+   */
+  defineImportedType (name: string, path: NodePath): Entity {
+    return this.defineEntity(name, 'ImportedType', path);
   }
 
   /**

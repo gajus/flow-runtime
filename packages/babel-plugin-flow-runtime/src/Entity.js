@@ -8,6 +8,7 @@ export type EntityType
   | 'TypeAlias'
   | 'TypeParameter'
   | 'ClassTypeParameter'
+  | 'ImportedType'
   ;
 
 export default class Entity {
@@ -21,6 +22,10 @@ export default class Entity {
 
   get isTypeAlias (): boolean {
     return this.type === 'TypeAlias';
+  }
+
+  get isImportedType (): boolean {
+    return this.type === 'ImportedType';
   }
 
   get isTypeParameter (): boolean {

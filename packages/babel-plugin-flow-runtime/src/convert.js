@@ -349,7 +349,6 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
         || (entity && (entity.isTypeAlias || entity.isTypeParameter))
         ;
 
-
   if (isDirectlyReferenceable) {
     if (typeParameters.length > 0) {
       return context.call('ref', subject, ...typeParameters);
@@ -419,7 +418,7 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
     ...path.get('properties'),
     ...path.get('indexers')
   ];
-  return context.call('object', ...body.map(item => convert(context, item)));
+  return context.call(path.node.exact ? 'exactObject' : 'object', ...body.map(item => convert(context, item)));
 };
 
 converters.ObjectTypeCallProperty = (context: ConversionContext, path: NodePath): Node => {
@@ -427,7 +426,14 @@ converters.ObjectTypeCallProperty = (context: ConversionContext, path: NodePath)
 };
 
 converters.ObjectTypeProperty = (context: ConversionContext, path: NodePath): Node => {
-  return context.call('property', t.stringLiteral(path.node.key.name), convert(context, path.get('value')));
+  const propName = t.stringLiteral(path.node.key.name);
+  const value = convert(context, path.get('value'));
+  if (path.node.optional) {
+    return context.call('property', propName, value, t.booleanLiteral(true));
+  }
+  else {
+    return context.call('property', propName, value);
+  }
 };
 
 converters.ObjectTypeIndexer = (context: ConversionContext, path: NodePath): Node => {

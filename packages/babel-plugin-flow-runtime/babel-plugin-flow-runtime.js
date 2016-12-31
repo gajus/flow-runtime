@@ -1,3 +1,5 @@
-var plugin = require('./lib');
+var plugin = require('./lib').default;
+var transform = require('./lib/transform');
 
-module.exports = plugin.default;
+plugin.transform = transform;
+module.exports = plugin;

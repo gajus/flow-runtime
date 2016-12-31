@@ -7,6 +7,18 @@ import type ConversionContext from './ConversionContext';
 
 export default function firstPassVisitors (context: ConversionContext): Object {
   return {
+    Identifier (path: NodePath) {
+      if (!context.shouldImport || path.parentPath.isFlow()) {
+        return;
+      }
+      if (path.key === 'property' && path.parentPath.isMemberExpression() && path.parentPath.node.computed) {
+        return;
+      }
+      const {name} = path.node;
+      if (name === context.libraryId) {
+        context.libraryId = path.scope.generateUid(context.libraryId);
+      }
+    },
     TypeAlias (path: NodePath) {
       context.defineTypeAlias(path.node.id.name, path);
     },
@@ -20,6 +32,10 @@ export default function firstPassVisitors (context: ConversionContext): Object {
                     && (source === 'react' || source === 'preact')
                     ;
 
+      const isFlowRuntime = path.node.importKind === 'value'
+                          && source === 'flow-runtime'
+                          ;
+
       if (isReact) {
         path.parentPath.scope.setData('importsReact', true);
       }
@@ -28,7 +44,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
         const local = specifier.get('local');
         const {name} = local.node;
         if (path.node.importKind === 'type') {
-          context.defineTypeAlias(name, specifier);
+          context.defineImportedType(name, specifier);
         }
         else {
           context.defineValue(name, path);
@@ -42,6 +58,10 @@ export default function firstPassVisitors (context: ConversionContext): Object {
             else if (specifier.node.imported.name === 'PureComponent') {
               path.parentPath.scope.setData('reactPureComponentClass', name);
             }
+          }
+          else if (isFlowRuntime && specifier.isImportDefaultSpecifier()) {
+            context.shouldImport = false;
+            context.libraryId = name;
           }
         }
       });
