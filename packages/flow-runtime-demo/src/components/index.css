@@ -1,0 +1,28 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.Wrapper {
+  height: calc(100vh - 220px);
+  display: flex;
+  flex-direction: row;
+}
+
+.ReactCodeMirror {
+  flex: 1;
+  width: 50%;
+  margin: 0;
+
+}
+.ReactCodeMirror .CodeMirror {
+  height: 100%;
+}
+
+.CodeOutput {
+  display: flex;
+  flex: 1;
+  width: 50%;
+  margin: 0;
+}
