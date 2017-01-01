@@ -21,17 +21,16 @@ console.log(validation.errors); // array
 
 ```js
 
-import t, {JSONErrorReporter, TypeErrorReporter} from 'flow-runtime';
+import t from 'flow-runtime';
 
 const string = t.string();
 
 const validation = t.validate(string, false);
 if (validation.hasErrors()) {
-  const reporter = new JSONErrorReporter(validation);
-  console.log(JSON.stringify(reporter.report(), null, 2));
+  const json = t.makeJSONError(validation);
+  console.log(JSON.stringify(json, null, 2));
 
-  const reporter2 = new TypeErrorReporter(validation);
-  const error = reporter2.report();
+  const error = t.makeTypeError(validation);
   throw error;
 }
 

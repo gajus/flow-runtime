@@ -4,6 +4,10 @@ export const input = `
   declare class Thing {
     name: string;
   }
+
+  declare class Place extends Thing {
+    url: string;
+  }
 `;
 
 export const expected = `
@@ -15,6 +19,16 @@ export const expected = `
       t.object(
         t.property("name", t.string())
       )
+    )
+  );
+
+  t.declare(
+    t.class(
+      "Place",
+      t.object(
+        t.property("url", t.string())
+      ),
+      t.extends("Thing")
     )
   );
 `;

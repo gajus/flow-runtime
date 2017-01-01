@@ -26,7 +26,7 @@ const errorMessages = {
   ERR_INVALID_DATE: 'must be a valid date',
   ERR_NO_INDEXER: 'is not one of the permitted indexer types',
   ERR_NO_UNION: 'must be one of: $0',
-  ERR_UNKNOWN_KEY: 'should not contain the key: $0'
+  ERR_UNKNOWN_KEY: 'should not contain the key: "$0"'
 };
 
 export type ErrorKey = $Keys<typeof errorMessages>;

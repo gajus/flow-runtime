@@ -18,11 +18,11 @@ export default function makeJSONError <T> (validation: Validation<T>) {
 
     errors.push({
       pointer,
-      message,
       field,
+      message,
       expected,
       actual
     });
   }
-  return {input, errors};
+  return errors;
 }

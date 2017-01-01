@@ -6,10 +6,10 @@ import t from '../../globalContext';
 
 const no = (input: any): any => ok(!input);
 
-const expect = (report: ? Object, messages: string[]) => {
-  invariant(report && report.errors, "Must have errors.");
+const expect = (errors: ? Array<any>, messages: string[]) => {
+  invariant(errors && errors.length > 0, "Must have errors.");
   for (let i = 0; i < messages.length; i++) {
-    const {field, message, actual} = report.errors[i];
+    const {field, message, actual} = errors[i];
     const assembled = `${field} ${message}, got ${actual}`;
     equal(
       normalize(assembled),

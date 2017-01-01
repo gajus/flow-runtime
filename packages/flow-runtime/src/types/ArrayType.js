@@ -4,6 +4,14 @@ import Type from './Type';
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
+import {
+  inValidationCycle,
+  startValidationCycle,
+  endValidationCycle,
+  inToStringCycle,
+  startToStringCycle,
+  endToStringCycle
+} from '../cyclic';
 
 export default class ArrayType <T> extends Type {
   typeName: string = 'ArrayType';
@@ -14,6 +22,10 @@ export default class ArrayType <T> extends Type {
       validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
       return true;
     }
+    if (inValidationCycle(this, input)) {
+      return false;
+    }
+    startValidationCycle(this, input);
     const {elementType} = this;
     const {length} = input;
 
@@ -23,6 +35,7 @@ export default class ArrayType <T> extends Type {
         hasErrors = true;
       }
     }
+    endValidationCycle(this, input);
     return hasErrors;
   }
 
@@ -30,13 +43,19 @@ export default class ArrayType <T> extends Type {
     if (!Array.isArray(input)) {
       return false;
     }
+    if (inValidationCycle(this, input)) {
+      return true;
+    }
+    startValidationCycle(this, input);
     const {elementType} = this;
     const {length} = input;
     for (let i = 0; i < length; i++) {
       if (!elementType.accepts(input[i])) {
+        endValidationCycle(this, input);
         return false;
       }
     }
+    endValidationCycle(this, input);
     return true;
   }
 
@@ -45,7 +64,13 @@ export default class ArrayType <T> extends Type {
   }
 
   toString (): string {
-    return `Array<${this.elementType.toString()}>`;
+    if (inToStringCycle(this)) {
+      return `$Cycle<Array<any>>`;
+    }
+    startToStringCycle(this);
+    const output = `Array<${this.elementType.toString()}>`;
+    endToStringCycle(this);
+    return output;
   }
 
   toJSON () {

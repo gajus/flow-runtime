@@ -2,6 +2,7 @@
 
 
 export type TypeCreator <T> = (partial: PartialType<T>) => T;
+export type TypeRevealer <T> = () => Type<T>;
 
 export type FunctionBodyCreator <X, P, R> = (
   partial: PartialType<(...params: P[]) => R>
@@ -65,6 +66,7 @@ import SymbolLiteralType from './SymbolLiteralType';
 import SymbolType from './SymbolType';
 import TupleType from './TupleType';
 import Type from './Type';
+import TypeBox from './TypeBox';
 import TypeConstructor from './TypeConstructor';
 import TypeParameter from './TypeParameter';
 import TypeParameterApplication from './TypeParameterApplication';
@@ -105,6 +107,7 @@ export {
   SymbolType,
   TupleType,
   Type,
+  TypeBox,
   TypeConstructor,
   TypeParameter,
   TypeParameterApplication,

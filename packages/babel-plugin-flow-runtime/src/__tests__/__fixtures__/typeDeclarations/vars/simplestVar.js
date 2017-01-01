@@ -7,5 +7,5 @@ export const input = `
 export const expected = `
   import t from "flow-runtime";
 
-  t.declare("demo");
+  t.declare(t.var("demo"));
 `;

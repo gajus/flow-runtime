@@ -18,7 +18,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         attachImport(context, path);
       }
     },
-    'DeclareVariable|DeclareTypeAlias|DeclareFunction|DeclareClass|DeclareModule' (path: NodePath) {
+    'DeclareVariable|DeclareTypeAlias|DeclareFunction|DeclareClass|DeclareModule|InterfaceDeclaration' (path: NodePath) {
       const replacement = convert(context, path);
       path.replaceWith(replacement);
     },

@@ -127,10 +127,17 @@ function getMemberExpressionObject (subject: Node): Node {
 converters.DeclareVariable = (context: ConversionContext, path: NodePath): Node => {
   const id = path.get('id');
   if (id.has('typeAnnotation')) {
-    return context.call('declare', t.stringLiteral(id.node.name), convert(context, id.get('typeAnnotation')));
+    return context.call(
+      'declare',
+      context.call(
+        'var',
+        t.stringLiteral(id.node.name),
+        convert(context, id.get('typeAnnotation'))
+      )
+    );
   }
   else {
-    return context.call('declare', t.stringLiteral(id.node.name));
+    return context.call('declare', context.call('var', t.stringLiteral(id.node.name)));
   }
 };
 
@@ -138,7 +145,14 @@ converters.DeclareVariable = (context: ConversionContext, path: NodePath): Node 
 converters.DeclareTypeAlias = (context: ConversionContext, path: NodePath): Node => {
   const id = path.get('id');
   const right = path.get('right');
-  return context.call('declare', t.stringLiteral(id.node.name), convert(context, right));
+  return context.call(
+    'declare',
+    context.call(
+      'type',
+      t.stringLiteral(id.node.name),
+      convert(context, right)
+    )
+  );
 };
 
 
@@ -155,30 +169,139 @@ converters.DeclareFunction = (context: ConversionContext, path: NodePath): Node 
 
 converters.DeclareModule = (context: ConversionContext, path: NodePath): Node => {
   const id = path.get('id');
+  const name = id.isStringLiteral() ? id.node.value : id.node.name;
   return context.call(
     'declare',
-    t.stringLiteral(id.node.name),
     context.call(
       'module',
+      t.stringLiteral(name),
       t.arrowFunctionExpression(
         [t.identifier(context.libraryId)],
         t.blockStatement(path.get('body.body').map(item => t.expressionStatement(convert(context, item))))
       )
     )
   );
-
 };
 
+
+converters.DeclareModuleExports = (context: ConversionContext, path: NodePath): Node => {
+  return context.call(
+    'moduleExports',
+    convert(context, path.get('typeAnnotation'))
+  );
+};
+
+converters.InterfaceDeclaration = (context: ConversionContext, path: NodePath): Node => {
+  const name = path.node.id.name;
+  const typeParameters = getTypeParameters(path);
+  let body = convert(context, path.get('body'));
+  if (typeParameters.length > 0) {
+    body = t.arrowFunctionExpression(
+      [t.identifier(name)],
+      t.blockStatement([
+        t.variableDeclaration('const', typeParameters.map(typeParameter => t.variableDeclarator(
+            t.identifier(typeParameter.node.name),
+            t.callExpression(
+              t.memberExpression(
+                t.identifier(name),
+                t.identifier('typeParameter')
+              ),
+              typeParameter.node.bound
+                ? [t.stringLiteral(typeParameter.node.name), convert(context, typeParameter.get('bound'))]
+                : [t.stringLiteral(typeParameter.node.name)]
+            )
+          )
+        )),
+        t.returnStatement(body)
+      ])
+    );
+  }
+  else if (annotationReferencesId(path.get('body'), name)) {
+    // This type alias references itself, we need to wrap it in an arrow
+    body = t.arrowFunctionExpression(
+      [t.identifier(name)],
+      t.blockStatement([
+        t.returnStatement(body)
+      ])
+    );
+  }
+
+  if (path.has('extends')) {
+    body = context.call(
+      'intersect',
+      ...path.get('extends').map(item => convert(context, item)),
+      body
+    );
+  }
+
+  return t.variableDeclaration('const', [
+    t.variableDeclarator(
+      t.identifier(name),
+      context.call(
+        'type',
+        t.stringLiteral(name),
+        body
+      )
+    )
+  ]);
+};
+
+converters.InterfaceExtends = (context: ConversionContext, path: NodePath): Node => {
+  const id = path.get('id');
+  let method = 'extends';
+  if (path.parentPath.isInterfaceDeclaration()) {
+    method = 'ref';
+  }
+  let name;
+  let subject;
+  if (id.isQualifiedTypeIdentifier()) {
+    subject = qualifiedToMemberExpression(id.node);
+    const outer = getMemberExpressionObject(subject);
+    name = outer.name;
+  }
+  else {
+    name = id.node.name;
+    subject = t.identifier(name);
+  }
+  const typeParameters = getTypeParameters(path).map(item => convert(context, item));
+  const entity = context.getEntity(name, path);
+
+  const isDirectlyReferenceable
+        = annotationParentHasTypeParameter(path, name)
+        || (entity && (entity.isTypeAlias || entity.isTypeParameter))
+        ;
+
+  if (isDirectlyReferenceable) {
+    if (typeParameters.length > 0) {
+      return context.call(method, subject, ...typeParameters);
+    }
+    else {
+      return subject;
+    }
+  }
+  else if (!entity) {
+    return context.call(method, t.stringLiteral(name), ...typeParameters);
+  }
+  else {
+    return context.call(method, subject, ...typeParameters);
+  }
+};
 
 converters.DeclareClass = (context: ConversionContext, path: NodePath): Node => {
   const id = path.get('id');
   const name = id.node.name;
 
+  const extra = [];
+
+  if (path.has('extends')) {
+    const interfaceExtends = path.get('extends').map(item => convert(context, item));
+    extra.push(...interfaceExtends);
+  }
 
   const typeParameters = getTypeParameters(path);
   if (typeParameters.length > 0) {
     const uid = path.scope.generateUidIdentifier(name);
-    return context.call('declare', t.stringLiteral(name), context.call('class', t.stringLiteral(name), t.arrowFunctionExpression(
+    return context.call('declare', context.call('class', t.stringLiteral(name), t.arrowFunctionExpression(
       [uid],
       t.blockStatement([
         t.variableDeclaration('const', typeParameters.map(typeParameter => t.variableDeclarator(
@@ -196,10 +319,18 @@ converters.DeclareClass = (context: ConversionContext, path: NodePath): Node => 
         )),
         t.returnStatement(convert(context, path.get('body')))
       ])
-    )));
+    ), ...extra));
   }
   else {
-    return context.call('declare', t.stringLiteral(name), context.call('class', t.stringLiteral(name), convert(context, path.get('body'))));
+    return context.call(
+      'declare',
+      context.call(
+        'class',
+        t.stringLiteral(name),
+        convert(context, path.get('body')),
+        ...extra
+      )
+    );
   }
 };
 

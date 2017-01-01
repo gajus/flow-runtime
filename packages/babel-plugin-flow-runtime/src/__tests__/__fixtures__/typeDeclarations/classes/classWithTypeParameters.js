@@ -9,7 +9,7 @@ export const input = `
 export const expected = `
   import t from "flow-runtime";
 
-  t.declare("Thing", t.class("Thing", _Thing => {
+  t.declare(t.class("Thing", _Thing => {
     const T = _Thing.typeParameter("T", t.string());
     return t.object(
       t.property("name", T)

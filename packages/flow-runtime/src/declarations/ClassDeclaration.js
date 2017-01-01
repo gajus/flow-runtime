@@ -6,13 +6,15 @@ import getErrorMessage from "../getErrorMessage";
 
 import type {Type, ObjectType} from '../types';
 
+import type {Property} from '../types/ObjectType';
+
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class ClassDeclaration<O: Object> extends Declaration {
+export default class ClassDeclaration<O: {}> extends Declaration {
   typeName: string = 'ClassDeclaration';
 
   name: string;
-  superClass: ? Type<Object>;
+  superClass: ? Type<{}>;
   body: ObjectType<O>;
 
 
@@ -40,6 +42,36 @@ export default class ClassDeclaration<O: Object> extends Declaration {
     return hasSuperErrors;
   }
 
+  /**
+   * Get a property with the given name, or undefined if it does not exist.
+   */
+  getProperty (key: string | number): ? Property<$Keys<O>, any> {
+    const {body, superClass} = this;
+    const prop = body.getProperty(key);
+    if (prop) {
+      return prop;
+    }
+    else if (superClass && typeof superClass.getProperty === 'function') {
+      return superClass.getProperty(key);
+    }
+  }
+
+  /**
+   * Determine whether a property with the given name exists.
+   */
+  hasProperty (key: string): boolean {
+    const {body, superClass} = this;
+    if (body.hasProperty(key)) {
+      return true;
+    }
+    else if (superClass && typeof superClass.hasProperty === 'function') {
+      return superClass.hasProperty(key);
+    }
+    else {
+      return false;
+    }
+  }
+
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, O> {
     const target = new TypeParameterApplication(this.context);
     target.parent = this;
@@ -47,9 +79,9 @@ export default class ClassDeclaration<O: Object> extends Declaration {
     return target;
   }
 
-  toString () {
+  toString (withDeclaration?: boolean) {
     const {name, superClass, body} = this;
     const superClassName = superClass && ((typeof superClass.name === 'string' && superClass.name) || superClass.toString());
-    return `class ${name}${superClassName ? `extends ${superClassName} ` : ''} ${body.toString()}`;
+    return `${withDeclaration ? 'declare ' : ''}class ${name}${superClassName ? `extends ${superClassName} ` : ''} ${body.toString()}`;
   }
 }

@@ -4,6 +4,8 @@ import Type from './Type';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
+import type {Property} from './ObjectType';
+
 export default class IntersectionType<T> extends Type {
   typeName: string = 'IntersectionType';
   types: Type<T>[] = [];
@@ -19,6 +21,39 @@ export default class IntersectionType<T> extends Type {
       }
     }
     return hasErrors;
+  }
+
+
+  /**
+   * Get a property with the given name, or undefined if it does not exist.
+   */
+  getProperty <K: string | number> (key: K): ? Property<K, any> {
+    const {types} = this;
+    const {length} = types;
+    for (let i = length - 1; i >= 0; i--) {
+      const type = types[i];
+      if (typeof type.getProperty === 'function') {
+        const prop = type.getProperty(key);
+        if (prop) {
+          return prop;
+        }
+      }
+    }
+  }
+
+  /**
+   * Determine whether a property with the given name exists.
+   */
+  hasProperty (key: string): boolean {
+    const {types} = this;
+    const {length} = types;
+    for (let i = 0; i < length; i++) {
+      const type = types[i];
+      if (typeof type.hasProperty === 'function' && type.hasProperty(key)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   accepts (input: any): boolean {

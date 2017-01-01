@@ -7,12 +7,17 @@ import invariant from './invariant';
 import Validation from './Validation';
 
 import makeReactPropTypes from './makeReactPropTypes';
+
+import makeJSONError from './errorReporting/makeJSONError';
+import makeTypeError from './errorReporting/makeTypeError';
+
 import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
 
 import {
   Type,
   TypeParameter,
+  TypeBox,
   TypeReference,
   ParameterizedTypeAlias,
   TypeAlias,
@@ -50,6 +55,11 @@ import {
 } from './types';
 
 import {
+  Declaration,
+  TypeDeclaration,
+  VarDeclaration,
+  ModuleDeclaration,
+  ModuleExportsDeclaration,
   ClassDeclaration,
   ExtendsDeclaration
 } from './declarations';
@@ -58,6 +68,7 @@ import {
   ParentSymbol,
   NameRegistrySymbol,
   ModuleRegistrySymbol,
+  CurrentModuleSymbol,
   TypeConstructorRegistrySymbol,
   TypeParametersSymbol,
   InferrerSymbol,
@@ -66,6 +77,7 @@ import {
 
 import type {
   TypeCreator,
+  TypeRevealer,
   FunctionBodyCreator,
   ApplicableType,
   ValidFunctionBody,
@@ -92,7 +104,7 @@ type NameRegistry = {
 };
 
 type ModuleRegistry = {
-  [name: string]: TypeContext;
+  [name: string]: ModuleDeclaration;
 };
 
 type TypeConstructorRegistry = Map<Function, Class<TypeConstructor<any>>>;
@@ -114,51 +126,64 @@ export default class TypeContext {
   // @flowIssue 252
   [ModuleRegistrySymbol]: ModuleRegistry = {};
 
+  // @flowIssue 252
+  [CurrentModuleSymbol]: ? ModuleDeclaration;
 
-  Type: typeof Type = Type;
-  TypeParameter: typeof TypeParameter = TypeParameter;
-  TypeReference: typeof TypeReference = TypeReference;
-  ParameterizedTypeAlias: typeof ParameterizedTypeAlias = ParameterizedTypeAlias;
-  TypeAlias: typeof TypeAlias = TypeAlias;
-  TypeConstructor: typeof TypeConstructor = TypeConstructor;
-  GenericType: typeof GenericType = GenericType;
-  NullLiteralType: typeof NullLiteralType = NullLiteralType;
-  NumberType: typeof NumberType = NumberType;
-  NumericLiteralType: typeof NumericLiteralType = NumericLiteralType;
-  BooleanType: typeof BooleanType = BooleanType;
-  BooleanLiteralType: typeof BooleanLiteralType = BooleanLiteralType;
-  SymbolType: typeof SymbolType = SymbolType;
-  SymbolLiteralType: typeof SymbolLiteralType = SymbolLiteralType;
-  StringType: typeof StringType = StringType;
-  StringLiteralType: typeof StringLiteralType = StringLiteralType;
-  ArrayType: typeof ArrayType = ArrayType;
-  ObjectType: typeof ObjectType = ObjectType;
-  ObjectTypeCallProperty: typeof ObjectTypeCallProperty = ObjectTypeCallProperty;
-  ObjectTypeIndexer: typeof ObjectTypeIndexer = ObjectTypeIndexer;
-  ObjectTypeProperty: typeof ObjectTypeProperty = ObjectTypeProperty;
-  FunctionType: typeof FunctionType = FunctionType;
-  ParameterizedFunctionType: typeof ParameterizedFunctionType = ParameterizedFunctionType;
-  FunctionTypeParam: typeof FunctionTypeParam = FunctionTypeParam;
-  FunctionTypeRestParam: typeof FunctionTypeRestParam = FunctionTypeRestParam;
-  FunctionTypeReturn: typeof FunctionTypeReturn = FunctionTypeReturn;
-  GeneratorType: typeof GeneratorType = GeneratorType;
-  ExistentialType: typeof ExistentialType = ExistentialType;
-  AnyType: typeof AnyType = AnyType;
-  MixedType: typeof MixedType = MixedType;
-  EmptyType: typeof EmptyType = EmptyType;
-  NullableType: typeof NullableType = NullableType;
-  TupleType: typeof TupleType = TupleType;
-  UnionType: typeof UnionType = UnionType;
-  IntersectionType: typeof IntersectionType = IntersectionType;
-  VoidType: typeof VoidType = VoidType;
+  Type = Type;
+  TypeParameter = TypeParameter;
+  TypeReference = TypeReference;
+  ParameterizedTypeAlias = ParameterizedTypeAlias;
+  TypeAlias = TypeAlias;
+  TypeConstructor = TypeConstructor;
+  GenericType = GenericType;
+  NullLiteralType = NullLiteralType;
+  NumberType = NumberType;
+  NumericLiteralType = NumericLiteralType;
+  BooleanType = BooleanType;
+  BooleanLiteralType = BooleanLiteralType;
+  SymbolType = SymbolType;
+  SymbolLiteralType = SymbolLiteralType;
+  StringType = StringType;
+  StringLiteralType = StringLiteralType;
+  ArrayType = ArrayType;
+  ObjectType = ObjectType;
+  ObjectTypeCallProperty = ObjectTypeCallProperty;
+  ObjectTypeIndexer = ObjectTypeIndexer;
+  ObjectTypeProperty = ObjectTypeProperty;
+  FunctionType = FunctionType;
+  ParameterizedFunctionType = ParameterizedFunctionType;
+  FunctionTypeParam = FunctionTypeParam;
+  FunctionTypeRestParam = FunctionTypeRestParam;
+  FunctionTypeReturn = FunctionTypeReturn;
+  GeneratorType = GeneratorType;
+  ExistentialType = ExistentialType;
+  AnyType = AnyType;
+  MixedType = MixedType;
+  EmptyType = EmptyType;
+  NullableType = NullableType;
+  TupleType = TupleType;
+  UnionType = UnionType;
+  IntersectionType = IntersectionType;
+  VoidType = VoidType;
 
-  createContext <T> (body: (context: TypeContext) => Type<T>): Type<T> {
+  ModuleDeclaration = ModuleDeclaration;
+  ModuleExportsDeclaration = ModuleExportsDeclaration;
+  ClassDeclaration = ClassDeclaration;
+  ExtendsDeclaration = ExtendsDeclaration;
+
+  makeJSONError <T> (validation: Validation<T>): ? Array<Object> {
+    return makeJSONError(validation);
+  }
+
+  makeTypeError <T> (validation: Validation<T>): ? TypeError {
+    return makeTypeError(validation);
+  }
+
+  createContext (): TypeContext {
     const context = new TypeContext();
-
     // @flowIssue 252
     context[ParentSymbol] = this;
-
-    return body(context);
+    return context;
   }
 
   typeOf <T> (input: T): Type<T> {
@@ -262,27 +287,84 @@ export default class TypeContext {
     }
   }
 
-  declare <T> (name: string, type: Type<T> | TypeCreator<Type<T>>): TypeAlias<T> | ParameterizedTypeAlias<T> {
+  declare <T> (name: Declaration | string, type?: ModuleDeclaration | Type<T> | TypeCreator<Type<T>>): Declaration {
 
-    // @flowIssue 252
-    const nameRegistry = this[NameRegistrySymbol];
-
-    if (nameRegistry[name]) {
-      throw new Error(`Cannot redeclare type: ${name}`);
+    if (name instanceof Declaration) {
+      type = name;
+      name = type.name;
     }
+    else if (name instanceof TypeAlias) {
+      type = name;
+      name = type.name;
+    }
+    if (typeof type === 'function') {
+      type = this.type(name, type);
+    }
+    if (type instanceof ModuleDeclaration) {
+      const moduleRegistry: ModuleRegistry = (this: $FlowIssue<252>)[ModuleRegistrySymbol];
+      if (moduleRegistry[name]) {
+        throw new Error(`Cannot redeclare module: ${name}`);
+      }
+      moduleRegistry[name] = type;
+      return type;
+    }
+    else {
+      invariant(type, 'Type must be supplied to declaration');
+      const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
-    const target = this.type(name, type);
-    nameRegistry[name] = target;
-    return target;
+      if (nameRegistry[name]) {
+        throw new Error(`Cannot redeclare type: ${name}`);
+      }
+      if (type instanceof Declaration) {
+        nameRegistry[name] = type;
+        return type;
+      }
+      else if (type instanceof TypeAlias || type instanceof ParameterizedTypeAlias) {
+        const target = new TypeDeclaration(this);
+        target.typeAlias = type;
+        nameRegistry[name] = target;
+        return target;
+      }
+      else {
+        const target = this.var(name, type);
+        nameRegistry[name] = target;
+        return target;
+      }
+    }
   }
 
-  declareModule (name: string, body: (context: TypeContext) => Type<any>[]) {
+  *declarations (): Generator<[string, Type<any>], void, void> {
+    const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
+    for (const key in nameRegistry) {
+      yield [key, nameRegistry[key]];
+    }
+  }
 
+  *modules (): Generator<ModuleDeclaration, void, void> {
+    const moduleRegistry: ModuleRegistry = (this: $FlowIssue<252>)[ModuleRegistrySymbol];
+    for (const key in moduleRegistry) {
+      yield moduleRegistry[key];
+    }
+  }
+
+  import (moduleName: string): ? ModuleDeclaration {
+    const moduleRegistry: ModuleRegistry = (this: $FlowIssue<252>)[ModuleRegistrySymbol];
+    if (moduleRegistry[moduleName]) {
+      return moduleRegistry[moduleName];
+    }
+    const [head] = moduleName.split('/');
+    const module = moduleRegistry[head];
+    if (module) {
+      return module.import(moduleName);
+    }
+    const parent = (this: $FlowIssue<252>)[ParentSymbol];
+    if (parent) {
+      return parent.import(moduleName);
+    }
   }
 
   declareTypeConstructor ({name, impl, typeName, collectErrors, accepts, inferTypeParameters}: TypeConstructorConfig): TypeConstructor<any> {
-    // @flowIssue 252
-    const nameRegistry = this[NameRegistrySymbol];
+    const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
     if (nameRegistry[name]) {
       throw new Error(`Cannot redeclare type: ${name}`);
@@ -412,6 +494,38 @@ export default class TypeContext {
       }
     }
     return subject;
+  }
+
+  module (name: string, body: (context: TypeContext) => any): ModuleDeclaration {
+    const target = new ModuleDeclaration(this);
+    target.name = name;
+    const innerContext = this.createContext();
+    // @flowIssue 252
+    innerContext[ParentSymbol] = this;
+    // @flowIssue 252
+    innerContext[CurrentModuleSymbol] = target;
+
+    target.innerContext = innerContext;
+    body(innerContext);
+    return target;
+  }
+
+  moduleExports <T> (type: Type<T>): ModuleExportsDeclaration<T> {
+    const currentModule: ModuleDeclaration = (this: $FlowIssue<252>)[CurrentModuleSymbol];
+    if (!currentModule) {
+      throw new Error('Cannot declare module.exports outside of a module.');
+    }
+    const target = new ModuleExportsDeclaration(this);
+    target.type = type;
+    currentModule.moduleExports = target;
+    return target;
+  }
+
+  var <T> (name: string, type: Type<T>): VarDeclaration<T> {
+    const target = new VarDeclaration(this);
+    target.name = name;
+    target.type = type;
+    return target;
   }
 
   class <X, O: Object> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
@@ -620,6 +734,12 @@ export default class TypeContext {
     const target = new IntersectionType(this);
     target.types = types;
     return target;
+  }
+
+  box <T> (reveal: TypeRevealer<T>): TypeBox<T> {
+    const box = new TypeBox(this);
+    box.reveal = reveal;
+    return box;
   }
 
   ref <T, P> (subject: string | ApplicableType<T> | Function, ...typeInstances: Type<P>[]): Type<T | any> {

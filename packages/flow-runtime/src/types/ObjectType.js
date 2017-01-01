@@ -14,7 +14,17 @@ export type Property<K: string | number, V>
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class ObjectType<T: Object> extends Type {
+import {
+  inValidationCycle,
+  startValidationCycle,
+  endValidationCycle,
+  inToStringCycle,
+  startToStringCycle,
+  endToStringCycle
+} from '../cyclic';
+
+
+export default class ObjectType<T: {}> extends Type {
   typeName: string = 'ObjectType';
   properties: ObjectTypeProperty<$Keys<T>, any>[] = [];
   indexers: ObjectTypeIndexer<any, any>[] = [];
@@ -100,16 +110,24 @@ export default class ObjectType<T: Object> extends Type {
       validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
       return true;
     }
+    if (inValidationCycle(this, input)) {
+      return false;
+    }
+    startValidationCycle(this, input);
+
+    let result;
 
     if (this.indexers.length > 0) {
-      return collectErrorsWithIndexers(this, validation, path, input);
+      result = collectErrorsWithIndexers(this, validation, path, input);
     }
     else if (this.exact) {
-      return collectErrorsExact(this, validation, path, input);
+      result = collectErrorsExact(this, validation, path, input);
     }
     else {
-      return collectErrorsWithoutIndexers(this, validation, path, input);
+      result = collectErrorsWithoutIndexers(this, validation, path, input);
     }
+    endValidationCycle(this, input);
+    return result;
   }
 
   accepts (input: any): boolean {
@@ -126,16 +144,23 @@ export default class ObjectType<T: Object> extends Type {
     else if (typeof input !== 'object') {
       return false;
     }
+    if (inValidationCycle(this, input)) {
+      return true;
+    }
+    startValidationCycle(this, input);
 
+    let result
     if (this.indexers.length > 0) {
-      return acceptsWithIndexers(this, input);
+      result = acceptsWithIndexers(this, input);
     }
     else if (this.exact) {
-      return acceptsExact(this, input);
+      result = acceptsExact(this, input);
     }
     else {
-      return acceptsWithoutIndexers(this, input);
+      result = acceptsWithoutIndexers(this, input);
     }
+    endValidationCycle(this, input);
+    return result;
   }
 
   acceptsType (input: Type<any>): boolean {
@@ -158,6 +183,10 @@ export default class ObjectType<T: Object> extends Type {
 
   toString (): string {
     const {callProperties, properties, indexers} = this;
+    if (inToStringCycle(this)) {
+      return '$Cycle<Object>';
+    }
+    startToStringCycle(this);
     const body = [];
     for (let i = 0; i < callProperties.length; i++) {
       body.push(callProperties[i].toString());
@@ -168,6 +197,7 @@ export default class ObjectType<T: Object> extends Type {
     for (let i = 0; i < indexers.length; i++) {
       body.push(indexers[i].toString());
     }
+    endToStringCycle(this);
     if (this.exact) {
       return `{|\n${indent(body.join('\n'))}\n|}`;
     }

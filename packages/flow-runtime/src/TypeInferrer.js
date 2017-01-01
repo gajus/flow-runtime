@@ -95,6 +95,12 @@ export class TypeInferer {
     }
     const {context} = this;
     let type;
+
+    // Temporarily create a box for this type to catch cyclical references.
+    // Nested references to this object will receive the boxed type.
+    const box = context.box(() => type);
+    inferred.set(input, box);
+
     if (Array.isArray(input)) {
       type = this.inferArray(input, inferred);
     }
@@ -119,6 +125,8 @@ export class TypeInferer {
       }
       type = context.object(...body);
     }
+
+    // Overwrite the box with the real value.
     inferred.set(input, type);
     return (type: any);
   }

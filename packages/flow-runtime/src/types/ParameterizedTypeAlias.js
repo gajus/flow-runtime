@@ -21,21 +21,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   }
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    const {constraints, partial} = this;
-    let hasErrors = false;
-    if (partial.collectErrors(validation, path, input)) {
-      hasErrors = true;
-    }
-    const {length} = constraints;
-    for (let i = 0; i < length; i++) {
-      const constraint = constraints[i];
-      const violation = constraint(input);
-      if (typeof violation === 'string') {
-        validation.addError(path, this, violation);
-        hasErrors = true;
-      }
-    }
-    return hasErrors;
+    return this.partial.collectErrors(validation, path, input);
   }
 
   accepts (input: any): boolean {
@@ -54,7 +40,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   }
 
 
-  acceptsType (input: Type): boolean {
+  acceptsType (input: Type<any>): boolean {
     return this.partial.acceptsType(input);
   }
 
@@ -78,7 +64,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type | Constructor {
+  unwrap (...typeInstances: Type<any>[]): Type<any> | Constructor {
     return this.partial.unwrap(...typeInstances);
   }
 

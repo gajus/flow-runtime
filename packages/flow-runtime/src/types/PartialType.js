@@ -28,16 +28,6 @@ export default class PartialType<X, T> extends Type {
     return target;
   }
 
-  addConstraint (constraint: TypeConstraint): TypeAlias {
-    if (!this.constraints) {
-      this.constraints = [constraint];
-    }
-    else {
-      this.constraints.push(constraint);
-    }
-    return this;
-  }
-
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {constraints, type} = this;
     let hasErrors = false;

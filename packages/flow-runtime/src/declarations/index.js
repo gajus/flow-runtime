@@ -1,6 +1,10 @@
 /* @flow */
 
 import Declaration from './Declaration';
+import VarDeclaration from './VarDeclaration';
+import TypeDeclaration from './TypeDeclaration';
+import ModuleDeclaration from './ModuleDeclaration';
+import ModuleExportsDeclaration from './ModuleExportsDeclaration';
 import ClassDeclaration from './ClassDeclaration';
 import ExtendsDeclaration from './ExtendsDeclaration';
 
@@ -29,6 +33,10 @@ export type ValidClassBody<X, O: Object>
 
 export {
   Declaration,
+  TypeDeclaration,
+  VarDeclaration,
+  ModuleDeclaration,
+  ModuleExportsDeclaration,
   ClassDeclaration,
   ExtendsDeclaration
 };
