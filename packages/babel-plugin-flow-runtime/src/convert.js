@@ -413,7 +413,7 @@ converters.MixedTypeAnnotation = (context: ConversionContext, {node}: NodePath):
   return context.call('mixed');
 };
 
-converters.ExistentialTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+converters.ExistentialTypeParam = (context: ConversionContext, {node}: NodePath): Node => {
   return context.call('existential');
 };
 

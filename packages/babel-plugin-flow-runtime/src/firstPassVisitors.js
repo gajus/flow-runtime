@@ -73,7 +73,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
     Function (path: NodePath) {
       if (path.isFunctionDeclaration()) {
         const {name} = path.node.id;
-        context.defineValue(name, path);
+        context.defineValue(name, path.parentPath);
       }
       const params = path.get('params').filter(hasTypeAnnotation);
       const typeParameters = getTypeParameters(path);
