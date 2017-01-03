@@ -12,8 +12,8 @@ export default class FunctionTypeRestParam<T> extends Type {
   type: Type<T>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    const {name, type} = this;
-    return type.collectErrors(validation, path.concat(name), input);
+    const {type} = this;
+    return type.collectErrors(validation, path, input);
   }
 
   accepts (input: any): boolean {

@@ -149,7 +149,7 @@ export default class ObjectType<T: {}> extends Type {
     }
     startValidationCycle(this, input);
 
-    let result
+    let result;
     if (this.indexers.length > 0) {
       result = acceptsWithIndexers(this, input);
     }

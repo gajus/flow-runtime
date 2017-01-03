@@ -4,13 +4,14 @@ import Type from './Type';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
+
 export default class FunctionTypeReturn<T> extends Type {
   typeName: string = 'FunctionTypeReturn';
   type: Type<T>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {type} = this;
-    return type.collectErrors(validation, path.concat('[[Return]]'), input);
+    return type.collectErrors(validation, path.concat('[[Return Type]]'), input);
   }
 
   accepts (input: any): boolean {

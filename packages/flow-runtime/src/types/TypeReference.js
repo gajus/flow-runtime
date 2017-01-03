@@ -6,6 +6,8 @@ import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
+const warnedMissing = {};
+
 export default class TypeReference<T> extends Type {
   typeName: string = 'TypeReference';
   name: string;
@@ -14,7 +16,11 @@ export default class TypeReference<T> extends Type {
     const {context, name} = this;
     const type = context.get(name);
     if (!type) {
-      throw new ReferenceError(`Cannot resolve type: ${name}`);
+      if (!warnedMissing[name]) {
+        console.warn(`Cannot resolve type: ${name}`);
+        warnedMissing[name] = true;
+      }
+      return context.any();
     }
     return type;
   }

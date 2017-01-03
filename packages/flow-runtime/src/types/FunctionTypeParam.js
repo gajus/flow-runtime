@@ -11,12 +11,12 @@ export default class FunctionTypeParam<T> extends Type {
   type: Type<T>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    const {optional, name, type} = this;
+    const {optional, type} = this;
     if (optional && input === undefined) {
       return false;
     }
     else {
-      return type.collectErrors(validation, path.concat(name), input);
+      return type.collectErrors(validation, path, input);
     }
   }
 

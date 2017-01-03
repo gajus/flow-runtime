@@ -92,8 +92,11 @@ export function stringifyPath (path: IdentifierPath): string {
   const parts = new Array(length);
   for (let i = 0; i < length; i++) {
     const part = path[i];
-    if (typeof part !== 'string' || !validIdentifier.test(part)) {
-      parts[i] = `[${part}]`;
+    if (part === '[[Return Type]]') {
+      parts[i] = 'Return Type';
+    }
+    else if (typeof part !== 'string' || !validIdentifier.test(part)) {
+      parts[i] = `[${String(part)}]`;
     }
     else if (i > 0) {
       parts[i] = `.${part}`;
@@ -113,6 +116,9 @@ export function resolvePath (input: any, path: IdentifierPath): any {
       return undefined;
     }
     const part = path[i];
+    if (part === '[[Return Type]]') {
+      continue;
+    }
     if (subject instanceof Map) {
       subject = subject.get(part);
     }
