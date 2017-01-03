@@ -5,22 +5,23 @@ body {
 }
 
 .Wrapper {
-  height: calc(100vh - 220px);
+  height: calc(100vh - 80px);
   display: flex;
   flex-direction: row;
 }
 
-.ReactCodeMirror {
+.Wrapper .ReactCodeMirror {
   flex: 1;
   width: 50%;
   margin: 0;
 
 }
-.ReactCodeMirror .CodeMirror {
+.Wrapper .ReactCodeMirror .CodeMirror {
   height: 100%;
+  width: 100%;
 }
 
-.CodeOutput {
+.Wrapper .CodeOutput {
   display: flex;
   flex: 1;
   width: 50%;

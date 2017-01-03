@@ -2,8 +2,13 @@
 }
 
 .App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
+  height: 60px;
+  margin-bottom: 16px;
+}
+
+
+h1:hover .App-logo {
+  animation: App-logo-spin infinite 2s linear;
 }
 
 .App-header {
@@ -14,11 +19,37 @@
   color: white;
 }
 
+.App-header h1 {
+  font-size: 3em;
+}
+
 .App-intro {
   font-size: large;
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  0%
+  {
+    transform: scale( .9 );
+  }
+  20%
+  {
+    transform: scale( 1 );
+  }
+  40%
+  {
+    transform: scale( .9 );
+  }
+  60%
+  {
+    transform: scale( 1.1 );
+  }
+  80%
+  {
+    transform: scale( 1 );
+  }
+  100%
+  {
+    transform: scale( .9 );
+  }
 }

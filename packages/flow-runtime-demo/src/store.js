@@ -6,14 +6,18 @@ import {observable} from 'mobx';
 
 
 export class Store {
-  @observable code = localStorage.getItem('code') || '';
-  @observable transformed = "";
+  id: string = 'default';
+  @observable code: string;
+  @observable transformed: string;
 
   worker: Worker;
 
   timerId: ? number = null;
 
-  constructor () {
+  constructor (id: string) {
+    this.id = id;
+    this.code = localStorage.getItem(this.id + ':code') || '';
+    this.transformed = '';
     const worker = new Worker();
     worker.onmessage = (event) => {
       this.transformed = event.data;
@@ -28,7 +32,7 @@ export class Store {
       this.timerId = setTimeout(
         () => {
           const code = this.code;
-          localStorage.setItem('code', code);
+          localStorage.setItem(this.id + ':code', code);
           this.worker.postMessage(code);
           this.timerId = null;
         },
@@ -38,4 +42,4 @@ export class Store {
   }
 }
 
-export default new Store();
+export default new Store('default');

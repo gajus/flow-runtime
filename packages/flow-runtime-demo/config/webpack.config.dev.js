@@ -4,6 +4,7 @@ var HtmlWebpackPlugin = require('html-webpack-plugin');
 var CaseSensitivePathsPlugin = require('case-sensitive-paths-webpack-plugin');
 var InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 var WatchMissingNodeModulesPlugin = require('react-dev-utils/WatchMissingNodeModulesPlugin');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var getClientEnvironment = require('./env');
 var paths = require('./paths');
 
@@ -111,6 +112,7 @@ module.exports = {
           /\.(js|jsx)$/,
           /\.css$/,
           /\.json$/,
+          /\.md$/,
           /\.svg$/
         ],
         loader: 'url',
@@ -118,6 +120,11 @@ module.exports = {
           limit: 10000,
           name: 'static/media/[name].[hash:8].[ext]'
         }
+      },
+      // markdown loader
+      {
+        test: /\.md$/,
+        loader: "html-loader!markdown-loader"
       },
       // Process JS with Babel.
       {
@@ -140,6 +147,19 @@ module.exports = {
       {
         test: /\.css$/,
         loader: 'style!css?importLoaders=1!postcss'
+      },
+
+      // Common / global SASS
+      {
+        test: /\/assets\/(.+)\.scss$/,
+        exclude: /node_modules/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css!sass?sourceMap=true')
+      },
+      // Client and Admin SASS
+      {
+        test: /\/src\/(.+)\.scss$/,
+        exclude: /node_modules/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css?modules!sass?sourceMap=true')
       },
       // JSON is not enabled by default in Webpack but both Node and Browserify
       // allow it implicitly so we also enable it.
@@ -196,6 +216,7 @@ module.exports = {
       inject: true,
       template: paths.appHtml,
     }),
+    new ExtractTextPlugin('static/[name].css'),
     // Makes some environment variables available to the JS code, for example:
     // if (process.env.NODE_ENV === 'development') { ... }. See `./env.js`.
     new webpack.DefinePlugin(env),
