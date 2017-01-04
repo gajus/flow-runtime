@@ -99,6 +99,23 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
       }
 
+      if (!path.parentPath.isExpressionStatement()) {
+        if (!shouldAssert) {
+          return;
+        }
+        // this typecast is part of a larger expression, just replace the value inline.
+        path.replaceWith(
+          t.callExpression(
+            t.memberExpression(
+              convert(context, typeAnnotation),
+              t.identifier('assert')
+            ),
+            [expression.node]
+          )
+        );
+        return;
+      }
+
       let valueUid = path.scope.getData(`valueUid:${name}`);
       if (!valueUid) {
         valueUid = path.scope.generateUidIdentifier(`${name}Type`);

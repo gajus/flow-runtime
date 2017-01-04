@@ -16,7 +16,10 @@ describe('transform', () => {
   for (const [name, {input, expected}] of fixtures) {
     it(`should transform ${name}`, () => {
       const parsed = parse(input);
-      const transformed = stripFlowTypes(transform(parsed));
+      const transformed = stripFlowTypes(transform(parsed, {
+        assert: true,
+        decorate: true
+      }));
       const generated = generate(transformed).code;
       equal(normalize(generated), normalize(expected));
     });
