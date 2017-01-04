@@ -167,7 +167,7 @@ module.exports = {
         test: /\.json$/,
         loader: 'json'
       },
-      // Process JS with Babel.
+      // Web workers.
       {
         test: /\.worker\.(js|jsx)$/,
         include: paths.appSrc,

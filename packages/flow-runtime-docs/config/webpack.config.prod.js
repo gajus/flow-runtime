@@ -7,7 +7,7 @@ var InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 var url = require('url');
 var paths = require('./paths');
 var getClientEnvironment = require('./env');
-
+var BabiliPlugin = require("babili-webpack-plugin");
 
 
 function ensureSlash(path, needsSlash) {
@@ -87,7 +87,7 @@ module.exports = {
       'react-native': 'react-native-web'
     }
   },
-  
+
   module: {
     // First, run the linter.
     // It's important to do this before Babel processes the JS.
@@ -116,6 +116,7 @@ module.exports = {
           /\.html$/,
           /\.(js|jsx)$/,
           /\.css$/,
+          /\.md$/,
           /\.json$/,
           /\.svg$/
         ],
@@ -125,12 +126,17 @@ module.exports = {
           name: 'static/media/[name].[hash:8].[ext]'
         }
       },
+      // markdown loader
+      {
+        test: /\.md$/,
+        loader: "html-loader!markdown-loader"
+      },
       // Process JS with Babel.
       {
         test: /\.(js|jsx)$/,
         include: paths.appSrc,
         loader: 'babel',
-        
+
       },
       // The notation here is somewhat confusing.
       // "postcss" loader applies autoprefixer to our CSS.
@@ -149,11 +155,30 @@ module.exports = {
         loader: ExtractTextPlugin.extract('style', 'css?importLoaders=1!postcss')
         // Note: this won't work without `new ExtractTextPlugin()` in `plugins`.
       },
+      // Common / global SASS
+      {
+        test: /\/assets\/(.+)\.scss$/,
+        exclude: /node_modules/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css!sass?sourceMap=true')
+      },
+      // Client and Admin SASS
+      {
+        test: /\/src\/(.+)\.scss$/,
+        exclude: /node_modules/,
+        loader: ExtractTextPlugin.extract('style-loader', 'css?modules!sass?sourceMap=true')
+      },
       // JSON is not enabled by default in Webpack but both Node and Browserify
       // allow it implicitly so we also enable it.
       {
         test: /\.json$/,
         loader: 'json'
+      },
+      // Web workers.
+      {
+        test: /\.worker\.(js|jsx)$/,
+        include: paths.appSrc,
+        exclude: /node_modules/,
+        loader: 'worker!babel'
       },
       // "file" loader for svg
       {
@@ -165,7 +190,7 @@ module.exports = {
       }
     ]
   },
-  
+
   // We use PostCSS for autoprefixing only.
   postcss: function() {
     return [
@@ -178,6 +203,12 @@ module.exports = {
         ]
       }),
     ];
+  },
+  worker: {
+    output: {
+      filename: "compiler.worker.js",
+      chunkFilename: "[id].compiler.worker.js"
+    }
   },
   plugins: [
     // Makes the public URL available as %PUBLIC_URL% in index.html, e.g.:
@@ -214,19 +245,24 @@ module.exports = {
     // Try to dedupe duplicated modules, if any:
     new webpack.optimize.DedupePlugin(),
     // Minify the code.
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        screw_ie8: true, // React doesn't support IE8
-        warnings: false
-      },
-      mangle: {
-        screw_ie8: true
-      },
-      output: {
-        comments: false,
-        screw_ie8: true
-      }
+    // This takes way too long tbh.
+    new BabiliPlugin({
+      comments: false
     }),
+    // Disabled for now because uglify does not support generators.
+    // new webpack.optimize.UglifyJsPlugin({
+    //   compress: {
+    //     screw_ie8: true, // React doesn't support IE8
+    //     warnings: false
+    //   },
+    //   mangle: {
+    //     screw_ie8: true
+    //   },
+    //   output: {
+    //     comments: false,
+    //     screw_ie8: true
+    //   }
+    // }),
     // Note: this won't work without ExtractTextPlugin.extract(..) in `loaders`.
     new ExtractTextPlugin('static/css/[name].[contenthash:8].css'),
     // Generate a manifest file which contains a mapping of all asset filenames

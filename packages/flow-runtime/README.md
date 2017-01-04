@@ -8,7 +8,7 @@ A runtime type system for JavaScript with full [Flow](https://flowtype.org/) com
 Provides a rich API for defining, inspecting and verifying data types in JavaScript. Any value that can be represented in JS can be represented by `flow-runtime`, including full support for polymorphism and parameterized types.
 
 
-[See the docs for more information](./docs/README.md).
+[See the docs for more information](https://codemix.github.io/flow-runtime/#/docs).
 
 ## Usage
 
