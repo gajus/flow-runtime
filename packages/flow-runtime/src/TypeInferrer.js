@@ -53,7 +53,7 @@ export class TypeInferer {
     }
     // @flowIssue 252
     else if (typeof input === 'symbol') {
-      return (context.symbol(input): any);
+      return context.symbol((input: any));
     }
     else {
       return undefined;

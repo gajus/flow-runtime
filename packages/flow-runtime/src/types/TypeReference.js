@@ -20,7 +20,7 @@ export default class TypeReference<T> extends Type {
         console.warn(`Cannot resolve type: ${name}`);
         warnedMissing[name] = true;
       }
-      return context.any();
+      return (context.any(): any);
     }
     return type;
   }

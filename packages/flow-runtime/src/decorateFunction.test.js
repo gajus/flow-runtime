@@ -74,7 +74,6 @@ describe('decorateFunction', () => {
 
     const decorated = decorateFunction(type, stringer);
 
-    console.log(decorated('hello world'));
     //console.log(decorated(false));
   });
 

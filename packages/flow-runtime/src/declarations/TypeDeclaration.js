@@ -17,10 +17,6 @@ import type Validation, {IdentifierPath} from '../Validation';
 export default class TypeDeclaration<T> extends Declaration {
   typeName: string = 'TypeDeclaration';
 
-  get name (): string {
-    return this.typeAlias.name;
-  }
-
   get type (): Type<T> {
     return this.typeAlias.type;
   }

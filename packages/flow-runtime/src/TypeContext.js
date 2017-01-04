@@ -246,7 +246,7 @@ export default class TypeContext {
     }
   }
 
-  declare <T> (name: Declaration | string, type?: ModuleDeclaration | Type<T> | TypeCreator<Type<T>>): Declaration {
+  declare <T: any, D: ModuleDeclaration | TypeDeclaration<T> | VarDeclaration<T> | ClassDeclaration<T>> (name: string | D, type?: Type<T> | TypeCreator<Type<T>>): D | TypeDeclaration<T> {
 
     if (name instanceof Declaration) {
       type = name;
@@ -280,6 +280,7 @@ export default class TypeContext {
       }
       else if (type instanceof TypeAlias || type instanceof ParameterizedTypeAlias) {
         const target = new TypeDeclaration(this);
+        target.name = name;
         target.typeAlias = type;
         nameRegistry[name] = target;
         return target;
@@ -292,7 +293,7 @@ export default class TypeContext {
     }
   }
 
-  *declarations (): Generator<[string, Type<any>], void, void> {
+  *declarations (): Generator<[string, Type<any> | TypeConstructor<any>], void, void> {
     const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
     for (const key in nameRegistry) {
       yield [key, nameRegistry[key]];

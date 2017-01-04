@@ -154,7 +154,7 @@ describe('makeJSONError', () => {
       validation.inputName = 'input';
       const report = makeJSONError(validation);
       expect(report, [
-        'input requires 2 argument(s), got (a: number) => number'
+        'input argument "b" must be: number, got (a: number) => number'
       ]);
     });
   });
