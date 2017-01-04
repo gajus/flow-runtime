@@ -1,6 +1,6 @@
 {
   "name": "flow-runtime",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A flow compatible type system for JS.",
   "main": "flow-runtime.js",
   "scripts": {
