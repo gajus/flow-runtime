@@ -3,6 +3,7 @@
   "homepage": "https://codemix.github.io/flow-runtime",
   "description": "A demo app for flow-runtime.",
   "version": "0.0.1",
+  "license": "MIT",
   "devDependencies": {
     "autoprefixer": "6.5.1",
     "babel-core": "6.17.0",
