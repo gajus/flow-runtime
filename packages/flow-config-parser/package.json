@@ -2,7 +2,7 @@
   "name": "flow-config-parser",
   "version": "0.0.0",
   "description": "A parser for flow's configuration files.",
-  "main": "index.js",
+  "main": "flow-config-parser.js",
   "scripts": {
     "build": "babel -d ./lib ./src",
     "test": "mocha",
