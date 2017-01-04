@@ -129,47 +129,6 @@ export default class TypeContext {
   // @flowIssue 252
   [CurrentModuleSymbol]: ? ModuleDeclaration;
 
-  Type = Type;
-  TypeParameter = TypeParameter;
-  TypeReference = TypeReference;
-  ParameterizedTypeAlias = ParameterizedTypeAlias;
-  TypeAlias = TypeAlias;
-  TypeConstructor = TypeConstructor;
-  GenericType = GenericType;
-  NullLiteralType = NullLiteralType;
-  NumberType = NumberType;
-  NumericLiteralType = NumericLiteralType;
-  BooleanType = BooleanType;
-  BooleanLiteralType = BooleanLiteralType;
-  SymbolType = SymbolType;
-  SymbolLiteralType = SymbolLiteralType;
-  StringType = StringType;
-  StringLiteralType = StringLiteralType;
-  ArrayType = ArrayType;
-  ObjectType = ObjectType;
-  ObjectTypeCallProperty = ObjectTypeCallProperty;
-  ObjectTypeIndexer = ObjectTypeIndexer;
-  ObjectTypeProperty = ObjectTypeProperty;
-  FunctionType = FunctionType;
-  ParameterizedFunctionType = ParameterizedFunctionType;
-  FunctionTypeParam = FunctionTypeParam;
-  FunctionTypeRestParam = FunctionTypeRestParam;
-  FunctionTypeReturn = FunctionTypeReturn;
-  GeneratorType = GeneratorType;
-  ExistentialType = ExistentialType;
-  AnyType = AnyType;
-  MixedType = MixedType;
-  EmptyType = EmptyType;
-  NullableType = NullableType;
-  TupleType = TupleType;
-  UnionType = UnionType;
-  IntersectionType = IntersectionType;
-  VoidType = VoidType;
-
-  ModuleDeclaration = ModuleDeclaration;
-  ModuleExportsDeclaration = ModuleExportsDeclaration;
-  ClassDeclaration = ClassDeclaration;
-  ExtendsDeclaration = ExtendsDeclaration;
 
   makeJSONError <T> (validation: Validation<T>): ? Array<Object> {
     return makeJSONError(validation);
@@ -734,6 +693,10 @@ export default class TypeContext {
     const target = new IntersectionType(this);
     target.types = types;
     return target;
+  }
+
+  intersection <T> (...types: Type<T>[]): IntersectionType<T> {
+    return this.intersect(...types);
   }
 
   box <T> (reveal: TypeRevealer<T>): TypeBox<T> {

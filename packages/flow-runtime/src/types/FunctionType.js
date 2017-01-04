@@ -8,6 +8,8 @@ import FunctionTypeRestParam from './FunctionTypeRestParam';
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
+import {TypeSymbol} from '../symbols';
+
 export default class FunctionType<P, R> extends Type {
   typeName: string = 'FunctionType';
   params: FunctionTypeParam<P>[] = [];
@@ -19,20 +21,45 @@ export default class FunctionType<P, R> extends Type {
       validation.addError(path, this, getErrorMessage('ERR_EXPECT_FUNCTION'));
       return true;
     }
-    const {params} = this;
-    if (params.length > input.length) {
-      // function might not have enough parameters,
-      // see how many are really required.
-      let needed = 0;
+    const annotation = input[TypeSymbol];
+    if (annotation) {
+      const {returnType, params} = this;
+      let hasErrors = false;
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
-        if (!param.optional) {
-          needed++;
+        const annotationParam = annotation.params[i];
+        if (!annotationParam && !param.optional) {
+          validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARGUMENT', param.name, param.type.toString()));
+          hasErrors = true;
+        }
+        else if (!param.acceptsType(annotationParam)) {
+          validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARGUMENT', param.name, param.type.toString()));
+          hasErrors = true;
         }
       }
-      if (needed > input.length) {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_N_ARGUMENTS', needed));
-        return true;
+      if (!returnType.acceptsType(annotation.returnType)) {
+        validation.addError(path, this, getErrorMessage('ERR_EXPECT_RETURN', returnType.toString()));
+        hasErrors = true;
+      }
+      return hasErrors;
+    }
+    else {
+      // We can only do weak checking without a type annotation.
+      const {params} = this;
+      if (params.length > input.length) {
+        // function might not have enough parameters,
+        // see how many are really required.
+        let needed = 0;
+        for (let i = 0; i < params.length; i++) {
+          const param = params[i];
+          if (!param.optional) {
+            needed++;
+          }
+        }
+        if (needed > input.length) {
+          validation.addError(path, this, getErrorMessage('ERR_EXPECT_N_ARGUMENTS', needed));
+          return true;
+        }
       }
     }
     return false;
@@ -43,7 +70,25 @@ export default class FunctionType<P, R> extends Type {
       return false;
     }
     const {params} = this;
-    if (params.length > input.length) {
+    const annotation = input[TypeSymbol];
+    if (annotation) {
+      const {returnType, params} = this;
+      for (let i = 0; i < params.length; i++) {
+        const param = params[i];
+        const annotationParam = annotation.params[i];
+        if (!annotationParam && !param.optional) {
+          return false;
+        }
+        else if (!param.acceptsType(annotationParam)) {
+          return false;
+        }
+      }
+      if (!returnType.acceptsType(annotation.returnType)) {
+        return false;
+      }
+      return true;
+    }
+    else if (params.length > input.length) {
       // function might not have enough parameters,
       // see how many are really required.
       let needed = 0;

@@ -201,7 +201,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         if (!property) {
           continue;
         }
-        if (property.collectErrors(validation, path.concat(key), input)) {
+        if (property.collectErrors(validation, path, input)) {
           hasErrors = true;
         }
       }

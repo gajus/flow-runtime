@@ -76,11 +76,16 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
       const typeParameter = typeParameters[i];
       items.push(typeParameter.toString(true));
     }
+    const identifier = typeParameters.length > 0
+                     ? `${name}<${items.join(', ')}>`
+                     : name
+                     ;
+
     if (withDeclaration) {
-      return `type ${name}<${items.join(', ')}> = ${partial.toString()};`;
+      return `type ${identifier} = ${partial.toString()};`;
     }
     else {
-      return `${name}<${items.join(', ')}>`;
+      return identifier;
     }
   }
 

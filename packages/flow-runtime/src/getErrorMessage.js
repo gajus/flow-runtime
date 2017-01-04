@@ -7,7 +7,7 @@ import type {ErrorKey} from './errorMessages';
 export default function getErrorMessage (key: ErrorKey, ...params: any[]): string {
   const message = errorMessages[key];
   if (params.length > 0) {
-    return message.replace(/\$(\d+)/, (m, i) => params[i]);
+    return message.replace(/\$(\d+)/g, (m, i) => params[i]);
   }
   else {
     return message;

@@ -75,7 +75,7 @@ Objects are often used as hashmaps or dictionaries in JavaScript, to indicate th
 
 ```js
 const NumberStringDict = t.object(
-  t.indexer(t.number(), t.string())
+  t.indexer("key", t.number(), t.string())
 );
 
 NumberStringDict.assert({1: 'foo', 2: 'bar'}); // ok
@@ -87,8 +87,8 @@ Objects can have multiple-indexers:
 
 ```js
 const MultiDict = t.object(
-  t.indexer(t.number(), t.string()),
-  t.indexer(t.string(), t.number())
+  t.indexer("numKey", t.number(), t.string()),
+  t.indexer("stringKey", t.string(), t.number())
 );
 
 MultiDict.assert({1: 'foo', bar: 2}); // ok
@@ -101,7 +101,7 @@ And objects can have properties as well as indexers:
 ```js
 const FakeArray = t.object(
   t.property('length', t.number()),
-  t.indexer(t.number(), t.any())
+  t.indexer("key", t.number(), t.any())
 );
 
 FakeArray.assert({length: 1, 0: 123}); // ok

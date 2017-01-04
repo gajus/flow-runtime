@@ -13,6 +13,8 @@ const errorMessages = {
   ERR_EXPECT_FUNCTION: 'must be a function',
   ERR_EXPECT_GENERATOR: 'must be a generator function',
   ERR_EXPECT_ITERABLE: 'must be iterable',
+  ERR_EXPECT_ARGUMENT: 'argument "$0" must be: $1',
+  ERR_EXPECT_RETURN: 'expected return type of: $0',
   ERR_EXPECT_N_ARGUMENTS: 'requires $0 argument(s)',
   ERR_EXPECT_INSTANCEOF: 'must be an instance of $0',
   ERR_EXPECT_KEY_TYPE: 'keys must be: $0',

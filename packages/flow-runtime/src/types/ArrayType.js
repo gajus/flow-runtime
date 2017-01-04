@@ -64,11 +64,17 @@ export default class ArrayType <T> extends Type {
   }
 
   toString (): string {
+    const {elementType} = this;
     if (inToStringCycle(this)) {
-      return `$Cycle<Array<any>>`;
+      if (typeof elementType.name === 'string') {
+        return `Array<$Cycle<${elementType.name}>>`;
+      }
+      else {
+        return `Array<$Cycle<Object>>`;
+      }
     }
     startToStringCycle(this);
-    const output = `Array<${this.elementType.toString()}>`;
+    const output = `Array<${elementType.toString()}>`;
     endToStringCycle(this);
     return output;
   }
