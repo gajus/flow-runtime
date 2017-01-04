@@ -1,11 +1,7 @@
 /* @flow */
 
 import React, { Component } from 'react';
-import {observable} from 'mobx';
 import {observer} from 'mobx-react';
-
-import CodeMirror from './CodeMirror';
-
 
 import type Compiler from '../Compiler';
 

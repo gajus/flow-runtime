@@ -7,7 +7,6 @@ var InterpolateHtmlPlugin = require('react-dev-utils/InterpolateHtmlPlugin');
 var url = require('url');
 var paths = require('./paths');
 var getClientEnvironment = require('./env');
-var BabiliPlugin = require("babili-webpack-plugin");
 
 
 function ensureSlash(path, needsSlash) {
@@ -245,10 +244,6 @@ module.exports = {
     // Try to dedupe duplicated modules, if any:
     new webpack.optimize.DedupePlugin(),
     // Minify the code.
-    // This takes way too long tbh.
-    new BabiliPlugin({
-      comments: false
-    }),
     // Disabled for now because uglify does not support generators.
     // new webpack.optimize.UglifyJsPlugin({
     //   compress: {

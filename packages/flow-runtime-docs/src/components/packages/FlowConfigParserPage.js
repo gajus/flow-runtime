@@ -1,11 +1,11 @@
 /* @flow */
 import React, { Component } from 'react';
 import {observer} from 'mobx-react';
-import {Link} from 'react-router';
 
 import InstallInstruction from '../InstallInstruction';
 import Example from '../Example';
 
+// eslint-disable-next-line
 const simpleExample = `
 import parse from 'flow-config-parser';
 

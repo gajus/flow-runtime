@@ -1,7 +1,6 @@
 /* @flow */
 
 import React, { Component } from 'react';
-import {observable} from 'mobx';
 import {observer} from 'mobx-react';
 
 import CodeMirror from './CodeMirror';
@@ -29,7 +28,7 @@ console.log(widget);
 @observer
 export default class TryPage extends Component<void, Props, void> {
 
-  @observable compiler: Compiler;
+  compiler: Compiler;
 
   handleChange = (code: string) => {
     this.compiler.updateCode(code);

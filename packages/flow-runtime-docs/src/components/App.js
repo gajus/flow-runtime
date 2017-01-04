@@ -1,10 +1,8 @@
 /* @flow */
 
 import React, { Component } from 'react';
-import {observer, Provider} from 'mobx-react';
+import {observer} from 'mobx-react';
 import './App.css';
-import store from '../store';
-
 import Navbar from './Navbar';
 
 type Props = {

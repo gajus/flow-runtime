@@ -2,7 +2,6 @@
 
 import React, { Component } from 'react';
 import {observer} from 'mobx-react';
-import {Link, IndexLink} from 'react-router';
 
 import Example from '../Example';
 

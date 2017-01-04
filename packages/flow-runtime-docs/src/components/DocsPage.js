@@ -4,9 +4,6 @@ import React, { Component } from 'react';
 import {observer} from 'mobx-react';
 import {Link, IndexLink} from 'react-router';
 
-import CodeInput from './CodeInput';
-import CodeOutput from './CodeOutput';
-
 type Props = {
   children: *;
 };
