@@ -17,8 +17,8 @@ export default class Navbar extends Component {
             flow-runtime
           </IndexLink>
           <nav className="nav navbar-nav">
-              <IndexLink className="nav-item nav-link" activeClassName="active" to="/">Home</IndexLink>
               <Link className="nav-item nav-link" activeClassName="active" to="/try">Try</Link>
+              <Link className="nav-item nav-link" activeClassName="active" to="/packages">Packages</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs">Docs</Link>
           </nav>
           <ul className="nav navbar-nav float-sm-right hidden-xs-down">

@@ -1,19 +1,71 @@
 /* @flow */
 import t from 'flow-runtime';
+import * as flowConfigParser from 'flow-config-parser';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {observable, computed} from 'mobx';
+
+const sharedState = observable({
+  isReady: false
+});
 
 const Worker: any = require("./compiler.worker");
-import {observable} from 'mobx';
 
+type Deferred<T> = {
+  promise: Promise<T>;
+  resolve: (t: T) => void;
+  reject: (e: Error) => void;
+};
+
+let SEQUENCE = 0;
+const queue: {[key: number]: Deferred<any>} = {};
+
+const sharedWorker = new Worker();
+sharedWorker.onmessage = (event: Event) => {
+  sharedState.isReady = true;
+  const [id, transformed, compiled, errorMessage] = event.data;
+  const deferred = queue[id];
+  if (!deferred) {
+    return;
+  }
+  delete queue[id];
+  if (errorMessage) {
+    deferred.reject(new Error(errorMessage));
+  }
+  else {
+    deferred.resolve([transformed, compiled]);
+  }
+};
+
+function defer <T> (): Deferred<T> {
+  const deferred = {};
+  deferred.promise = new Promise((resolve, reject) => {
+    deferred.resolve = resolve;
+    deferred.reject = reject
+  });
+  return deferred;
+}
+
+function compile (code: string, options: Object): Promise<[string, string]> {
+  let id = SEQUENCE++;
+  const deferred = defer();
+  queue[id] = deferred;
+  sharedWorker.postMessage([id, code, options]);
+  return deferred.promise;
+}
 
 export default class Compiler {
   @observable code: string;
   @observable transformed: string;
   @observable compiled: string;
-  @observable log: Array<['log' | 'warn' | 'error', string]> = [];
+  @observable shouldAssert: boolean;
+  @observable shouldDecorate: boolean;
+  @observable error: string;
+  @observable log: Array<['log' | 'warn' | 'error' | 'react', string]> = [];
 
-  worker: Worker;
+  @computed get isReady (): boolean {
+    return sharedState.isReady;
+  }
 
   fakeConsole = Object.setPrototypeOf({
     log: (...args: any[]) => {
@@ -34,30 +86,41 @@ export default class Compiler {
     this.code = code;
     this.transformed = '';
     this.compiled = '';
-    this.worker = new Worker();
-    this.worker.onmessage = (event) => {
-      const [transformed, compiled] = event.data;
-      this.transformed = transformed;
-      this.compiled = compiled;
-    };
+    this.error = '';
+    this.shouldDecorate = true;
+    this.shouldAssert = true;
     this.updateCode(this.code);
   }
 
-  updateCode (code: string) {
+  async updateCode (code: string) {
     this.code = code;
-    this.worker.postMessage(code);
+    try {
+      const [transformed, compiled] = await compile(code, {
+        assert: this.shouldAssert,
+        decorate: this.shouldDecorate
+      });
+
+      this.transformed = transformed;
+      this.compiled = compiled;
+      this.error = '';
+    }
+    catch (e) {
+      this.error = e.message;
+    }
   }
 
-  run () {
+  run (): any {
     this.log = [];
     const fn = new Function('console', 'module', 'exports', 'require', this.compiled); // eslint-disable-line
     const exports = {};
     const module = {exports};
     try {
-      return fn(this.fakeConsole, module, exports, (name) => {
+      const result: any = fn(this.fakeConsole, module, exports, (name) => {
         switch (name) {
           case 'flow-runtime':
             return t;
+          case 'flow-config-parser':
+            return flowConfigParser;
           case 'react':
             return React;
           case 'react-dom':
@@ -66,6 +129,14 @@ export default class Compiler {
             throw new Error('Imports are not supported.');
         }
       });
+      // @flowIssue 252
+      if (result && typeof result.$$typeof === 'symbol') {
+        this.log.push(['react', result]);
+      }
+      else if (result !== undefined) {
+        this.fakeConsole.log(result);
+      }
+      return result;
     }
     catch (e) {
       this.fakeConsole.error(e.stack);

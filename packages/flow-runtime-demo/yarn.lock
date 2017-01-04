@@ -2369,7 +2369,7 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
-flow-config-parser@^0.0.0:
+flow-config-parser, flow-config-parser@^0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/flow-config-parser/-/flow-config-parser-0.0.0.tgz#81762fed34b8cb11d9aae1e899fa670fc57a36c3"
   dependencies:

@@ -17,7 +17,11 @@ export default class App extends Component<void, Props, void> {
     return (
       <div className="App">
         <Navbar />
-          {this.props.children}
+        {this.props.children}
+        <br />
+        <br />
+        <br />
+        <br />
       </div>
     );
   }

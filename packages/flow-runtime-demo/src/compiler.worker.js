@@ -14,6 +14,7 @@ function getAST (input: string): AST {
   return parse(input, {
     filename: 'unknown',
     sourceType: 'module',
+    allowReturnOutsideFunction: true,
     plugins: [
       'jsx',
       'flow',
@@ -29,12 +30,21 @@ function getAST (input: string): AST {
   });
 }
 
-function transformFlowRuntime (ast: AST): string {
-  transform(ast);
-  const {code} = generate(ast, {
-    tabWidth: 2
-  });
-  return code;
+function transformFlowRuntime (ast: AST, options: Object): string {
+  transform(ast, options);
+  try {
+    const {code} = Recast.print(ast, {
+      tabWidth: 2
+    });
+    return code;
+  }
+  catch (e) {
+    // fall-back to babel.
+    const {code} = generate(ast, {
+      tabWidth: 2
+    });
+    return code;
+  }
 }
 
 function compileBabel (ast: AST, input: string): string {
@@ -42,18 +52,29 @@ function compileBabel (ast: AST, input: string): string {
   return code;
 }
 
+function removeComments (code: string): string {
+  return code.replace(/^\/\/(.*)$/gm, '').trim();
+}
+
 onmessage = (event) => {
-  const input = event.data;
+  const [id, input, options] = event.data;
   let ast;
+  let result;
   try {
     ast = getAST(input);
+    result = [
+      id,
+      removeComments(transformFlowRuntime(ast, options)),
+      compileBabel(ast, input)
+    ];
   }
   catch (e) {
-    // do nothing
-    return;
+    result = [
+      id,
+      '',
+      '',
+      e.message
+    ];
   }
-  postMessage([
-    transformFlowRuntime(ast),
-    compileBabel(ast, input)
-  ]);
+  postMessage(result);
 };

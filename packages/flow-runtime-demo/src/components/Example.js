@@ -5,6 +5,7 @@ import {observable} from 'mobx';
 import {observer} from 'mobx-react';
 
 import CodeMirror from './CodeMirror';
+import FakeConsole from './FakeConsole';
 
 
 import Compiler from '../Compiler';
@@ -13,6 +14,7 @@ type Props = {
   inline?: boolean;
   inputTitle?: *;
   outputTitle?: *;
+  hideOutput?: boolean;
   code: string;
 };
 
@@ -42,7 +44,8 @@ export default class Example extends Component<void, Props, void> {
 
   render () {
     const compiler = this.compiler;
-    const {inputTitle, outputTitle, inline} = this.props;
+    const {inputTitle, outputTitle, inline, hideOutput} = this.props;
+    const className = compiler.error ? 'syntax-error' : 'no-error';
     const input = (
       <div>
         {inputTitle}
@@ -55,24 +58,32 @@ export default class Example extends Component<void, Props, void> {
         {outputTitle}
         <CodeMirror value={compiler.transformed} readOnly />
         <br />
-        <button className="btn btn-primary" onClick={this.runCode}>
-          Run
+        <button className="btn btn-primary" onClick={this.runCode} disabled={!compiler.isReady}>
+          {!compiler.isReady && <i className="fa fa-spinner fa-pulse" />}
+          {!compiler.isReady ? ' Starting compiler...' : 'Run'}
         </button>
       </div>
     );
     if (inline) {
       return (
-        <div>
+        <div className={className}>
           {input}
           <br />
-          {output}
+          {!hideOutput && output}
+          {hideOutput && (
+            <button className="btn btn-primary" onClick={this.runCode} disabled={!compiler.isReady}>
+              {!compiler.isReady && <i className="fa fa-spinner fa-pulse" />}
+              {!compiler.isReady ? ' Starting compiler...' : 'Run'}
+            </button>
+          )}
+          {hideOutput && <br />}
           <br />
-          {this.renderLog()}
+          <FakeConsole compiler={compiler} />
         </div>
       );
     }
     return (
-      <div>
+      <div className={className}>
         <div className="row">
           <div className="col-sm-6">
             {input}
@@ -82,52 +93,7 @@ export default class Example extends Component<void, Props, void> {
           </div>
         </div>
         <br />
-        {this.renderLog()}
-      </div>
-    );
-  }
-
-  renderLog () {
-    const compiler = this.compiler;
-    if (!compiler.log.length) {
-      return;
-    }
-    return (
-      <div className="card">
-        <div className="card-block">
-          <button type="button"
-                  className="close"
-                  aria-label="Close"
-                  onClick={this.hideLog}
-          >
-            <span aria-hidden="true">&times;</span>
-          </button>
-          <h4 className="card-title">Output</h4>
-          <hr />
-          <pre>
-          {compiler.log.map(([type, line], index) => {
-            let className, icon;
-            if (type === 'warn') {
-              className = 'text-warning';
-              icon = <i className="fa fa-exclamation-triangle" />;
-            }
-            else if (type === 'error') {
-              className = 'text-danger';
-              icon = <i className="fa fa-times-circle" />;
-            }
-            else {
-              className = 'text-muted';
-            }
-            return (
-              <div key={index} className={className}>
-                {icon}
-                {icon && ' '}
-                {line}
-              </div>
-            );
-          })}
-          </pre>
-        </div>
+        <FakeConsole compiler={compiler} />
       </div>
     );
   }

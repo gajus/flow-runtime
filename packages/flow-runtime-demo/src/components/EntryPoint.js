@@ -7,9 +7,21 @@ import App from './App';
 import HomePage from './HomePage';
 import TryPage from './TryPage';
 import DocsPage from './DocsPage';
+import PackageListPage from './PackageListPage';
+import BabelPluginFlowRuntimePage from './packages/BabelPluginFlowRuntimePage';
+import FlowRuntimePage from './packages/FlowRuntimePage';
+import FlowConfigParserPage from './packages/FlowConfigParserPage';
 
 import GettingStartedPage from './docs/GettingStartedPage';
 import ObjectTypesPage from './docs/ObjectTypesPage';
+import PrimitiveTypesPage from './docs/PrimitiveTypesPage';
+import TypeAliasesPage from './docs/TypeAliasesPage';
+import ArraysAndTuplesPage from './docs/ArraysAndTuplesPage';
+import FunctionsPage from './docs/FunctionsPage';
+import TypeContextPage from './docs/TypeContextPage';
+import TypeInferencePage from './docs/TypeInferencePage';
+import UnionsAndIntersectionsPage from './docs/UnionsAndIntersectionsPage';
+import ExoticTypesPage from './docs/ExoticTypesPage';
 
 export default function EntryPoint () {
   return (
@@ -18,9 +30,21 @@ export default function EntryPoint () {
         <IndexRoute component={HomePage} />
         <Route path="docs" component={DocsPage}>
           <IndexRoute component={GettingStartedPage} />
+          <Route path="primitive-types" component={PrimitiveTypesPage} />
           <Route path="object-types" component={ObjectTypesPage} />
+          <Route path="arrays-and-tuples" component={ArraysAndTuplesPage} />
+          <Route path="type-aliases" component={TypeAliasesPage} />
+          <Route path="type-context" component={TypeContextPage} />
+          <Route path="functions" component={FunctionsPage} />
+          <Route path="unions-and-intersections" component={UnionsAndIntersectionsPage} />
+          <Route path="type-inference" component={TypeInferencePage} />
+          <Route path="exotic-types" component={ExoticTypesPage} />
         </Route>
         <Route path="try" component={TryPage} />
+        <Route path="packages" component={PackageListPage} />
+        <Route path="flow-config-parser" component={FlowConfigParserPage} />
+        <Route path="flow-runtime" component={FlowRuntimePage} />
+        <Route path="babel-plugin-flow-runtime" component={BabelPluginFlowRuntimePage} />
       </Route>
     </Router>
   );

@@ -16,6 +16,12 @@ body {
   margin: 0;
 
 }
+
+:root .CodeMirror {
+  height: 100%;
+  width: 100%;
+}
+
 .Wrapper .ReactCodeMirror .CodeMirror {
   height: 100%;
   width: 100%;
@@ -26,4 +32,12 @@ body {
   flex: 1;
   width: 50%;
   margin: 0;
+}
+
+.syntax-error .CodeMirror {
+  border: solid 1px red;
+}
+
+.no-error .CodeMirror {
+  border: solid 1px transparent;
 }
