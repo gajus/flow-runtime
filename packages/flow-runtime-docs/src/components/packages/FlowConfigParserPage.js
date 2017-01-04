@@ -70,14 +70,16 @@ export default class FlowRuntimePage extends Component {
             </a>
           </div>
         </header>
-        <div className="row">
-          <div className="col-sm-10 offset-sm-1">
-            <h4>Installation</h4>
-            <InstallInstruction packageNames={['flow-config-parser']} />
-            <hr />
-            <h4>Usage</h4>
-            <Example code={simpleExample} inline hideOutput inputTitle={<p>Pass the contents of <code>.flowconfig</code> to <code>parse()</code>:</p>}/>
+        <div className="container">
+          <div className="row">
+            <div className="col-sm-10 offset-sm-1">
+              <h4>Installation</h4>
+              <InstallInstruction packageNames={['flow-config-parser']} />
+              <hr />
+              <h4>Usage</h4>
+              <Example code={simpleExample} inline hideOutput inputTitle={<p>Pass the contents of <code>.flowconfig</code> to <code>parse()</code>:</p>}/>
 
+            </div>
           </div>
         </div>
       </div>

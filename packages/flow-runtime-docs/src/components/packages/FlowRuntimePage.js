@@ -42,20 +42,22 @@ export default class FlowRuntimePage extends Component {
             </a>
           </div>
         </header>
-        <div className="row">
-          <div className="col-sm-10 offset-sm-1">
-            <h4>What?</h4>
-            <p>Provides a rich API for defining, inspecting and verifying data types in JavaScript. Any value that can be represented in JS can be represented by <code>flow-runtime</code>, including full support for polymorphism and parameterized types.</p>
-            <p>This is the core library, see the <Link to="/">flow-runtime</Link> homepage for more information.</p>
-            <hr />
-            <h4>Installation</h4>
-            <InstallInstruction packageNames={['flow-runtime']} />
-            <hr />
-            <h4>Usage</h4>
-            <Example code={simpleExample} inline hideOutput inputTitle={<p>See the <Link to="/docs">documentation</Link> for more examples.</p>}/>
-            <br />
-            <br />
+        <div className="container">
+          <div className="row">
+            <div className="col-sm-10 offset-sm-1">
+              <h4>What?</h4>
+              <p>Provides a rich API for defining, inspecting and verifying data types in JavaScript. Any value that can be represented in JS can be represented by <code>flow-runtime</code>, including full support for polymorphism and parameterized types.</p>
+              <p>This is the core library, see the <Link to="/">flow-runtime</Link> homepage for more information.</p>
+              <hr />
+              <h4>Installation</h4>
+              <InstallInstruction packageNames={['flow-runtime']} />
+              <hr />
+              <h4>Usage</h4>
+              <Example code={simpleExample} inline hideOutput inputTitle={<p>See the <Link to="/docs">documentation</Link> for more examples.</p>}/>
+              <br />
+              <br />
 
+            </div>
           </div>
         </div>
       </div>
