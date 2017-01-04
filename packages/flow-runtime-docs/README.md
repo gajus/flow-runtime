@@ -1,3 +1,3 @@
-# Flow Runtime Demo
+# Flow Runtime Docs
 
-A demo app for [flow runtime](https://github.com/codemix/flow-runtime).
+The documentation site for [flow runtime](https://github.com/codemix/flow-runtime), running at https://codemix.github.io/flow-runtime.
