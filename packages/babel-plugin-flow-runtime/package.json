@@ -4,6 +4,7 @@
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
   "scripts": {
+    "prepublish": "npm run build",
     "build": "babel -d ./lib ./src",
     "test": "mocha",
     "watch": "mocha --watch"
