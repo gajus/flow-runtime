@@ -111,7 +111,7 @@ export default class HomePage extends Component {
               <Link to="/try">You can try out the babel plugin in your browser</Link>
               <hr />
               <h4>What about TypeScript?</h4>
-              <p>Despite the name, it's absolutely possible to use <code>flow-runtime</code> with TypeScript. Unfortunately it's not yet possible to leverage the TypeScript annotations themselves, but all of the library methods should match the relevent TypeScript semantics as Flow and TypeScript are both "just JavaScript".</p>
+              <p>Despite the name, it's absolutely possible to use <code>flow-runtime</code> with TypeScript. Unfortunately it's not yet possible to leverage the TypeScript annotations themselves, but all of the library methods should match the relevant TypeScript semantics as Flow and TypeScript are both "just JavaScript".</p>
               <hr />
               <h4>Is this project affiliated with Facebook?</h4>
               <p>No. This project comes from <a href="http://codemix.com/">codemix</a>, a web development company that you should hire for your next project.</p>
