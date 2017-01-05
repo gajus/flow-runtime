@@ -1,6 +1,6 @@
 
 import Type from './Type';
-import type {Constructor, TypeConstraint} from './';
+import type {TypeConstraint} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import type ObjectTypeProperty from './ObjectTypeProperty';
@@ -66,7 +66,7 @@ export default class TypeAlias<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (): Type<T> | Constructor {
+  unwrap (): Type<T> {
     return this.type.unwrap();
   }
 

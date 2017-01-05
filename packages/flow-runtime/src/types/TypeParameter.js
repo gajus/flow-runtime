@@ -1,7 +1,6 @@
 /* @flow */
 
 import Type from './Type';
-import type {Constructor} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
 /**
@@ -69,7 +68,7 @@ export default class TypeParameter<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (): Type<T> | Constructor {
+  unwrap (): Type<T> {
     const {recorded, bound} = this;
     if (recorded) {
       return recorded.unwrap();

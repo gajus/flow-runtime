@@ -6,7 +6,6 @@ import type TypeContext from '../TypeContext';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
-import type {Constructor} from './';
 
 /**
  * # Type
@@ -47,7 +46,7 @@ export default class Type <T> {
   /**
    * Get the inner type or value.
    */
-  unwrap (): Type<T> | Constructor {
+  unwrap (): Type<T> {
     return this;
   }
 

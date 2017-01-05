@@ -15,11 +15,11 @@ export type ValidFunctionBody<X, P, R>
  | FunctionTypeReturn<R>
  ;
 
-export type ObjectPropertyDict<T> = {
+export type ObjectPropertyDict<T: {}> = {
   [name: $Keys<T>]: Type<any>;
 };
 
-export type ValidObjectBody<O: Object>
+export type ValidObjectBody<O: {}>
  = ObjectTypeCallProperty<any>
  | ObjectTypeProperty<$Keys<O>, $ObjMap<O, <K>(k: Type<K>) => K>>
  | ObjectTypeIndexer<string | number, any>
@@ -32,7 +32,7 @@ export type ApplicableType<T> = Type<T> & {
   apply <P> (...typeParameters: Type<P>[]): TypeParameterApplication<P, T>;
 };
 
-export type Constructor = Function;
+export type Constructor<T> = Class<T>;
 
 import AnyType from './AnyType';
 import ArrayType from './ArrayType';

@@ -1,7 +1,6 @@
 /* @flow */
 
 import Type from './Type';
-import type {Constructor} from './';
 
 import PartialType from './PartialType';
 import type FunctionTypeParam from './FunctionTypeParam';
@@ -14,7 +13,7 @@ import type Validation, {IdentifierPath} from '../Validation';
 export type FunctionBodyCreator <P, R> = (partial: PartialType<(...params: P[]) => R>) => Array<FunctionTypeParam<P> | FunctionTypeRestParam<P> | FunctionTypeReturn<R>>;
 
 
-export default class ParameterizedFunctionType <X, P, R> extends Type {
+export default class ParameterizedFunctionType <X, P: any, R: any> extends Type {
   typeName: string = 'ParameterizedFunctionType';
   bodyCreator: FunctionBodyCreator<P, R>;
 
@@ -74,7 +73,7 @@ export default class ParameterizedFunctionType <X, P, R> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type<(...params: P[]) => R> | Constructor {
+  unwrap (...typeInstances: Type<any>[]): Type<(...params: P[]) => R> {
     return this.partial.unwrap(...typeInstances);
   }
 

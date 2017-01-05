@@ -8,8 +8,7 @@ import type {
   ParameterizedTypeAlias,
   TypeConstraint,
   TypeParameterApplication,
-  ObjectTypeProperty,
-  Constructor
+  ObjectTypeProperty
 } from '../types';
 
 import type Validation, {IdentifierPath} from '../Validation';
@@ -55,7 +54,7 @@ export default class TypeDeclaration<T> extends Declaration {
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type<any> | Constructor {
+  unwrap (...typeInstances: Type<any>[]): Type<any> {
     return this.typeAlias.unwrap(...typeInstances);
   }
 

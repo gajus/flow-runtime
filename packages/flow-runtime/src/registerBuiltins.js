@@ -25,11 +25,11 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         return true;
       }
       const expectedType = instanceType.unwrap();
-      if (input === expectedType) {
-        return false;
-      }
-      if (typeof expectedType === 'function') {
-        if (expectedType.prototype.isPrototypeOf(input.prototype)) {
+      if (expectedType instanceof GenericType && typeof expectedType.impl === 'function') {
+        if (input === expectedType.impl) {
+          return false;
+        }
+        else if (expectedType.impl.prototype.isPrototypeOf(input.prototype)) {
           return false;
         }
         else {
@@ -76,15 +76,17 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         return false;
       }
       let expectedType = instanceType.unwrap();
-      if (input === expectedType) {
-        return true;
-      }
-      else if (typeof expectedType === 'function') {
-        if (expectedType.prototype.isPrototypeOf(input.prototype)) {
+      if (expectedType instanceof GenericType && typeof expectedType.impl === 'function') {
+        if (input === expectedType.impl) {
           return true;
         }
-        else {
-          return false;
+        else if (typeof expectedType.impl === 'function') {
+          if (expectedType.impl.prototype.isPrototypeOf(input.prototype)) {
+            return true;
+          }
+          else {
+            return false;
+          }
         }
       }
 

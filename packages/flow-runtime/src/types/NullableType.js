@@ -1,7 +1,6 @@
 /* @flow */
 
 import Type from './Type';
-import type {Constructor} from './';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -39,7 +38,7 @@ export default class NullableType<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (): Type<T> | Constructor {
+  unwrap (): Type<T> {
     return this.type.unwrap();
   }
 

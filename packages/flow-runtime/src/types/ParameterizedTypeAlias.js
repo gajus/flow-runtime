@@ -1,6 +1,6 @@
 
 import Type from './Type';
-import type {Constructor, TypeCreator} from './';
+import type {TypeCreator} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 import TypeAlias from './TypeAlias';
 import PartialType from './PartialType';
@@ -64,7 +64,7 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type<any> | Constructor {
+  unwrap (...typeInstances: Type<any>[]): Type<any> {
     return this.partial.unwrap(...typeInstances);
   }
 

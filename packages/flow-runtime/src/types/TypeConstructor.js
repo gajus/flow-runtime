@@ -6,10 +6,10 @@ import type {Constructor} from './';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class TypeConstructor<T: Constructor> extends Type {
+export default class TypeConstructor<T> extends Type {
   typeName: string = 'TypeConstructor';
   name: string;
-  impl: ? T;
+  impl: ? Constructor<T>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     throw new Error(`Not implemented: collectErrors().`);
@@ -37,14 +37,8 @@ export default class TypeConstructor<T: Constructor> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (): Type<T> | T {
-    const {impl} = this;
-    if (impl) {
-      return impl;
-    }
-    else {
-      return this;
-    }
+  unwrap (): TypeConstructor<T> {
+    return this;
   }
 
   toString (): string {

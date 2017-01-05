@@ -1,12 +1,12 @@
 /* @flow */
 
 import Type from './Type';
-import type {Constructor, TypeRevealer} from './';
+import type {TypeRevealer} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
-export default class TypeBox<T> extends Type {
+export default class TypeBox<T: any> extends Type {
   typeName: string = 'TypeBox';
 
   reveal: TypeRevealer<T>;
@@ -48,7 +48,7 @@ export default class TypeBox<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (): Type<T> | Constructor {
+  unwrap (): Type<T> {
     return this.type.unwrap();
   }
 

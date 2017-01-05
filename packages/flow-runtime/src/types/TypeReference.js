@@ -1,14 +1,13 @@
 /* @flow */
 
 import Type from './Type';
-import type {Constructor} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
 const warnedMissing = {};
 
-export default class TypeReference<T> extends Type {
+export default class TypeReference<T: any> extends Type {
   typeName: string = 'TypeReference';
   name: string;
 
@@ -47,8 +46,8 @@ export default class TypeReference<T> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (): Type<T> | Constructor {
-    return this.type.unwrap();
+  unwrap (): Type<T> {
+    return (this.type.unwrap(): any);
   }
 
   toString (): string {

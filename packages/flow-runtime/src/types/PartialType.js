@@ -1,6 +1,6 @@
 
 import Type from './Type';
-import type {Constructor, TypeConstraint} from './';
+import type {TypeConstraint} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameter from './TypeParameter';
@@ -77,7 +77,7 @@ export default class PartialType<X, T> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type | Constructor {
+  unwrap (...typeInstances: Type<any>[]): Type<T> {
     const {length} = typeInstances;
     for (let i = 0; i < length; i++) {
       const typeParameter = this.typeParameters[i];
