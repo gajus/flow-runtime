@@ -472,6 +472,9 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     name = id.node.name;
     subject = t.identifier(name);
   }
+  if (context.isBoxed(id.node)) {
+    subject = context.call('box', t.arrowFunctionExpression([], subject));
+  }
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 

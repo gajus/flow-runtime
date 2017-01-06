@@ -6,12 +6,26 @@ import getTypeParameters from './getTypeParameters';
 import type ConversionContext from './ConversionContext';
 
 export default function firstPassVisitors (context: ConversionContext): Object {
+
   return {
     Identifier (path: NodePath) {
-      if (!context.shouldImport || path.parentPath.isFlow()) {
+      const {parentPath} = path;
+      if (parentPath.isFlow()) {
+        // This identifier might point to a type that has not been resolved yet
+        if (parentPath.isTypeAlias() || parentPath.isInterfaceDeclaration()) {
+          if (path.key === 'id') {
+            return; // this is part of the declaration name
+          }
+        }
+        if (context.hasTDZIssue(path.node.name, path)) {
+          context.markBoxed(path.node);
+        }
         return;
       }
-      if (path.key === 'property' && path.parentPath.isMemberExpression() && path.parentPath.node.computed) {
+      else if (!context.shouldImport) {
+        return;
+      }
+      if (path.key === 'property' && parentPath.isMemberExpression() && parentPath.node.computed) {
         return;
       }
       const {name} = path.node;
