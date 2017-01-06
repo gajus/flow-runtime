@@ -3,6 +3,7 @@
 Parses `.flowconfig` files and provides an API for inspecting the configuration.
 
 ```js
+import fs from 'fs'
 import parser from 'flow-config-parser';
 const config = parser.parse(fs.readFileSync('.flowconfig', 'utf8'));
 
