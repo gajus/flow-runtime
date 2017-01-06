@@ -45,6 +45,17 @@ export default class TryPage extends Component<void, Props, void> {
 
   handleClickAssertions = () => {
     this.compiler.shouldAssert = !this.compiler.shouldAssert;
+    if (this.compiler.shouldAssert) {
+      this.compiler.shouldWarn = false;
+    }
+    this.compiler.updateCode(this.compiler.code);
+  };
+
+  handleClickWarnings = () => {
+    this.compiler.shouldWarn = !this.compiler.shouldWarn;
+    if (this.compiler.shouldWarn) {
+      this.compiler.shouldAssert = false;
+    }
     this.compiler.updateCode(this.compiler.code);
   };
 
@@ -68,6 +79,9 @@ export default class TryPage extends Component<void, Props, void> {
           <div className="btn-group float-sm-right">
             <button className="btn btn-secondary" onClick={this.handleClickAssertions}>
               {compiler.shouldAssert ? 'Disable Assertions' : 'Enable Assertions'}
+            </button>
+            <button className="btn btn-secondary" onClick={this.handleClickWarnings}>
+              {compiler.shouldWarn ? 'Disable Warnings' : 'Enable Warnings'}
             </button>
             <button className="btn btn-secondary" onClick={this.handleClickDecoration}>
               {compiler.shouldDecorate ? 'Disable Decorations' : 'Enable Decorations'}

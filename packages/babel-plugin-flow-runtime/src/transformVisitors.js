@@ -11,7 +11,7 @@ import {ok as invariant} from 'assert';
 import type {NodePath} from 'babel-traverse';
 
 export default function transformVisitors (context: ConversionContext): Object {
-  const shouldAssert = context.shouldAssert;
+  const shouldCheck = context.shouldAssert || context.shouldWarn;
   return {
     Program (path: NodePath) {
       if (context.shouldImport) {
@@ -45,13 +45,10 @@ export default function transformVisitors (context: ConversionContext): Object {
     TypeCastExpression (path: NodePath) {
       const expression = path.get('expression');
       const typeAnnotation = path.get('typeAnnotation');
-      if (shouldAssert && !expression.isIdentifier()) {
-        path.replaceWith(t.callExpression(
-          t.memberExpression(
-            convert(context, typeAnnotation),
-            t.identifier('assert')
-          ),
-          [expression.node]
+      if (shouldCheck && !expression.isIdentifier()) {
+        path.replaceWith(context.assert(
+          convert(context, typeAnnotation),
+          expression.node
         ));
         return;
       }
@@ -100,19 +97,14 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
 
       if (!path.parentPath.isExpressionStatement()) {
-        if (!shouldAssert) {
+        if (!shouldCheck) {
           return;
         }
         // this typecast is part of a larger expression, just replace the value inline.
-        path.replaceWith(
-          t.callExpression(
-            t.memberExpression(
-              convert(context, typeAnnotation),
-              t.identifier('assert')
-            ),
-            [expression.node]
-          )
-        );
+        path.replaceWith(context.assert(
+          convert(context, typeAnnotation),
+          expression.node
+        ));
         return;
       }
 
@@ -136,14 +128,8 @@ export default function transformVisitors (context: ConversionContext): Object {
           )
         ));
       }
-      if (shouldAssert) {
-        path.replaceWith(t.callExpression(
-          t.memberExpression(
-            valueUid,
-            t.identifier('assert')
-          ),
-          [expression.node]
-        ));
+      if (shouldCheck) {
+        path.replaceWith(context.assert(valueUid, expression.node));
       }
       else {
         path.replaceWith(expression.node);
@@ -158,13 +144,10 @@ export default function transformVisitors (context: ConversionContext): Object {
         invariant(id.isArrayPattern() || id.isObjectPattern());
         const init = path.get('init');
         let wrapped = init.node;
-        if (shouldAssert) {
-          wrapped = t.callExpression(
-            t.memberExpression(
-              convert(context, id.get('typeAnnotation')),
-              t.identifier('assert')
-            ),
-            [wrapped]
+        if (shouldCheck) {
+          wrapped = context.assert(
+            convert(context, id.get('typeAnnotation')),
+            wrapped
           );
         }
         if (wrapped !== init.node) {
@@ -181,14 +164,12 @@ export default function transformVisitors (context: ConversionContext): Object {
           valueUid,
           convert(context, id.get('typeAnnotation'))
         ));
-        if (shouldAssert && path.has('init')) {
-          const wrapped = t.callExpression(
-            t.memberExpression(
-              valueUid,
-              t.identifier('assert')
-            ),
-            [path.get('init').node]
+        if (shouldCheck && path.has('init')) {
+          const wrapped = context.assert(
+            valueUid,
+            path.get('init').node
           );
+
           path.replaceWith(t.variableDeclarator(
             t.identifier(name),
             wrapped
@@ -198,13 +179,10 @@ export default function transformVisitors (context: ConversionContext): Object {
           id.replaceWith(t.identifier(name));
         }
       }
-      else if (shouldAssert) {
-        const wrapped = t.callExpression(
-          t.memberExpression(
-            convert(context, id.get('typeAnnotation')),
-            t.identifier('assert')
-          ),
-          [path.get('init').node]
+      else if (shouldCheck) {
+        const wrapped = context.assert(
+          convert(context, id.get('typeAnnotation')),
+          path.get('init').node
         );
         path.replaceWith(t.variableDeclarator(
           t.identifier(name),
@@ -217,7 +195,7 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
     AssignmentExpression (path: NodePath) {
       const left = path.get('left');
-      if (!shouldAssert || !left.isIdentifier()) {
+      if (!shouldCheck || !left.isIdentifier()) {
         return;
       }
       const name = left.node.name;
@@ -226,12 +204,9 @@ export default function transformVisitors (context: ConversionContext): Object {
         return;
       }
       const right = path.get('right');
-      right.replaceWith(t.callExpression(
-        t.memberExpression(
-          valueUid,
-          t.identifier('assert')
-        ),
-        [right.node]
+      right.replaceWith(context.assert(
+        valueUid,
+        right.node
       ));
     },
     Function (path: NodePath) {
@@ -273,7 +248,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         const typeAnnotation = param.get('typeAnnotation');
 
         if (param.isObjectPattern() || param.isArrayPattern()) {
-          if (shouldAssert) {
+          if (shouldCheck) {
             shouldShadow = true;
 
             const args = [
@@ -291,9 +266,9 @@ export default function transformVisitors (context: ConversionContext): Object {
             );
 
             const expression = t.expressionStatement(
-              t.callExpression(
-                t.memberExpression(context.call('param', ...args), t.identifier('assert')),
-                [ref]
+              context.assert(
+                context.call('param', ...args),
+                ref
               )
             );
             if (assignmentRight) {
@@ -331,15 +306,15 @@ export default function transformVisitors (context: ConversionContext): Object {
               convert(context, typeAnnotation)
             )
           ]));
-          if (shouldAssert) {
+          if (shouldCheck) {
             const args = [t.stringLiteral(name), valueUid];
             if (param.has('optional')) {
               args.push(t.booleanLiteral(true));
             }
             invocations.push(t.expressionStatement(
-              t.callExpression(
-                t.memberExpression(context.call(methodName, ...args), t.identifier('assert')),
-                [t.identifier(name)]
+              context.assert(
+                context.call(methodName, ...args),
+                t.identifier(name)
               )
             ));
           }
@@ -404,21 +379,21 @@ export default function transformVisitors (context: ConversionContext): Object {
 
     ReturnStatement (path: NodePath) {
       const fn = path.scope.getFunctionParent().path;
-      if (!shouldAssert || !fn.has('returnType')) {
+      if (!shouldCheck || !fn.has('returnType')) {
         return;
       }
       const returnTypeUid = path.scope.getData('returnTypeUid');
 
       const argument = path.get('argument');
-      argument.replaceWith(t.callExpression(
-        t.memberExpression(returnTypeUid, t.identifier('assert')),
-        argument.node ? [argument.node] : []
+      argument.replaceWith(context.assert(
+        returnTypeUid,
+        ...(argument.node ? [argument.node] : [])
       ));
     },
 
     YieldExpression (path: NodePath) {
       const fn = path.scope.getFunctionParent().path;
-      if (!shouldAssert || !fn.has('returnType')) {
+      if (!shouldCheck || !fn.has('returnType')) {
         return;
       }
       if (context.visited.has(path.node)) {
@@ -440,9 +415,9 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       else {
         replacement = t.yieldExpression(
-          t.callExpression(
-            t.memberExpression(yieldTypeUid, t.identifier('assert')),
-            argument.node ? [argument.node] : []
+          context.assert(
+            yieldTypeUid,
+            ...(argument.node ? [argument.node] : [])
           )
         );
       }
@@ -452,9 +427,9 @@ export default function transformVisitors (context: ConversionContext): Object {
         path.replaceWith(replacement);
       }
       else {
-        path.replaceWith(t.callExpression(
-          t.memberExpression(nextTypeUid, t.identifier('assert')),
-          [replacement]
+        path.replaceWith(context.assert(
+          nextTypeUid,
+          replacement
         ));
       }
     },

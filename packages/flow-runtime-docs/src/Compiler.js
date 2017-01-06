@@ -59,6 +59,7 @@ export default class Compiler {
   @observable transformed: string;
   @observable compiled: string;
   @observable shouldAssert: boolean;
+  @observable shouldWarn: boolean;
   @observable shouldDecorate: boolean;
   @observable error: string;
   @observable log: Array<['log' | 'warn' | 'error' | 'react', string]> = [];
@@ -89,6 +90,7 @@ export default class Compiler {
     this.error = '';
     this.shouldDecorate = true;
     this.shouldAssert = true;
+    this.shouldWarn = false;
     this.updateCode(this.code);
   }
 
@@ -97,7 +99,8 @@ export default class Compiler {
     try {
       const [transformed, compiled] = await compile(code, {
         assert: this.shouldAssert,
-        decorate: this.shouldDecorate
+        decorate: this.shouldDecorate,
+        warn: this.shouldWarn
       });
 
       this.transformed = transformed;
@@ -114,6 +117,8 @@ export default class Compiler {
     const fn = new Function('console', 'module', 'exports', 'require', this.compiled); // eslint-disable-line
     const exports = {};
     const module = {exports};
+    const originalEmit = t.emitWarningMessage;
+    t.emitWarningMessage = (message: string) => this.fakeConsole.warn(message);
     try {
       const result: any = fn(this.fakeConsole, module, exports, (name) => {
         switch (name) {
@@ -141,6 +146,7 @@ export default class Compiler {
     catch (e) {
       this.fakeConsole.error(e.stack);
     }
+    t.emitWarningMessage = originalEmit;
   }
 }
 

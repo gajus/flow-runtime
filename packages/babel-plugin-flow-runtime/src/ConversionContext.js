@@ -15,6 +15,7 @@ export default class ConversionContext {
   libraryId: string = 't';
   shouldImport: boolean = true;
   shouldAssert: boolean = true;
+  shouldWarn: boolean = false;
   shouldDecorate: boolean = true;
 
   /**
@@ -207,6 +208,25 @@ export default class ConversionContext {
       ),
       args
     );
+  }
+
+  /**
+   * Call `type.assert(...args)` on the given node, or `t.warn(type, ...args)`
+   * if `shouldWarn` is true.
+   */
+  assert (subject: Node, ...args: Node[]): Node {
+    if (this.shouldWarn) {
+      return this.call('warn', subject, ...args);
+    }
+    else {
+      return t.callExpression(
+        t.memberExpression(
+          subject,
+          t.identifier('assert')
+        ),
+        args
+      );
+    }
   }
 }
 

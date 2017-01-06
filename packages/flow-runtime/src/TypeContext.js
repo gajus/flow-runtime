@@ -10,6 +10,7 @@ import makeReactPropTypes from './makeReactPropTypes';
 
 import makeJSONError from './errorReporting/makeJSONError';
 import makeTypeError from './errorReporting/makeTypeError';
+import makeWarningMessage from './errorReporting/makeWarningMessage';
 
 import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
@@ -756,6 +757,22 @@ export default class TypeContext {
     }
     type.collectErrors(validation, [], input);
     return validation;
+  }
+
+  warn <T, V: T | any> (type: Type<T>, input: V): V {
+    const validation = this.validate(type, input);
+    const message = makeWarningMessage(validation);
+    if (typeof message === 'string') {
+      this.emitWarningMessage(message);
+    }
+    return input;
+  }
+
+  /**
+   * Emits a warning message, using `console.warn()` by default.
+   */
+  emitWarningMessage (message: string): void {
+    console.warn(message);
   }
 
   propTypes <T: {}> (type: Type<T>): PropTypeDict<T> {

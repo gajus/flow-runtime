@@ -1,6 +1,6 @@
 /* @flow */
 
-import ConversionContext from './ConversionContext';
+import createConversionContext from './createConversionContext';
 
 import attachImport from './attachImport';
 import firstPassVisitors from './firstPassVisitors';
@@ -12,9 +12,7 @@ export default function () {
   return {
     visitor: {
       Program (path: NodePath, {opts}: Object) {
-        const context = new ConversionContext();
-        context.shouldAssert = opts.assert ? true : false;
-        context.shouldDecorate = opts.decorate ? true : false;
+        const context = createConversionContext(opts || {});
         path.traverse(firstPassVisitors(context));
         if (context.shouldImport) {
           attachImport(context, path);
