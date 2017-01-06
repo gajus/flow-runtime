@@ -6,12 +6,31 @@
       },
       "exclude": [
         "transform-regenerator"
-      ]
+      ],
+      "modules": false
     }],
     "stage-0",
     "react"
   ],
   "plugins": [
     "transform-decorators-legacy"
-  ]
+  ],
+  "env": {
+    "production": {
+      "presets": [
+        ["env", {
+          "targets": {
+            "browsers": ["last 2 versions"]
+          },
+          "modules": false
+        }],
+        "stage-0",
+        "react"
+      ],
+      "plugins": [
+        "transform-decorators-legacy",
+        "external-helpers"
+      ]
+    }
+  }
 }
