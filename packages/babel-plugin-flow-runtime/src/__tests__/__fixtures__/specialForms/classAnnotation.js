@@ -16,4 +16,11 @@ export const expected = `
     let _modelType = t.ref("Class", t.ref(User));
     t.param("model", _modelType).assert(model);
   }
+
+  t.annotate(
+    demo,
+    t.function(
+      t.param("model", t.ref("Class", t.ref(User)))
+    )
+  );
 `;

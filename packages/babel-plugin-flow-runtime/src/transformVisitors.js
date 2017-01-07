@@ -12,6 +12,7 @@ import type {NodePath} from 'babel-traverse';
 
 export default function transformVisitors (context: ConversionContext): Object {
   const shouldCheck = context.shouldAssert || context.shouldWarn;
+  const shouldDecorate = context.shouldDecorate;
   return {
     Program (path: NodePath) {
       if (context.shouldImport) {
@@ -210,14 +211,25 @@ export default function transformVisitors (context: ConversionContext): Object {
       ));
     },
     Function (path: NodePath) {
+      if (context.visited.has(path.node)) {
+        path.skip();
+        return;
+      }
+      context.visited.add(path.node);
+      let hasTypeAnnotations = false;
       const body = path.get('body');
-
       const definitions = [];
       const invocations = [];
       const typeParameters = getTypeParameters(path);
       const params = path.get('params');
+      const signature = {
+        typeParameters: [],
+        params: [],
+        returnType: null
+      };
 
       for (const typeParameter of typeParameters) {
+        hasTypeAnnotations = true;
         const {name} = typeParameter.node;
         const args = [t.stringLiteral(name)];
         if (typeParameter.has('bound')) {
@@ -231,23 +243,53 @@ export default function transformVisitors (context: ConversionContext): Object {
             context.call('typeParameter', ...args)
           )
         ]));
+        if (shouldDecorate) {
+          signature.typeParameters.push([name, args]);
+        }
       }
 
       let shouldShadow = false;
 
       for (let param of params) {
         const argumentIndex = +param.key;
+        let argumentName;
         let assignmentRight;
         if (param.isAssignmentPattern()) {
           assignmentRight = param.get('right');
           param = param.get('left');
         }
+
+        if (param.isObjectPattern() || param.isArrayPattern()) {
+          argumentName = `_arg${argumentIndex === 0 ? '' : argumentIndex}`;
+        }
+        else if (param.isRestElement()) {
+          argumentName = param.node.argument.name;
+        }
+        else {
+          argumentName = param.node.name;
+        }
+
         if (!param.has('typeAnnotation')) {
+          if (shouldDecorate) {
+            signature.params.push(context.call(
+              'param',
+              t.stringLiteral(argumentName),
+              context.call('any')
+            ));
+          }
           continue;
         }
         const typeAnnotation = param.get('typeAnnotation');
+        hasTypeAnnotations = true;
 
         if (param.isObjectPattern() || param.isArrayPattern()) {
+          if (shouldDecorate) {
+            signature.params.push(context.call(
+              'param',
+              t.stringLiteral(argumentName),
+              convert(context, typeAnnotation)
+            ));
+          }
           if (shouldCheck) {
             shouldShadow = true;
 
@@ -294,9 +336,23 @@ export default function transformVisitors (context: ConversionContext): Object {
           if (param.isRestElement()) {
             methodName = 'rest';
             name = param.node.argument.name;
+            if (shouldDecorate) {
+              signature.params.push(context.call(
+                'rest',
+                t.stringLiteral(name),
+                convert(context, typeAnnotation)
+              ));
+            }
           }
-          else if (!param.isIdentifier()) {
-            continue;
+          else {
+            invariant(param.isIdentifier(), 'Param must be an identifier');
+            if (shouldDecorate) {
+              signature.params.push(context.call(
+                'param',
+                t.stringLiteral(name),
+                convert(context, typeAnnotation)
+              ));
+            }
           }
           const valueUid = body.scope.generateUidIdentifier(`${name}Type`);
           body.scope.setData(`valueUid:${name}`, valueUid);
@@ -322,9 +378,16 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
 
       if (path.has('returnType')) {
+        hasTypeAnnotations = true;
         let returnType = path.get('returnType');
         if (returnType.type === 'TypeAnnotation') {
           returnType = returnType.get('typeAnnotation');
+        }
+        if (shouldDecorate) {
+          signature.returnType = context.call(
+            'return',
+            convert(context, returnType)
+          );
         }
         const returnTypeParameters = getTypeParameters(returnType);
         if (returnType.isGenericTypeAnnotation() && returnTypeParameters.length > 0) {
@@ -364,6 +427,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           )
         ]));
       }
+      const isExpression = path.isExpression();
       if (definitions.length > 0 || invocations.length > 0) {
 
         if (shouldShadow && path.isArrowFunctionExpression()) {
@@ -372,6 +436,64 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
         else {
           body.unshiftContainer('body', definitions.concat(invocations));
+        }
+      }
+
+      if (hasTypeAnnotations && shouldDecorate) {
+        let decoration;
+        const block = [
+          ...signature.params,
+        ];
+        if (signature.returnType) {
+          block.push(signature.returnType);
+        }
+        if (signature.typeParameters.length > 0) {
+          const fn = path.scope.generateUidIdentifier('fn');
+          decoration = context.call(
+            'function',
+            t.arrowFunctionExpression([fn], t.blockStatement([
+              ...signature.typeParameters.map(([name, args]) => {
+                return t.variableDeclaration('const', [t.variableDeclarator(
+                  t.identifier(name),
+                  t.callExpression(
+                    t.memberExpression(
+                      fn,
+                      t.identifier('typeParameter')
+                    ),
+                    args
+                  )
+                )]);
+              }),
+              t.returnStatement(t.arrayExpression(block))
+            ]))
+          );
+        }
+        else {
+          decoration = context.call(
+            'function',
+            ...block
+          );
+        }
+        if (shouldShadow) {
+          return;
+        }
+        if (isExpression) {
+          const replacement = context.call(
+            'annotate',
+            path.node,
+            decoration
+          );
+          path.replaceWith(replacement);
+        }
+        else if (!path.isClassMethod()) {
+          const replacement = t.expressionStatement(
+            context.call(
+              'annotate',
+              path.node.id,
+              decoration
+            )
+          );
+          path.insertAfter(replacement);
         }
       }
 
