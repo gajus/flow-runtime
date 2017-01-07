@@ -85,7 +85,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       context.defineValue(name, path);
     },
     Function (path: NodePath) {
-      if (path.isFunctionDeclaration()) {
+      if (path.isFunctionDeclaration() && path.has('id')) {
         const {name} = path.node.id;
         context.defineValue(name, path.parentPath);
       }
