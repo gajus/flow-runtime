@@ -22,12 +22,12 @@ function convert (context: ConversionContext, path: NodePath): Node {
   if (!converter) {
     throw new Error(`Unsupported node type: ${path.type}`);
   }
-  try {
-    return converter(context, path);
+  const loc = path.node.loc;
+  const result = converter(context, path);
+  if (result && loc) {
+    result.loc = loc;
   }
-  catch (e) {
-    throw new Error(e.stack);
-  }
+  return result;
 }
 
 function annotationReferencesId (annotation: NodePath, name: string): boolean {

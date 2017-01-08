@@ -8,11 +8,20 @@ import attachImport from './attachImport';
 
 import getTypeParameters from './getTypeParameters';
 import {ok as invariant} from 'assert';
-import type {NodePath} from 'babel-traverse';
+import type {Node, NodePath} from 'babel-traverse';
+
+type FunctionSignature = {
+  isExpression: boolean;
+  hasTypeAnnotations: boolean;
+  typeParameters: Array<[string, Node[]]>;
+  params: Node[];
+  returnType: ? Node;
+};
 
 export default function transformVisitors (context: ConversionContext): Object {
   const shouldCheck = context.shouldAssert || context.shouldWarn;
   const shouldDecorate = context.shouldDecorate;
+  const nodeSignatures: WeakMap<Node, FunctionSignature> = new WeakMap();
   return {
     Program (path: NodePath) {
       if (context.shouldImport) {
@@ -21,7 +30,7 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
     'DeclareVariable|DeclareTypeAlias|DeclareFunction|DeclareClass|DeclareModule|InterfaceDeclaration' (path: NodePath) {
       const replacement = convert(context, path);
-      path.replaceWith(replacement);
+      context.replacePath(path, replacement);
     },
     ImportDeclaration: {
       exit (path: NodePath) {
@@ -41,13 +50,13 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
     TypeAlias (path: NodePath) {
       const replacement = convert(context, path);
-      path.replaceWith(replacement);
+      context.replacePath(path, replacement);
     },
     TypeCastExpression (path: NodePath) {
       const expression = path.get('expression');
       const typeAnnotation = path.get('typeAnnotation');
       if (shouldCheck && !expression.isIdentifier()) {
-        path.replaceWith(context.assert(
+        context.replacePath(path, context.assert(
           convert(context, typeAnnotation),
           expression.node
         ));
@@ -58,7 +67,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       if (binding) {
         if (binding.path.isCatchClause()) {
           // special case typecasts for error handlers.
-          path.parentPath.replaceWith(t.ifStatement(
+          context.replacePath(path.parentPath, t.ifStatement(
             t.unaryExpression('!', t.callExpression(
               t.memberExpression(
                 convert(context, typeAnnotation),
@@ -81,7 +90,7 @@ export default function transformVisitors (context: ConversionContext): Object {
               annotation.node.typeParameters.params.length === 1
             );
             if (isTypeWrapper) {
-              path.replaceWith(
+              context.replacePath(path,
                 convert(
                   context,
                   annotation.get('typeParameters.params')[0]
@@ -90,7 +99,7 @@ export default function transformVisitors (context: ConversionContext): Object {
               return;
             }
           }
-          path.replaceWith(
+          context.replacePath(path,
             convert(context, typeAnnotation)
           );
           return;
@@ -102,7 +111,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           return;
         }
         // this typecast is part of a larger expression, just replace the value inline.
-        path.replaceWith(context.assert(
+        context.replacePath(path, context.assert(
           convert(context, typeAnnotation),
           expression.node
         ));
@@ -130,10 +139,10 @@ export default function transformVisitors (context: ConversionContext): Object {
         ));
       }
       if (shouldCheck) {
-        path.replaceWith(context.assert(valueUid, expression.node));
+        context.replacePath(path, context.assert(valueUid, expression.node));
       }
       else {
-        path.replaceWith(expression.node);
+        context.replacePath(path, expression.node);
       }
     },
     VariableDeclarator (path: NodePath) {
@@ -152,7 +161,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           );
         }
         if (wrapped !== init.node) {
-          init.replaceWith(wrapped);
+          context.replacePath(init, wrapped);
         }
         return;
       }
@@ -171,13 +180,13 @@ export default function transformVisitors (context: ConversionContext): Object {
             path.get('init').node
           );
 
-          path.replaceWith(t.variableDeclarator(
+          context.replacePath(path, t.variableDeclarator(
             t.identifier(name),
             wrapped
           ));
         }
         else {
-          id.replaceWith(t.identifier(name));
+          context.replacePath(id, t.identifier(name));
         }
       }
       else if (shouldCheck) {
@@ -185,13 +194,13 @@ export default function transformVisitors (context: ConversionContext): Object {
           convert(context, id.get('typeAnnotation')),
           path.get('init').node
         );
-        path.replaceWith(t.variableDeclarator(
+        context.replacePath(path, t.variableDeclarator(
           t.identifier(name),
           wrapped
         ));
       }
       else {
-        id.replaceWith(t.identifier(name));
+        context.replacePath(id, t.identifier(name));
       }
     },
     AssignmentExpression (path: NodePath) {
@@ -205,241 +214,250 @@ export default function transformVisitors (context: ConversionContext): Object {
         return;
       }
       const right = path.get('right');
-      right.replaceWith(context.assert(
+      context.replacePath(right, context.assert(
         valueUid,
         right.node
       ));
     },
-    Function (path: NodePath) {
-      if (context.visited.has(path.node)) {
-        path.skip();
-        return;
-      }
-      context.visited.add(path.node);
-      let hasTypeAnnotations = false;
-      const body = path.get('body');
-      const definitions = [];
-      const invocations = [];
-      const typeParameters = getTypeParameters(path);
-      const params = path.get('params');
-      const signature = {
-        typeParameters: [],
-        params: [],
-        returnType: null
-      };
-
-      for (const typeParameter of typeParameters) {
-        hasTypeAnnotations = true;
-        const {name} = typeParameter.node;
-        const args = [t.stringLiteral(name)];
-        if (typeParameter.has('bound')) {
-          args.push(
-            convert(context, typeParameter.get('bound'))
-          );
+    Function: {
+      enter (path: NodePath) {
+        if (context.visited.has(path.node)) {
+          path.skip();
+          return;
         }
-        definitions.push(t.variableDeclaration('const', [
-          t.variableDeclarator(
-            t.identifier(name),
-            context.call('typeParameter', ...args)
-          )
-        ]));
-        if (shouldDecorate) {
-          signature.typeParameters.push([name, args]);
-        }
-      }
-
-      let shouldShadow = false;
-
-      for (let param of params) {
-        const argumentIndex = +param.key;
-        let argumentName;
-        let assignmentRight;
-        if (param.isAssignmentPattern()) {
-          assignmentRight = param.get('right');
-          param = param.get('left');
-        }
-
-        if (param.isObjectPattern() || param.isArrayPattern()) {
-          argumentName = `_arg${argumentIndex === 0 ? '' : argumentIndex}`;
-        }
-        else if (param.isRestElement()) {
-          argumentName = param.node.argument.name;
-        }
-        else {
-          argumentName = param.node.name;
-        }
-
-        if (!param.has('typeAnnotation')) {
-          if (shouldDecorate) {
-            signature.params.push(context.call(
-              'param',
-              t.stringLiteral(argumentName),
-              context.call('any')
-            ));
-          }
-          continue;
-        }
-        const typeAnnotation = param.get('typeAnnotation');
-        hasTypeAnnotations = true;
-
-        if (param.isObjectPattern() || param.isArrayPattern()) {
-          if (shouldDecorate) {
-            signature.params.push(context.call(
-              'param',
-              t.stringLiteral(argumentName),
-              convert(context, typeAnnotation)
-            ));
-          }
-          if (shouldCheck) {
-            shouldShadow = true;
-
-            const args = [
-              t.stringLiteral(`arguments[${argumentIndex}]`),
-              convert(context, typeAnnotation)
-            ];
-            if (param.has('optional')) {
-              args.push(t.booleanLiteral(true));
-            }
-
-            const ref = t.memberExpression(
-              t.identifier('arguments'),
-              t.numericLiteral(argumentIndex),
-              true
+        context.visited.add(path.node);
+        const body = path.get('body');
+        const definitions = [];
+        const invocations = [];
+        const typeParameters = getTypeParameters(path);
+        const params = path.get('params');
+        const signature: FunctionSignature = {
+          isExpression: path.isExpression(),
+          hasTypeAnnotations: false,
+          typeParameters: [],
+          params: [],
+          returnType: null
+        };
+        nodeSignatures.set(path.node, signature);
+        for (const typeParameter of typeParameters) {
+          signature.hasTypeAnnotations = true;
+          const {name} = typeParameter.node;
+          const args = [t.stringLiteral(name)];
+          if (typeParameter.has('bound')) {
+            args.push(
+              convert(context, typeParameter.get('bound'))
             );
-
-            const expression = t.expressionStatement(
-              context.assert(
-                context.call('param', ...args),
-                ref
-              )
-            );
-            if (assignmentRight) {
-              invocations.push(
-                t.ifStatement(
-                  t.binaryExpression(
-                    '!==',
-                    ref,
-                    t.identifier('undefined')
-                  ),
-                  t.blockStatement([expression])
-                )
-              );
-            }
-            else {
-              invocations.push(expression);
-            }
+          }
+          definitions.push(t.variableDeclaration('const', [
+            t.variableDeclarator(
+              t.identifier(name),
+              context.call('typeParameter', ...args)
+            )
+          ]));
+          if (shouldDecorate) {
+            signature.typeParameters.push([name, args]);
           }
         }
-        else {
-          let name = param.node.name;
-          let methodName = 'param';
-          if (param.isRestElement()) {
-            methodName = 'rest';
-            name = param.node.argument.name;
-            if (shouldDecorate) {
-              signature.params.push(context.call(
-                'rest',
-                t.stringLiteral(name),
-                convert(context, typeAnnotation)
-              ));
-            }
+
+        let shouldShadow = false;
+
+        for (let param of params) {
+          const argumentIndex = +param.key;
+          let argumentName;
+          let assignmentRight;
+          if (param.isAssignmentPattern()) {
+            assignmentRight = param.get('right');
+            param = param.get('left');
+          }
+
+          if (param.isObjectPattern() || param.isArrayPattern()) {
+            argumentName = `_arg${argumentIndex === 0 ? '' : argumentIndex}`;
+          }
+          else if (param.isRestElement()) {
+            argumentName = param.node.argument.name;
           }
           else {
-            invariant(param.isIdentifier(), 'Param must be an identifier');
+            argumentName = param.node.name;
+          }
+
+          if (!param.has('typeAnnotation')) {
             if (shouldDecorate) {
               signature.params.push(context.call(
                 'param',
-                t.stringLiteral(name),
+                t.stringLiteral(argumentName),
+                context.call('any')
+              ));
+            }
+            continue;
+          }
+          const typeAnnotation = param.get('typeAnnotation');
+          signature.hasTypeAnnotations = true;
+
+          if (param.isObjectPattern() || param.isArrayPattern()) {
+            if (shouldDecorate) {
+              signature.params.push(context.call(
+                'param',
+                t.stringLiteral(argumentName),
                 convert(context, typeAnnotation)
               ));
             }
+            if (shouldCheck) {
+              shouldShadow = true;
+
+              const args = [
+                t.stringLiteral(`arguments[${argumentIndex}]`),
+                convert(context, typeAnnotation)
+              ];
+              if (param.has('optional')) {
+                args.push(t.booleanLiteral(true));
+              }
+
+              const ref = t.memberExpression(
+                t.identifier('arguments'),
+                t.numericLiteral(argumentIndex),
+                true
+              );
+
+              const expression = t.expressionStatement(
+                context.assert(
+                  context.call('param', ...args),
+                  ref
+                )
+              );
+              if (assignmentRight) {
+                invocations.push(
+                  t.ifStatement(
+                    t.binaryExpression(
+                      '!==',
+                      ref,
+                      t.identifier('undefined')
+                    ),
+                    t.blockStatement([expression])
+                  )
+                );
+              }
+              else {
+                invocations.push(expression);
+              }
+            }
           }
-          const valueUid = body.scope.generateUidIdentifier(`${name}Type`);
-          body.scope.setData(`valueUid:${name}`, valueUid);
-          definitions.push(t.variableDeclaration('let', [
+          else {
+            let name = param.node.name;
+            let methodName = 'param';
+            if (param.isRestElement()) {
+              methodName = 'rest';
+              name = param.node.argument.name;
+              if (shouldDecorate) {
+                signature.params.push(context.call(
+                  'rest',
+                  t.stringLiteral(name),
+                  convert(context, typeAnnotation)
+                ));
+              }
+            }
+            else {
+              invariant(param.isIdentifier(), 'Param must be an identifier');
+              if (shouldDecorate) {
+                signature.params.push(context.call(
+                  'param',
+                  t.stringLiteral(name),
+                  convert(context, typeAnnotation)
+                ));
+              }
+            }
+            if (shouldCheck) {
+              const valueUid = body.scope.generateUidIdentifier(`${name}Type`);
+              body.scope.setData(`valueUid:${name}`, valueUid);
+              definitions.push(t.variableDeclaration('let', [
+                t.variableDeclarator(
+                  valueUid,
+                  convert(context, typeAnnotation)
+                )
+              ]));
+              const args = [t.stringLiteral(name), valueUid];
+              if (param.has('optional')) {
+                args.push(t.booleanLiteral(true));
+              }
+              invocations.push(t.expressionStatement(
+                context.assert(
+                  context.call(methodName, ...args),
+                  t.identifier(name)
+                )
+              ));
+            }
+          }
+        }
+
+        if (path.has('returnType')) {
+          signature.hasTypeAnnotations = true;
+          let returnType = path.get('returnType');
+          if (returnType.type === 'TypeAnnotation') {
+            returnType = returnType.get('typeAnnotation');
+          }
+          if (shouldDecorate) {
+            signature.returnType = context.call(
+              'return',
+              convert(context, returnType)
+            );
+          }
+          if (!shouldCheck) {
+            // nothing left to do
+            return;
+          }
+          const returnTypeParameters = getTypeParameters(returnType);
+          if (returnType.isGenericTypeAnnotation() && returnTypeParameters.length > 0) {
+            // If we're in an async function, make the return type the promise resolution type.
+            if (path.node.async) {
+              // @todo warn if identifier is not Promise ?
+              returnType = getTypeParameters(returnType)[0];
+            }
+            else if (path.node.generator) {
+              const yieldType = returnTypeParameters[0];
+              returnType  = returnTypeParameters[1];
+              const nextType = returnTypeParameters[2];
+              const yieldTypeUid = body.scope.generateUidIdentifier('yieldType');
+              body.scope.setData(`yieldTypeUid`, yieldTypeUid);
+              definitions.push(t.variableDeclaration('const', [
+                t.variableDeclarator(
+                  yieldTypeUid,
+                  convert(context, yieldType)
+                )
+              ]));
+              const nextTypeUid = body.scope.generateUidIdentifier('nextType');
+              body.scope.setData(`nextTypeUid`, nextTypeUid);
+              definitions.push(t.variableDeclaration('const', [
+                t.variableDeclarator(
+                  nextTypeUid,
+                  convert(context, nextType)
+                )
+              ]));
+            }
+          }
+          const returnTypeUid = body.scope.generateUidIdentifier('returnType');
+          body.scope.setData(`returnTypeUid`, returnTypeUid);
+          definitions.push(t.variableDeclaration('const', [
             t.variableDeclarator(
-              valueUid,
-              convert(context, typeAnnotation)
+              returnTypeUid,
+              context.call('return', convert(context, returnType))
             )
           ]));
-          if (shouldCheck) {
-            const args = [t.stringLiteral(name), valueUid];
-            if (param.has('optional')) {
-              args.push(t.booleanLiteral(true));
-            }
-            invocations.push(t.expressionStatement(
-              context.assert(
-                context.call(methodName, ...args),
-                t.identifier(name)
-              )
-            ));
+        }
+        if (definitions.length > 0 || invocations.length > 0) {
+
+          if (shouldShadow && path.isArrowFunctionExpression()) {
+            path.arrowFunctionToShadowed();
+            path.get('body').unshiftContainer('body', definitions.concat(invocations));
+          }
+          else {
+            body.unshiftContainer('body', definitions.concat(invocations));
           }
         }
-      }
-
-      if (path.has('returnType')) {
-        hasTypeAnnotations = true;
-        let returnType = path.get('returnType');
-        if (returnType.type === 'TypeAnnotation') {
-          returnType = returnType.get('typeAnnotation');
+      },
+      exit (path: NodePath) {
+        const signature = nodeSignatures.get(path.node);
+        if (!shouldDecorate || !signature || !signature.hasTypeAnnotations | path.isClassMethod()) {
+          return;
         }
-        if (shouldDecorate) {
-          signature.returnType = context.call(
-            'return',
-            convert(context, returnType)
-          );
-        }
-        const returnTypeParameters = getTypeParameters(returnType);
-        if (returnType.isGenericTypeAnnotation() && returnTypeParameters.length > 0) {
-          // If we're in an async function, make the return type the promise resolution type.
-          if (path.node.async) {
-            // @todo warn if identifier is not Promise ?
-            returnType = getTypeParameters(returnType)[0];
-          }
-          else if (path.node.generator) {
-            const yieldType = returnTypeParameters[0];
-            returnType  = returnTypeParameters[1];
-            const nextType = returnTypeParameters[2];
-            const yieldTypeUid = body.scope.generateUidIdentifier('yieldType');
-            body.scope.setData(`yieldTypeUid`, yieldTypeUid);
-            definitions.push(t.variableDeclaration('const', [
-              t.variableDeclarator(
-                yieldTypeUid,
-                convert(context, yieldType)
-              )
-            ]));
-            const nextTypeUid = body.scope.generateUidIdentifier('nextType');
-            body.scope.setData(`nextTypeUid`, nextTypeUid);
-            definitions.push(t.variableDeclaration('const', [
-              t.variableDeclarator(
-                nextTypeUid,
-                convert(context, nextType)
-              )
-            ]));
-          }
-        }
-        const returnTypeUid = body.scope.generateUidIdentifier('returnType');
-        body.scope.setData(`returnTypeUid`, returnTypeUid);
-        definitions.push(t.variableDeclaration('const', [
-          t.variableDeclarator(
-            returnTypeUid,
-            context.call('return', convert(context, returnType))
-          )
-        ]));
-      }
-      const isExpression = path.isExpression();
-      if (definitions.length > 0 || invocations.length > 0) {
-
-        if (shouldShadow && path.isArrowFunctionExpression()) {
-          path.arrowFunctionToShadowed();
-          path.get('body').unshiftContainer('body', definitions.concat(invocations));
-        }
-        else {
-          body.unshiftContainer('body', definitions.concat(invocations));
-        }
-      }
-
-      if (hasTypeAnnotations && shouldDecorate) {
         let decoration;
         const block = [
           ...signature.params,
@@ -474,18 +492,15 @@ export default function transformVisitors (context: ConversionContext): Object {
             ...block
           );
         }
-        if (shouldShadow) {
-          return;
-        }
-        if (isExpression) {
+        if (signature.isExpression) {
           const replacement = context.call(
             'annotate',
             path.node,
             decoration
           );
-          path.replaceWith(replacement);
+          context.replacePath(path, replacement);
         }
-        else if (!path.isClassMethod()) {
+        else if (path.has('id')) {
           const replacement = t.expressionStatement(
             context.call(
               'annotate',
@@ -495,8 +510,23 @@ export default function transformVisitors (context: ConversionContext): Object {
           );
           path.insertAfter(replacement);
         }
+        else if (path.isFunctionDeclaration()) {
+          // we don't have an id, so we're probably an `export default function () {}`
+          if (path.parentPath.isExportDefaultDeclaration()) {
+            // @fixme - this is not nice, we just turn the declaration into an expression.
+            path.node.type = 'FunctionExpression';
+            path.node.expression = true;
+            const replacement = t.exportDefaultDeclaration(
+              context.call(
+                'annotate',
+                path.node,
+                decoration
+              )
+            );
+            context.replacePath(path.parentPath, replacement);
+          }
+        }
       }
-
     },
 
     ReturnStatement (path: NodePath) {
@@ -507,7 +537,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       const returnTypeUid = path.scope.getData('returnTypeUid');
 
       const argument = path.get('argument');
-      argument.replaceWith(context.assert(
+      context.replacePath(argument, context.assert(
         returnTypeUid,
         ...(argument.node ? [argument.node] : [])
       ));
@@ -546,10 +576,10 @@ export default function transformVisitors (context: ConversionContext): Object {
 
       context.visited.add(replacement);
       if (path.parentPath.isExpressionStatement()) {
-        path.replaceWith(replacement);
+        context.replacePath(path, replacement);
       }
       else {
-        path.replaceWith(context.assert(
+        context.replacePath(path, context.assert(
           nextTypeUid,
           replacement
         ));

@@ -13,16 +13,38 @@ import type {Node, NodePath} from 'babel-traverse';
 
 
 describe('transform', () => {
-  for (const [name, {input, expected}] of fixtures) {
+  for (const [name, {input, expected, decorated, combined}] of fixtures) {
     it(`should transform ${name}`, () => {
       const parsed = parse(input);
       const transformed = stripFlowTypes(transform(parsed, {
         assert: true,
-        decorate: true
+        decorate: false
       }));
       const generated = generate(transformed).code;
       equal(normalize(generated), normalize(expected));
     });
+    if (decorated) {
+      it(`should transform ${name} with decorations`, () => {
+        const parsed = parse(input);
+        const transformed = stripFlowTypes(transform(parsed, {
+          assert: false,
+          decorate: true
+        }));
+        const generated = generate(transformed).code;
+        equal(normalize(generated), normalize(decorated));
+      });
+    }
+    if (combined) {
+      it(`should transform ${name} with decorations and assertions`, () => {
+        const parsed = parse(input);
+        const transformed = stripFlowTypes(transform(parsed, {
+          assert: true,
+          decorate: true
+        }));
+        const generated = generate(transformed).code;
+        equal(normalize(generated), normalize(combined));
+      });
+    }
   }
 });
 

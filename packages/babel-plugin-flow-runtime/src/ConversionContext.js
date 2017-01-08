@@ -189,6 +189,9 @@ export default class ConversionContext {
     }
   }
 
+  /**
+   * Get a named symbol from the library.
+   */
   symbol (name: string): Node {
     return t.memberExpression(
       t.identifier(this.libraryId),
@@ -227,6 +230,15 @@ export default class ConversionContext {
         args
       );
     }
+  }
+
+  /**
+   * Replace the given path with a node,
+   * and ensure the node won't be visited again.
+   */
+  replacePath (path: NodePath, replacement: Node) {
+    this.visited.add(replacement);
+    path.replaceWith(replacement);
   }
 }
 
