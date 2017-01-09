@@ -11,6 +11,7 @@ import PackageListPage from './PackageListPage';
 import BabelPluginFlowRuntimePage from './packages/BabelPluginFlowRuntimePage';
 import FlowRuntimePage from './packages/FlowRuntimePage';
 import FlowConfigParserPage from './packages/FlowConfigParserPage';
+import FlowRuntimeMobxPage from './packages/FlowRuntimeMobxPage';
 
 import GettingStartedPage from './docs/GettingStartedPage';
 import ObjectTypesPage from './docs/ObjectTypesPage';
@@ -48,6 +49,7 @@ export default function EntryPoint () {
         <Route path="packages" component={PackageListPage} />
         <Route path="flow-config-parser" component={FlowConfigParserPage} />
         <Route path="flow-runtime" component={FlowRuntimePage} />
+        <Route path="flow-runtime-mobx" component={FlowRuntimeMobxPage} />
         <Route path="babel-plugin-flow-runtime" component={BabelPluginFlowRuntimePage} />
       </Route>
     </Router>

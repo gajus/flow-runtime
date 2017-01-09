@@ -1,9 +1,12 @@
 /* @flow */
 import t from 'flow-runtime';
+import flowRuntimeMobx from 'flow-runtime-mobx';
 import * as flowConfigParser from 'flow-config-parser';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {observable, computed} from 'mobx';
+import * as mobx from 'mobx';
+import * as mobxReact from 'mobx-react';
 
 const sharedState = observable({
   isReady: false
@@ -30,7 +33,6 @@ sharedWorker.onmessage = (event: Event) => {
   }
   delete queue[id];
   if (errorMessage) {
-    console.log(errorMessage);
     deferred.reject(new Error(errorMessage));
   }
   else {
@@ -127,6 +129,12 @@ export default class Compiler {
             return t;
           case 'flow-config-parser':
             return flowConfigParser;
+          case 'flow-runtime-mobx':
+            return flowRuntimeMobx;
+          case 'mobx':
+            return mobx;
+          case 'mobx-react':
+            return mobxReact;
           case 'react':
             return React;
           case 'react-dom':

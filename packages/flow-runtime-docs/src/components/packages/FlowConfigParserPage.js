@@ -53,7 +53,7 @@ console.log(JSON.stringify(config, null, 2));
 `.trim();
 
 @observer
-export default class FlowRuntimePage extends Component {
+export default class FlowConfigParserPage extends Component {
   render() {
     return (
       <div>

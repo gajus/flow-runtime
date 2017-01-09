@@ -69,6 +69,30 @@ console.log(makeUpperCase(["this is fine"])); // ["this is fine"]
 `.trim();
 
 
+const reactComponentCode = `
+import t from "flow-runtime";
+import React from "react";
+
+type OnePerson = {name: string};
+type ManyPeople = {names: string[]};
+
+const Greet = t.pattern(
+  ({name}: OnePerson) => <h1>Hello {name}</h1>,
+  ({names}: ManyPeople) => <h1>Hello {names.join(" and ")}</h1>,
+  _ => <p>No one to greet 😢</p>
+);
+
+return (
+  <div>
+    <Greet name="Sally" />
+    <hr />
+    <Greet names={["Bob", "Alice"]} />
+    <hr />
+    <Greet />
+  </div>
+);
+`.trim();
+
 const matchCode = `
 import t from 'flow-runtime';
 
@@ -122,6 +146,13 @@ export default class PatternMatchingPage extends Component {
           />
           <p>And can specify a default clause by using an unannotated function:</p>
           <Example code={defaultPatternCode}
+                   inline
+                   hideOutput
+          />
+          <hr />
+          <h4>Pattern Matching & React</h4>
+          <p><code>t.pattern()</code> works especially well when combined with React components:</p>
+          <Example code={reactComponentCode}
                    inline
                    hideOutput
           />
