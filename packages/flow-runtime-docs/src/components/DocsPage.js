@@ -27,6 +27,7 @@ export default class DocsPage extends Component<void, Props, void> {
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/type-inference">Type Inference</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/exotic-types">Exotic Types</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/validation">Validation & Error Reporting</Link>
+              <Link className="nav-item nav-link" activeClassName="active" to="/docs/pattern-matching">Pattern Matching</Link>
             </nav>
           </div>
           <div className="col-sm-9 col-lg-10 no-gutter">

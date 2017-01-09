@@ -19,9 +19,7 @@ export default function createConversionContext (options: Options): ConversionCo
 
   context.shouldWarn = options.warn ? true : false;
 
-  const shouldCheck = context.shouldAssert || context.shouldWarn;
-
-  context.shouldDecorate = options.decorate === 'undefined' || shouldCheck
+  context.shouldDecorate = options.decorate === 'undefined'
                          ? true
                          : Boolean(options.decorate)
                          ;

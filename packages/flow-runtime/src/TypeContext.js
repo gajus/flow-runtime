@@ -110,6 +110,9 @@ type ModuleRegistry = {
 
 type TypeConstructorRegistry = Map<Function, Class<TypeConstructor<any>>>;
 
+export type MatchClause<P, R> = (...params: P[]) => R;
+export type PatternMatcher<P, R> = (...params: P[]) => R;
+
 export default class TypeContext {
 
   // @flowIssue 252
@@ -566,6 +569,9 @@ export default class TypeContext {
         throw new Error('FunctionType cannot contain the given type directly.');
       }
     }
+    if (!target.returnType) {
+      target.returnType = this.any();
+    }
     return target;
   }
 
@@ -777,6 +783,50 @@ export default class TypeContext {
 
   propTypes <T: {}> (type: Type<T>): PropTypeDict<T> {
     return makeReactPropTypes((type.unwrap(): $FlowIgnore));
+  }
+
+  match <P, R> (...args: Array<P | MatchClause<P, R>>): R {
+    const clauses: any = args.pop();
+    if (!Array.isArray(clauses)) {
+      throw new Error('Invalid pattern, last argument must be an array.');
+    }
+    (clauses: MatchClause<P, R>[]);
+    const pattern = this.pattern(...clauses);
+    return pattern(...args);
+  }
+
+  pattern <P, R> (...clauses: MatchClause<P, R>[]): PatternMatcher<P, R> {
+    const {length} = clauses;
+    const tests: Array<true | FunctionType<P, R> | ParameterizedFunctionType<any, P, R>> = new Array(length);
+    for (let i = 0; i < length; i++) {
+      const clause = clauses[i];
+      const annotation = this.getAnnotation(clause);
+      if (!annotation) {
+        if (i !== length - 1) {
+          throw new Error(`Invalid Pattern - found unannotated function in position ${i}, default clauses must be last.`);
+        }
+        tests[i] = true;
+      }
+      else {
+        invariant(annotation instanceof FunctionType || annotation instanceof ParameterizedFunctionType, 'Pattern clauses must be annotated functions.');
+        tests[i] = annotation;
+      }
+    }
+    return (...args: P[]): R => {
+      for (let i = 0; i < tests.length; i++) {
+        const test = tests[i];
+        const clause = clauses[i];
+        if (test === true) {
+          return clause(...args);
+        }
+        else if (test.acceptsParams(...args)) {
+          return clause(...args);
+        }
+      }
+      const error = new TypeError('Value did not match any of the candidates.');
+      error.name = 'RuntimeTypeError';
+      throw error;
+    };
   }
 }
 

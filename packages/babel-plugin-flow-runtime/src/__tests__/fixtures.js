@@ -26,6 +26,8 @@ const files = findFiles(fixturesDir, []);
 export type Fixture = {
   input: string;
   expected: string;
+  decorated?: string;
+  combined?: string;
 };
 
 const fixtures: Map<string, Fixture> = new Map(files.map(filename => {
