@@ -11,7 +11,8 @@ export default class TupleType<T> extends Type {
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {types} = this;
     const {length} = types;
-    if (!Array.isArray(input)) {
+    const {context} = this;
+    if (!context.checkPredicate('Array', input)) {
       validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
       return true;
     }
@@ -28,7 +29,9 @@ export default class TupleType<T> extends Type {
   accepts (input: any): boolean {
     const {types} = this;
     const {length} = types;
-    if (!Array.isArray(input) || input.length < length) {
+    const {context} = this;
+
+    if (!context.checkPredicate('Array', input) || input.length < length) {
       return false;
     }
     for (let i = 0; i < length; i++) {

@@ -18,7 +18,8 @@ export default class ArrayType <T> extends Type {
   elementType: Type<T>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    if (!Array.isArray(input)) {
+    const {context} = this;
+    if (!context.checkPredicate('Array', input)) {
       validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
       return true;
     }
@@ -40,7 +41,8 @@ export default class ArrayType <T> extends Type {
   }
 
   accepts (input: any): boolean {
-    if (!Array.isArray(input)) {
+    const {context} = this;
+    if (!context.checkPredicate('Array', input)) {
       return false;
     }
     if (inValidationCycle(this, input)) {

@@ -9,4 +9,5 @@ export const InferrerSymbol = Symbol('Inferrer');
 export const TraverseValueSymbol = Symbol('TraverseValue');
 export const TraverseTypeSymbol = Symbol('TraverseType');
 export const TypeSymbol = Symbol('Type');
-export const TypeParametersSymbol = Symbol('TypeParametersSymbol');
+export const TypeParametersSymbol = Symbol('TypeParameters');
+export const TypePredicateRegistrySymbol = Symbol('TypePredicateRegistry');

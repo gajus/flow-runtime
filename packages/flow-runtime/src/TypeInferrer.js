@@ -101,8 +101,8 @@ export class TypeInferer {
     const box = context.box(() => type);
     inferred.set(input, box);
 
-    if (Array.isArray(input)) {
-      type = this.inferArray(input, inferred);
+    if (context.checkPredicate('Array', input)) {
+      type = this.inferArray((input: any), inferred);
     }
     else if (!(input instanceof Object)) {
       type = this.inferDict(input, inferred);

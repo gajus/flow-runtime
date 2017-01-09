@@ -73,6 +73,7 @@ import {
   TypeConstructorRegistrySymbol,
   TypeParametersSymbol,
   InferrerSymbol,
+  TypePredicateRegistrySymbol,
   TypeSymbol
 } from './symbols';
 
@@ -100,8 +101,14 @@ export type TypeConstructorConfig = {
   inferTypeParameters (input: any): Type<any>[];
 };
 
+export type TypePredicate = (input: any) => boolean;
+
 type NameRegistry = {
   [name: string]: Type<any> | Class<TypeConstructor<any>>;
+};
+
+type TypePredicateRegistry = {
+  [name: string]: TypePredicate;
 };
 
 type ModuleRegistry = {
@@ -120,6 +127,9 @@ export default class TypeContext {
 
   // @flowIssue 252
   [NameRegistrySymbol]: NameRegistry = {};
+
+  // @flowIssue 252
+  [TypePredicateRegistrySymbol]: TypePredicateRegistry = {};
 
   // @flowIssue 252
   [TypeConstructorRegistrySymbol]: TypeConstructorRegistry = new Map();
@@ -177,6 +187,43 @@ export default class TypeContext {
     const parent = this[ParentSymbol];
     if (parent) {
       return parent.get(name);
+    }
+  }
+
+  /**
+   * Get the predicate for a given type name.
+   */
+  getPredicate (name: string): ? TypePredicate {
+    const item: ? TypePredicate = (this: any)[TypePredicateRegistrySymbol][name];
+    if (item) {
+      return item;
+    }
+    const parent: ? TypeContext = (this: any)[ParentSymbol];
+    if (parent) {
+      return parent.getPredicate(name);
+    }
+  }
+
+  /**
+   * Set the predicate for a given type name.
+   * This can be used to customise the behaviour of things like Array
+   * detection or allowing Thenables in place of the global Promise.
+   */
+  setPredicate (name: string, predicate: TypePredicate) {
+    (this: any)[TypePredicateRegistrySymbol][name] = predicate;
+  }
+
+  /**
+   * Check the given value against the named predicate.
+   * Returns false if no such predicate exists.
+   */
+  checkPredicate (name: string, input: any): boolean {
+    const predicate = this.getPredicate(name);
+    if (predicate) {
+      return predicate(input);
+    }
+    else {
+      return false;
     }
   }
 

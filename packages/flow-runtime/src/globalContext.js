@@ -2,6 +2,7 @@
 
 import registerPrimitiveTypes from './registerPrimitiveTypes';
 import registerBuiltinTypeConstructors from './registerBuiltins';
+import registerTypePredicates from './registerTypePredicates';
 
 import TypeContext from './TypeContext';
 
@@ -59,6 +60,7 @@ import {
 const globalContext: any = new TypeContext();
 registerPrimitiveTypes(globalContext);
 registerBuiltinTypeConstructors(globalContext);
+registerTypePredicates(globalContext);
 
 globalContext.TypeContext = TypeContext;
 

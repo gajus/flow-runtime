@@ -16,7 +16,7 @@ export default class TypeReference<T: any> extends Type {
     const type = context.get(name);
     if (!type) {
       if (!warnedMissing[name]) {
-        console.warn(`Cannot resolve type: ${name}`);
+        context.emitWarningMessage(`Cannot resolve type: ${name}`);
         warnedMissing[name] = true;
       }
       return (context.any(): any);

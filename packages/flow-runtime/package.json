@@ -1,9 +1,11 @@
 {
   "name": "flow-runtime",
+  "homepage": "https://codemix.github.io/flow-runtime",
   "version": "0.0.4",
   "description": "A flow compatible type system for JS.",
   "main": "flow-runtime.js",
   "scripts": {
+    "lint": "eslint ./src && flow check",
     "prepublish": "npm run build",
     "build": "babel -d ./lib ./src",
     "test": "mocha",
