@@ -12,6 +12,7 @@ This is a [lerna](https://github.com/lerna/lerna) powered mono-repo, composed of
   - [flow-runtime](./packages/flow-runtime): The core runtime type system.
   - [babel-plugin-flow-runtime](./packages/babel-plugin-flow-runtime): A babel plugin which transforms Flow type annotations into `flow-runtime` invocations.
   - [flow-config-parser](./packages/flow-config-parser): Parses flow configuration files.
+  - [flow-runtime-mobx](./packages/flow-runtime-mobx): Adds mobx support to flow-runtime.
   - [flow-runtime-docs](./packages/flow-runtime-docs): React powered documentation site.
 
 ## Contributing
