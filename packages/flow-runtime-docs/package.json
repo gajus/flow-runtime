@@ -1,6 +1,7 @@
 {
   "name": "flow-runtime-docs",
   "homepage": "https://codemix.github.io/flow-runtime",
+  "repository": "https://github.com/codemix/flow-runtime.git",
   "description": "A demo app for flow-runtime.",
   "version": "0.0.4",
   "license": "MIT",
