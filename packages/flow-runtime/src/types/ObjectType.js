@@ -326,7 +326,7 @@ function acceptsWithoutIndexers (type: ObjectType<any>, input: Object): boolean 
 function acceptsExact (type: ObjectType<any>, input: Object): boolean {
   const {properties} = type;
   const {length} = properties;
-  loop: for (const key in input) {
+  loop: for (const key in input) { // eslint-disable-line guard-for-in
     for (let i = 0; i < length; i++) {
       const property = properties[i];
       if (property.key === key) {
@@ -412,7 +412,7 @@ function collectErrorsExact (type: ObjectType<any>, validation: Validation<any>,
   const {properties} = type;
   const {length} = properties;
   let hasErrors = false;
-  loop: for (const key in input) {
+  loop: for (const key in input) { // eslint-disable-line guard-for-in
     for (let i = 0; i < length; i++) {
       const property = properties[i];
       if (property.key === key) {

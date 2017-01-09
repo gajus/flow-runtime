@@ -3,7 +3,7 @@
 Adds mobx support to [flow-runtime](https://codemix.github.io/flow-runtime).
 
 ## Why?
-
+Because mobx observables don't pass standard checks like `Array.isArray(observableArray)` or `observableMap instanceof Map`.
 
 ## Installation
 

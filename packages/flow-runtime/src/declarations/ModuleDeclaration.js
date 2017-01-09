@@ -1,7 +1,6 @@
 /* @flow */
 
 import Declaration from './Declaration';
-import ClassDeclaration from './ClassDeclaration';
 
 import type {Type} from '../types';
 import type ModuleExportsDeclaration from './ModuleExportsDeclaration';
@@ -91,12 +90,13 @@ export default class ModuleDeclaration extends Declaration {
 
     const {name, declarations, modules, moduleExports} = this;
     const body = [];
-    for (const name in declarations) {
+    for (const name in declarations) { // eslint-disable-line guard-for-in
       const declaration = declarations[name];
       body.push(declaration.toString(true));
     }
     if (modules) {
-      for (const name in modules) {
+      for (const name in modules) { // eslint-disable-line guard-for-in
+        const module = modules[name];
         body.push(module.toString());
       }
     }

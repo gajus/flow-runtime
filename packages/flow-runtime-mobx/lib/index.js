@@ -4,7 +4,14 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.default = registerMobxTypes;
+
+
+var alreadyDecorated = new WeakSet();
+
 function registerMobxTypes(context, mobx) {
+  if (alreadyDecorated.has(context)) {
+    return;
+  }
   var originalArrayPredicate = context.getPredicate('Array');
   var originalMapPredicate = context.getPredicate('Map');
 
@@ -23,4 +30,6 @@ function registerMobxTypes(context, mobx) {
       return mobx.isObservableMap(input);
     }
   });
+
+  alreadyDecorated.add(context);
 }

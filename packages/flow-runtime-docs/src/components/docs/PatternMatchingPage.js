@@ -79,7 +79,7 @@ type ManyPeople = {names: string[]};
 const Greet = t.pattern(
   ({name}: OnePerson) => <h1>Hello {name}</h1>,
   ({names}: ManyPeople) => <h1>Hello {names.join(" and ")}</h1>,
-  _ => <p>No one to greet 😢</p>
+  _ => <h1>No one to greet 😢</h1>
 );
 
 return (

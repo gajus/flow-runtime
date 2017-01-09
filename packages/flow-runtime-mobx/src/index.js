@@ -11,7 +11,12 @@ type Mobx = {
   isObservableMap: isObservableMap,
 };
 
+const alreadyDecorated = new WeakSet();
+
 export default function registerMobxTypes (context: TypeContext, mobx: Mobx) {
+  if (alreadyDecorated.has(context)) {
+    return;
+  }
   const originalArrayPredicate = context.getPredicate('Array');
   const originalMapPredicate = context.getPredicate('Map');
 
@@ -32,5 +37,7 @@ export default function registerMobxTypes (context: TypeContext, mobx: Mobx) {
       return mobx.isObservableMap(input);
     }
   });
+
+  alreadyDecorated.add(context);
 
 }

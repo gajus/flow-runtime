@@ -198,7 +198,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       invariant(typeof shapeType.getProperty === 'function', "Can only $Shape<T> object types.");
 
       let hasErrors = false;
-      for (const key in input) {
+      for (const key in input) { // eslint-disable-line guard-for-in
         const property = shapeType.getProperty(key);
         if (!property) {
           continue;
@@ -216,7 +216,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       }
       shapeType = shapeType.unwrap();
       invariant(typeof shapeType.getProperty === 'function', "Can only $Shape<T> object types.");
-      for (const key in input) {
+      for (const key in input) { // eslint-disable-line guard-for-in
         const property = shapeType.getProperty(key);
         if (!property || !property.accepts(input)) {
           return false;

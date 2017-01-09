@@ -86,7 +86,7 @@ function normalize (input: string): string {
     .replace(/\{\s+/g, '{\n')
     .replace(/\s+\}/g, '\n}')
     .replace(/\[\s+/g, '[')
-    .replace(/\s+\]/g, ']')
+    .replace(/\s+]/g, ']')
     .replace(/\}\s+([A-Za-z])/g, '\n}\n$1')
     .split(';')
     .join(';\n')

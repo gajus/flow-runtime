@@ -267,7 +267,6 @@ describe('makeJSONError', () => {
     }
 
     const ThingClass = t.ref("Class", t.ref(Thing));
-    const IThingClass = t.ref("Class", IThing);
 
     it('should accept a valid value', () => {
       const validation = t.validate(ThingClass, Thing);

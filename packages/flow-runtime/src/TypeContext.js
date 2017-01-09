@@ -346,14 +346,14 @@ export default class TypeContext {
 
   *declarations (): Generator<[string, Type<any> | TypeConstructor<any>], void, void> {
     const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
-    for (const key in nameRegistry) {
+    for (const key in nameRegistry) { // eslint-disable-line guard-for-in
       yield [key, nameRegistry[key]];
     }
   }
 
   *modules (): Generator<ModuleDeclaration, void, void> {
     const moduleRegistry: ModuleRegistry = (this: $FlowIssue<252>)[ModuleRegistrySymbol];
-    for (const key in moduleRegistry) {
+    for (const key in moduleRegistry) { // eslint-disable-line guard-for-in
       yield moduleRegistry[key];
     }
   }

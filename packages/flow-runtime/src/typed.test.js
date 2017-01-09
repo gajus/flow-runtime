@@ -364,7 +364,7 @@ describe('Typed API', () => {
   });
 
   it('should build an object', () => {
-    const type = t.object(
+    t.object(
       t.property('foo', t.string('bar')),
       t.property('qux', t.union(
         t.string(),

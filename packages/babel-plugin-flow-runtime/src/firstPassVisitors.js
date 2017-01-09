@@ -116,7 +116,6 @@ export default function firstPassVisitors (context: ConversionContext): Object {
         const {name} = path.node.id;
         context.defineValue(name, path.parentPath);
       }
-      const body = path.get('body');
       const typeParameters = getTypeParameters(path);
       typeParameters.forEach(item => {
         const {name} = item.node;
