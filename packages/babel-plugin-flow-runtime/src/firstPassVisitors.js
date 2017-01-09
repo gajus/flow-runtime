@@ -112,7 +112,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       }
     },
     Class (path: NodePath) {
-      if (path.isClassDeclaration()) {
+      if (path.isClassDeclaration() && path.has('id')) {
         const {name} = path.node.id;
         context.defineValue(name, path.parentPath);
       }
