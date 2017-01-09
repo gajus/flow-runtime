@@ -1,5 +1,6 @@
 {
   "name": "babel-plugin-flow-runtime",
+  "homepage": "https://codemix.github.io/flow-runtime",
   "version": "0.0.4",
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
