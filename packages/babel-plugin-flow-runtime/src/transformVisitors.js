@@ -455,7 +455,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       },
       exit (path: NodePath) {
         const signature = nodeSignatures.get(path.node);
-        if (!shouldDecorate || !signature || !signature.hasTypeAnnotations | path.isClassMethod()) {
+        if (!shouldDecorate || !signature || !signature.hasTypeAnnotations || path.isClassMethod()) {
           return;
         }
         let decoration;

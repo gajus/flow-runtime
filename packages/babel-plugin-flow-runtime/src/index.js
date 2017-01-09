@@ -18,7 +18,7 @@ export default function () {
         if (context.shouldImport) {
           attachImport(context, path);
         }
-        traverse(input, patternMatchVisitors(context));
+        path.traverse(patternMatchVisitors(context));
         path.traverse(transformVisitors(context));
       }
     }

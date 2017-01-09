@@ -3,7 +3,6 @@
 import {parse} from 'babylon';
 import generate from 'babel-generator';
 import transform from 'babel-plugin-flow-runtime/lib/transform';
-import Recast from 'recast';
 import * as Babel from 'babel-standalone';
 
 type AST = {
@@ -32,29 +31,17 @@ function getAST (input: string): AST {
 
 function transformFlowRuntime (ast: AST, options: Object): string {
   transform(ast, options);
-  try {
-    const {code} = Recast.print(ast, {
-      tabWidth: 2
-    });
-    return code;
-  }
-  catch (e) {
-    // fall-back to babel.
-    const {code} = generate(ast, {
-      tabWidth: 2
-    });
-    return code;
-  }
-}
-
-function compileBabel (ast: AST, input: string): string {
-  const {code} = Babel.transformFromAst(ast, input, { presets: ['es2015', 'stage-0', 'react']});
+  const {code} = generate(ast, {
+    tabWidth: 2
+  });
   return code;
 }
 
-function removeComments (code: string): string {
-  return code.replace(/^\/\/(.*)$/gm, '').trim();
+function compileBabel (ast: AST, input: string): string {
+  const {code} = Babel.transformFromAst(ast, input, { presets: [['es2015', {generators: false}], 'stage-0', 'react']});
+  return code;
 }
+
 
 onmessage = (event) => {
   const [id, input, options] = event.data;
@@ -64,7 +51,7 @@ onmessage = (event) => {
     ast = getAST(input);
     result = [
       id,
-      removeComments(transformFlowRuntime(ast, options)),
+      transformFlowRuntime(ast, options),
       compileBabel(ast, input)
     ];
   }
@@ -73,7 +60,7 @@ onmessage = (event) => {
       id,
       '',
       '',
-      e.message
+      e.stack
     ];
   }
   postMessage(result);

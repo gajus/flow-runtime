@@ -569,6 +569,9 @@ export default class TypeContext {
         throw new Error('FunctionType cannot contain the given type directly.');
       }
     }
+    if (!target.returnType) {
+      target.returnType = this.any();
+    }
     return target;
   }
 
@@ -780,6 +783,16 @@ export default class TypeContext {
 
   propTypes <T: {}> (type: Type<T>): PropTypeDict<T> {
     return makeReactPropTypes((type.unwrap(): $FlowIgnore));
+  }
+
+  match <P, R> (...args: Array<P | MatchClause<P, R>>): R {
+    const clauses: any = args.pop();
+    if (!Array.isArray(clauses)) {
+      throw new Error('Invalid pattern, last argument must be an array.');
+    }
+    (clauses: MatchClause<P, R>[]);
+    const pattern = this.pattern(...clauses);
+    return pattern(...args);
   }
 
   pattern <P, R> (...clauses: MatchClause<P, R>[]): PatternMatcher<P, R> {

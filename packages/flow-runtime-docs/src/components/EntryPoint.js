@@ -23,6 +23,7 @@ import TypeInferencePage from './docs/TypeInferencePage';
 import UnionsAndIntersectionsPage from './docs/UnionsAndIntersectionsPage';
 import ExoticTypesPage from './docs/ExoticTypesPage';
 import ValidationPage from './docs/ValidationPage';
+import PatternMatchingPage from './docs/PatternMatchingPage';
 
 export default function EntryPoint () {
   return (
@@ -41,6 +42,7 @@ export default function EntryPoint () {
           <Route path="type-inference" component={TypeInferencePage} />
           <Route path="exotic-types" component={ExoticTypesPage} />
           <Route path="validation" component={ValidationPage} />
+          <Route path="pattern-matching" component={PatternMatchingPage} />
         </Route>
         <Route path="try" component={TryPage} />
         <Route path="packages" component={PackageListPage} />

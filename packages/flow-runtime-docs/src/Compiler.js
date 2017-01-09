@@ -30,6 +30,7 @@ sharedWorker.onmessage = (event: Event) => {
   }
   delete queue[id];
   if (errorMessage) {
+    console.log(errorMessage);
     deferred.reject(new Error(errorMessage));
   }
   else {

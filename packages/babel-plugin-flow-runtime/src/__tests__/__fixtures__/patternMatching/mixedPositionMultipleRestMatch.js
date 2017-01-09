@@ -2,19 +2,19 @@
 
 export const input = `
   import t from "flow-runtime";
-  const pattern = t.pattern(
+  console.log(t.match("foo", "bar", [
     (input: string) => input,
     (foo: string, bar: number, ...input: boolean[]) => input,
     (foo: string, ...extra: number[]) => foo,
     (foo: string, bar: string, baz: string, qux: string) => foo,
     _ => _
-  );
+  ]));
 `;
 
 export const expected = `
   import t from "flow-runtime";
 
-  const pattern = (_arg0, ..._arg1) => {
+  console.log(((_arg0, ..._arg1) => {
     const _input = _arg1.slice(1);
     if (typeof _arg0 === "string") {
       return _arg0;
@@ -31,5 +31,5 @@ export const expected = `
     else {
       return _arg0;
     }
-  };
+  })("foo", "bar"));
 `;
