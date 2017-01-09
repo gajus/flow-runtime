@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-flow-runtime",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
   "scripts": {
@@ -41,7 +41,7 @@
     "babylon": "^6.14.1",
     "bluebird": "^3.4.7",
     "camelcase": "^3.0.0",
-    "flow-config-parser": "^0.0.3"
+    "flow-config-parser": "^0.0.4"
   },
   "eslintConfig": {
     "extends": "./config/eslint.js"
