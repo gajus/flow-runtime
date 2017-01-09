@@ -1,5 +1,7 @@
 /* @flow */
 
+declare var self: DedicatedWorkerGlobalScope;
+
 import {parse} from 'babylon';
 import generate from 'babel-generator';
 import transform from 'babel-plugin-flow-runtime/lib/transform';
@@ -43,8 +45,8 @@ function compileBabel (ast: AST, input: string): string {
 }
 
 
-onmessage = (event) => {
-  const [id, input, options] = event.data;
+(self: any).addEventListener('message', (event: MessageEvent) => {
+  const [id, input, options] = (event: any).data;
   let ast;
   let result;
   try {
@@ -63,5 +65,5 @@ onmessage = (event) => {
       e.stack
     ];
   }
-  postMessage(result);
-};
+  self.postMessage(result);
+}, false);

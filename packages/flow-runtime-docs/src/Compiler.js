@@ -24,9 +24,9 @@ let SEQUENCE = 0;
 const queue: {[key: number]: Deferred<any>} = {};
 
 const sharedWorker = new Worker();
-sharedWorker.onmessage = (event: Event) => {
+sharedWorker.onmessage = (event: MessageEvent) => {
   sharedState.isReady = true;
-  const [id, transformed, compiled, errorMessage] = event.data;
+  const [id, transformed, compiled, errorMessage] = (event: any).data;
   const deferred = queue[id];
   if (!deferred) {
     return;
@@ -57,6 +57,17 @@ function compile (code: string, options: Object): Promise<[string, string]> {
   return deferred.promise;
 }
 
+type FakeConsole = {
+  log (...args: any[]): any;
+  warn (...args: any[]): any;
+  error (...args: any[]): any;
+}
+
+function makeFakeConsole (faker: FakeConsole): FakeConsole {
+  Object.setPrototypeOf(faker, console);
+  return faker;
+}
+
 export default class Compiler {
   @observable code: string;
   @observable transformed: string;
@@ -71,7 +82,7 @@ export default class Compiler {
     return sharedState.isReady;
   }
 
-  fakeConsole = Object.setPrototypeOf({
+  fakeConsole: FakeConsole = makeFakeConsole({
     log: (...args: any[]) => {
       console.log(...args);
       this.log.push(['log', args.map(String).join(' ')]);
@@ -84,7 +95,7 @@ export default class Compiler {
       console.error(...args);
       this.log.push(['error', args.map(String).join(' ')]);
     }
-  }, console);
+  });
 
   constructor (code: string) {
     this.code = code;

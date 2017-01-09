@@ -2,3 +2,5 @@ node_modules
 lerna-debug.log
 npm-debug.log
 .DS_Store
+.env
+yarn-error.log
