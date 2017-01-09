@@ -2,7 +2,7 @@
   "name": "flow-runtime",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A flow compatible type system for JS.",
   "main": "flow-runtime.js",
   "scripts": {

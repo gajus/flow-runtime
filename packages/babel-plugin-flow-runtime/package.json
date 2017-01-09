@@ -2,7 +2,7 @@
   "name": "babel-plugin-flow-runtime",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
   "scripts": {
@@ -44,7 +44,7 @@
     "babylon": "^6.14.1",
     "bluebird": "^3.4.7",
     "camelcase": "^3.0.0",
-    "flow-config-parser": "^0.0.4"
+    "flow-config-parser": "^0.0.5"
   },
   "eslintConfig": {
     "extends": "./config/eslint.js"
