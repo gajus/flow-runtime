@@ -13,6 +13,7 @@ const sharedState = observable({
 });
 
 const Worker: any = require("./compiler.worker");
+const cycles = new Set();
 
 type Deferred<T> = {
   promise: Promise<T>;
@@ -61,12 +62,47 @@ type FakeConsole = {
   log (...args: any[]): any;
   warn (...args: any[]): any;
   error (...args: any[]): any;
-}
+};
 
 function makeFakeConsole (faker: FakeConsole): FakeConsole {
   Object.setPrototypeOf(faker, console);
   return faker;
 }
+
+function prepareLogItem (input: any): string {
+  if (input == null || typeof input !== 'object') {
+    return String(input);
+  }
+  else if (cycles.has(input)) {
+    return '[[Cyclic Reference]]';
+  }
+  cycles.add(input);
+  let result;
+  if (Array.isArray(input)) {
+    result = `[${input.map(prepareLogItem).join(', ')}]`;
+  }
+  else {
+    const props = Object.keys(input).map(key => `${key}: ${prepareLogItem(input[key])}`);
+    if (typeof input.constructor === 'function' && input.constructor !== Object) {
+      result = `${input.constructor.name} {\n${indent(props.join(',\n'))}\n}`;
+    }
+    else {
+      result = `{\n${indent(props.join(',\n'))}\n}`
+    }
+  }
+  cycles.delete(input);
+  return result;
+}
+
+function indent (input: string): string {
+  const lines = input.split('\n');
+  const {length} = lines;
+  for (let i = 0; i < length; i++) {
+    lines[i] = `  ${lines[i]}`;
+  }
+  return lines.join('\n');
+}
+
 
 export default class Compiler {
   @observable code: string;
@@ -85,15 +121,15 @@ export default class Compiler {
   fakeConsole: FakeConsole = makeFakeConsole({
     log: (...args: any[]) => {
       console.log(...args);
-      this.log.push(['log', args.map(String).join(' ')]);
+      this.log.push(['log', args.map(prepareLogItem).join(' ')]);
     },
     warn: (...args: any[]) => {
       console.warn(...args);
-      this.log.push(['warn', args.map(String).join(' ')]);
+      this.log.push(['warn', args.map(prepareLogItem).join(' ')]);
     },
     error: (...args: any[]) => {
       console.error(...args);
-      this.log.push(['error', args.map(String).join(' ')]);
+      this.log.push(['error', args.map(prepareLogItem).join(' ')]);
     }
   });
 
