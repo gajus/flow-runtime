@@ -6,6 +6,9 @@ import type Validation, {IdentifierPath} from '../Validation';
 import TypeParameter from './TypeParameter';
 import TypeParameterApplication from './TypeParameterApplication';
 
+import {collectConstraintErrors, constraintsAccept} from '../typeConstraints';
+
+
 export default class PartialType<X, T> extends Type {
   typeName: string = 'PartialType';
   name: string;
@@ -34,16 +37,8 @@ export default class PartialType<X, T> extends Type {
     if (type.collectErrors(validation, path, input)) {
       hasErrors = true;
     }
-    if (constraints) {
-      const {length} = constraints;
-      for (let i = 0; i < length; i++) {
-        const constraint = constraints[i];
-        const violation = constraint(input);
-        if (typeof violation === 'string') {
-          validation.addError(path, this, violation);
-          hasErrors = true;
-        }
-      }
+    else if (constraints && collectConstraintErrors(this, validation, path, input)) {
+      hasErrors = true;
     }
     return hasErrors;
   }
@@ -53,16 +48,12 @@ export default class PartialType<X, T> extends Type {
     if (!type.accepts(input)) {
       return false;
     }
-    if (constraints) {
-      const {length} = constraints;
-      for (let i = 0; i < length; i++) {
-        const constraint = constraints[i];
-        if (typeof constraint(input) === 'string') {
-          return false;
-        }
-      }
+    else if (constraints && !constraintsAccept(this, input)) {
+      return false;
     }
-    return true;
+    else {
+      return true;
+    }
   }
 
   acceptsType (input: Type<any>): boolean {

@@ -6,6 +6,9 @@ import TypeAlias from './TypeAlias';
 import PartialType from './PartialType';
 import type ObjectTypeProperty from './ObjectTypeProperty';
 
+import {constraintsAccept} from '../typeConstraints';
+
+
 export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   typeName: string = 'ParameterizedTypeAlias';
 
@@ -25,20 +28,17 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
   }
 
   accepts (input: any): boolean {
-    const {constraints, partial} = this;
+    const {partial} = this;
     if (!partial.accepts(input)) {
       return false;
     }
-    const {length} = constraints;
-    for (let i = 0; i < length; i++) {
-      const constraint = constraints[i];
-      if (typeof constraint(input) === 'string') {
-        return false;
-      }
+    else if (!constraintsAccept(this, input)) {
+      return false;
     }
-    return true;
+    else {
+      return true;
+    }
   }
-
 
   acceptsType (input: Type<any>): boolean {
     return this.partial.acceptsType(input);
