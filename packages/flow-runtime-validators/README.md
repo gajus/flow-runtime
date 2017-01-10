@@ -18,14 +18,14 @@ yarn add flow-runtime-validators
 
 ```js
 import t from 'flow-runtime';
-import {validators, compose} from 'flow-runtime-validators';
+import * as validators from 'flow-runtime-validators';
 
 type EmailAddress = string;
 
-EmailAddress.addConstraint(compose(
+EmailAddress.addConstraint(
   validators.length({max: 250}),
   validators.email()
-));
+);
 
 EmailAddress.assert("foo@example.com"); // ok
 EmailAddress.assert("nope.com"); // throws

@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Validator} from '../';
+import type {Validator} from './';
 
 export type Options = {
   gt?: number;

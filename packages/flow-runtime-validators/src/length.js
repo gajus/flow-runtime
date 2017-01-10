@@ -1,5 +1,5 @@
 /* @flow */
-import type {Validator} from '../';
+import type {Validator} from './';
 
 export type Options = {
   min?: number;

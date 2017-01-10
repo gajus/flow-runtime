@@ -1,9 +1,8 @@
 /* @flow */
 
-import t from 'flow-runtime';
-import {validators, compose} from './';
+import * as validators from '../';
 
-import {equal, throws} from 'assert';
+import {equal} from 'assert';
 
 function pass (validate: Function, input: any) {
   it(`should accept ${JSON.stringify(input)}`, () => {
@@ -16,25 +15,6 @@ function fail (validate: Function, input: any) {
     equal(typeof validate(input), "string");
   });
 }
-
-describe('Compose', () => {
-  const validate = compose(
-    validators.length({min: 10, max: 250}),
-    validators.email()
-  );
-
-  fail(validate, 'a@b.com');
-  fail(validate, 'this is not valid');
-  pass(validate, 'person@example.com');
-
-  it('should addConstraint', () => {
-    const email = t.type('email', t.string());
-    email.addConstraint(validate);
-
-    email.assert("person@example.com");
-    throws(() => email.assert("nope"));
-  });
-});
 
 describe('Common Validators', () => {
   describe('length', () => {
