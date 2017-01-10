@@ -164,7 +164,14 @@ export default class Compiler {
       return result;
     }
     catch (e) {
-      this.fakeConsole.error(e.stack);
+      const {message, stack} = e;
+      if (stack.indexOf(message) !== -1) {
+        // stack already includes the message
+        this.fakeConsole.error(stack);
+      }
+      else {
+        this.fakeConsole.error(message + '\n\n' + stack);
+      }
     }
     t.emitWarningMessage = originalEmit;
   }
