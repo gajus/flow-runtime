@@ -44,25 +44,9 @@ export default class FunctionType<P, R> extends Type {
       return hasErrors;
     }
     else {
-      // We can only do weak checking without a type annotation.
-      const {params} = this;
-      if (params.length > input.length) {
-        // function might not have enough parameters,
-        // see how many are really required.
-        let needed = 0;
-        for (let i = 0; i < params.length; i++) {
-          const param = params[i];
-          if (!param.optional) {
-            needed++;
-          }
-        }
-        if (needed > input.length) {
-          validation.addError(path, this, getErrorMessage('ERR_EXPECT_N_ARGUMENTS', needed));
-          return true;
-        }
-      }
+      // We cannot safely check an unannotated function.
+      return false;
     }
-    return false;
   }
 
   accepts (input: any): boolean {
