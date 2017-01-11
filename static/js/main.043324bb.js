@@ -32874,7 +32874,7 @@
 	            ),
 	            _react2.default.createElement(
 	              'a',
-	              { href: 'https://github.com/codemix/flow-config-parser/tree/master/packages/flow-config-parser', className: 'btn btn-primary' },
+	              { href: 'https://github.com/codemix/flow-runtime/tree/master/packages/flow-config-parser', className: 'btn btn-primary' },
 	              _react2.default.createElement('i', { className: 'fa fa-github' }),
 	              ' ',
 	              'flow-config-parser on github'
@@ -33011,7 +33011,7 @@
 	            ),
 	            _react2.default.createElement(
 	              'a',
-	              { href: 'https://github.com/codemix/flow-runtime-mobx/tree/master/packages/flow-runtime-mobx', className: 'btn btn-primary' },
+	              { href: 'https://github.com/codemix/flow-runtime/tree/master/packages/flow-runtime-mobx', className: 'btn btn-primary' },
 	              _react2.default.createElement('i', { className: 'fa fa-github' }),
 	              ' ',
 	              'flow-runtime-mobx on github'
@@ -33027,6 +33027,29 @@
 	            _react2.default.createElement(
 	              'div',
 	              { className: 'col-sm-10 offset-sm-1' },
+	              _react2.default.createElement(
+	                'h4',
+	                null,
+	                'Why?'
+	              ),
+	              _react2.default.createElement(
+	                'p',
+	                null,
+	                'Because mobx observables don\'t pass standard checks like ',
+	                _react2.default.createElement(
+	                  'code',
+	                  null,
+	                  'Array.isArray(observableArray)'
+	                ),
+	                ' or ',
+	                _react2.default.createElement(
+	                  'code',
+	                  null,
+	                  'observableMap instanceof Map'
+	                ),
+	                '. This module makes flow-runtime aware of mobx observables so that it treats them like their native equivalents.'
+	              ),
+	              _react2.default.createElement('hr', null),
 	              _react2.default.createElement(
 	                'h4',
 	                null,
@@ -33340,7 +33363,7 @@
 	            ),
 	            _react2.default.createElement(
 	              'a',
-	              { href: 'https://github.com/codemix/flow-runtime-validators/tree/master/packages/flow-runtime-validators', className: 'btn btn-primary' },
+	              { href: 'https://github.com/codemix/flow-runtime/tree/master/packages/flow-runtime-validators', className: 'btn btn-primary' },
 	              _react2.default.createElement('i', { className: 'fa fa-github' }),
 	              ' ',
 	              'flow-runtime-validators on github'
@@ -56124,4 +56147,4 @@
 
 /***/ }
 /******/ ])));
-//# sourceMappingURL=main.e3eaf8c4.js.map
+//# sourceMappingURL=main.043324bb.js.map
