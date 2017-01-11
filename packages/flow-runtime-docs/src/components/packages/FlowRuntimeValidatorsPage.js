@@ -66,7 +66,7 @@ export default class FlowRuntimeValidatorsPage extends Component {
               <p className="lead">
                 A collection of common validators for use with flow-runtime.
             </p>
-            <a href="https://github.com/codemix/flow-runtime-validators/tree/master/packages/flow-runtime-validators" className="btn btn-primary">
+            <a href="https://github.com/codemix/flow-runtime/tree/master/packages/flow-runtime-validators" className="btn btn-primary">
               <i className="fa fa-github" />
               {' '}
               flow-runtime-validators on github

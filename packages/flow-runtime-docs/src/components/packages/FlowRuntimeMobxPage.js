@@ -42,7 +42,7 @@ export default class FlowRuntimeMobxPage extends Component {
               <p className="lead">
                 Adds mobx support to flow-runtime.
             </p>
-            <a href="https://github.com/codemix/flow-runtime-mobx/tree/master/packages/flow-runtime-mobx" className="btn btn-primary">
+            <a href="https://github.com/codemix/flow-runtime/tree/master/packages/flow-runtime-mobx" className="btn btn-primary">
               <i className="fa fa-github" />
               {' '}
               flow-runtime-mobx on github
@@ -52,6 +52,9 @@ export default class FlowRuntimeMobxPage extends Component {
         <div className="container">
           <div className="row">
             <div className="col-sm-10 offset-sm-1">
+              <h4>Why?</h4>
+              <p>Because mobx observables don't pass standard checks like <code>Array.isArray(observableArray)</code> or <code>observableMap instanceof Map</code>. This module makes flow-runtime aware of mobx observables so that it treats them like their native equivalents.</p>
+              <hr />
               <h4>Installation</h4>
               <InstallInstruction packageNames={['flow-runtime-mobx']} />
               <hr />
