@@ -60,6 +60,7 @@ import ObjectTypeProperty from './ObjectTypeProperty';
 import ParameterizedTypeAlias from './ParameterizedTypeAlias';
 import ParameterizedFunctionType from './ParameterizedFunctionType';
 import PartialType from './PartialType';
+import RefinementType from './RefinementType';
 import StringLiteralType from './StringLiteralType';
 import StringType from './StringType';
 import SymbolLiteralType from './SymbolLiteralType';
@@ -101,6 +102,7 @@ export {
   ParameterizedTypeAlias,
   ParameterizedFunctionType,
   PartialType,
+  RefinementType,
   StringLiteralType,
   StringType,
   SymbolLiteralType,

@@ -52,7 +52,8 @@ import {
   TupleType,
   UnionType,
   IntersectionType,
-  VoidType
+  VoidType,
+  RefinementType
 } from './types';
 
 import {
@@ -78,6 +79,7 @@ import {
 } from './symbols';
 
 import type {
+  TypeConstraint,
   TypeCreator,
   TypeRevealer,
   FunctionBodyCreator,
@@ -874,6 +876,13 @@ export default class TypeContext {
       error.name = 'RuntimeTypeError';
       throw error;
     };
+  }
+
+  refinement <T> (type: Type<T>, ...constraints: TypeConstraint[]): RefinementType<T> {
+    const target = new RefinementType(this);
+    target.type = type;
+    target.addConstraint(...constraints);
+    return target;
   }
 }
 
