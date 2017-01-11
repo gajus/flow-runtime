@@ -23,6 +23,14 @@ export default class PackageList extends Component {
             A babel plugin which transforms static type annotations into <samp>flow-runtime</samp> type declarations.
           </p>
         </Link>
+        <Link to="/flow-runtime-validators" className="list-group-item list-group-item-action">
+          <h5 className="list-group-item-heading">
+            flow-runtime-validators
+          </h5>
+          <p className="list-group-item-text">
+            A collection of common validators (length, date, email, url etc) for use with flow-runtime.
+          </p>
+        </Link>
         <Link to="/flow-runtime-mobx" className="list-group-item list-group-item-action">
           <h5 className="list-group-item-heading">
             flow-runtime-mobx

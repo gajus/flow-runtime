@@ -2,6 +2,7 @@
 import t from 'flow-runtime';
 import flowRuntimeMobx from 'flow-runtime-mobx';
 import * as flowConfigParser from 'flow-config-parser';
+import * as validators from 'flow-runtime-validators';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {observable, computed} from 'mobx';
@@ -70,7 +71,10 @@ function makeFakeConsole (faker: FakeConsole): FakeConsole {
 }
 
 function prepareLogItem (input: any): string {
-  if (input == null || typeof input !== 'object') {
+  if (typeof input === 'function') {
+    return `[[Function ${input.name || 'anonymous'}]]`;
+  }
+  else if (input == null || typeof input !== 'object') {
     return String(input);
   }
   else if (cycles.has(input)) {
@@ -178,6 +182,8 @@ export default class Compiler {
             return flowConfigParser;
           case 'flow-runtime-mobx':
             return flowRuntimeMobx;
+          case 'flow-runtime-validators':
+            return validators;
           case 'mobx':
             return mobx;
           case 'mobx-react':
@@ -187,7 +193,7 @@ export default class Compiler {
           case 'react-dom':
             return ReactDOM;
           default:
-            throw new Error('Imports are not supported.');
+            throw new Error('Imports are not supported in the online demo.');
         }
       });
       // @flowIssue 252

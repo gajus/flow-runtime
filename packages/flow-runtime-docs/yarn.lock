@@ -513,16 +513,17 @@ babel-plugin-check-es2015-constants@^6.3.13:
   dependencies:
     babel-runtime "^6.0.0"
 
-babel-plugin-flow-runtime@^0.0.0:
-  version "0.0.0"
-  resolved "https://registry.yarnpkg.com/babel-plugin-flow-runtime/-/babel-plugin-flow-runtime-0.0.0.tgz#ce95277d16eff645b4feff84b9837f86f9b81a75"
+babel-plugin-flow-runtime@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/babel-plugin-flow-runtime/-/babel-plugin-flow-runtime-0.0.5.tgz#fabfbd8fd5629f84e3edaddaecb7023833a420b1"
   dependencies:
-    babel-generator "^6.17.0"
-    babel-traverse "^6.16.0"
+    babel-generator "^6.21.0"
+    babel-traverse "^6.20.0"
     babel-types "^6.16.0"
-    babylon "^6.13.0"
+    babylon "^6.14.1"
+    bluebird "^3.4.7"
     camelcase "^3.0.0"
-    flow-config-parser "^0.0.0"
+    flow-config-parser "^0.0.5"
 
 babel-plugin-istanbul@^2.0.0:
   version "2.0.3"
@@ -1240,7 +1241,7 @@ block-stream@*:
   dependencies:
     inherits "~2.0.0"
 
-bluebird@^3.1.1, bluebird@^3.4.6:
+bluebird@^3.1.1, bluebird@^3.4.6, bluebird@^3.4.7:
   version "3.4.7"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.4.7.tgz#f72d760be09b7f76d08ed8fae98b289a8d05fab3"
 
@@ -2524,7 +2525,7 @@ flatten@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
 
-flow-config-parser, flow-config-parser@^0.0.0:
+flow-config-parser:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/flow-config-parser/-/flow-config-parser-0.0.0.tgz#81762fed34b8cb11d9aae1e899fa670fc57a36c3"
   dependencies:
@@ -2539,9 +2540,32 @@ flow-config-parser, flow-config-parser@^0.0.0:
     react "^15.3.2"
     react-dom "^15.3.2"
 
-flow-runtime@0.0.0:
-  version "0.0.0"
-  resolved "https://registry.yarnpkg.com/flow-runtime/-/flow-runtime-0.0.0.tgz#3a62ea558ef299a686401e1d33477c69123df819"
+flow-config-parser@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/flow-config-parser/-/flow-config-parser-0.0.5.tgz#a01c1391080c2152a49c0a19fae90cf0de909ffe"
+  dependencies:
+    babel-generator "^6.17.0"
+    babel-traverse "^6.16.0"
+    babel-types "^6.16.0"
+    babylon "^6.13.0"
+    camelcase "^3.0.0"
+    flow-typed "^2.0.0"
+    mobx "^2.6.0"
+    mobx-react "^3.5.8"
+    react "^15.3.2"
+    react-dom "^15.3.2"
+
+flow-runtime-mobx@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/flow-runtime-mobx/-/flow-runtime-mobx-0.0.5.tgz#8fb22344d117cbcc4dfef938b60820760f5e69ab"
+
+flow-runtime-validators:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/flow-runtime-validators/-/flow-runtime-validators-0.0.1.tgz#7ce69a8fd8c8a5198696839110756afc63a859ea"
+
+flow-runtime@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/flow-runtime/-/flow-runtime-0.0.5.tgz#9251e50deadd213e6b55f49d4dac0e2e4706dac8"
 
 flow-typed@^2.0.0:
   version "2.0.0"

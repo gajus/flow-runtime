@@ -26,6 +26,7 @@ export default class DocsPage extends Component<void, Props, void> {
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/unions-and-intersections">Unions & Intersections</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/type-inference">Type Inference</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/exotic-types">Exotic Types</Link>
+              <Link className="nav-item nav-link" activeClassName="active" to="/docs/type-refinements">Type Refinements</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/validation">Validation & Error Reporting</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/pattern-matching">Pattern Matching</Link>
             </nav>
