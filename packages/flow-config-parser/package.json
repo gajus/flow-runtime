@@ -2,7 +2,7 @@
   "name": "flow-config-parser",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "A parser for flow's configuration files.",
   "main": "flow-config-parser.js",
   "scripts": {
@@ -33,8 +33,7 @@
     "flow-bin": "^0.33.0",
     "mocha": "^3.1.2"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "eslintConfig": {
     "extends": "./config/eslint.js"
   }

@@ -2,7 +2,7 @@
   "name": "flow-runtime-mobx",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Adds mobx support to flow-runtime.",
   "main": "flow-runtime-mobx.js",
   "scripts": {
@@ -31,13 +31,13 @@
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.4.1",
     "flow-bin": "^0.37.4",
-    "flow-runtime": "^0.0.5",
+    "flow-runtime": "^0.0.6",
     "flow-typed": "^2.0.0",
     "mobx": "^3.0.0",
     "mocha": "^3.1.2"
   },
   "peerDependencies": {
-    "flow-runtime": "^0.0.5",
+    "flow-runtime": "^0.0.6",
     "mobx": "^3.0.0"
   },
   "eslintConfig": {
