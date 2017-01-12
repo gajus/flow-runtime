@@ -3,7 +3,7 @@
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
   "description": "A demo app for flow-runtime.",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "license": "MIT",
   "devDependencies": {
     "autoprefixer": "6.5.1",
@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "babel-generator": "^6.21.0",
-    "babel-plugin-flow-runtime": "^0.0.6",
+    "babel-plugin-flow-runtime": "^0.0.7",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-standalone": "6.19.0",
     "babylon": "^6.14.1",
