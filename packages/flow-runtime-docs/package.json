@@ -72,7 +72,7 @@
     "flow-runtime-validators": "^0.0.6",
     "markdown-loader": "^0.1.7",
     "mobx": "3",
-    "mobx-react": "3",
+    "mobx-react": "4.1.0",
     "react": "^15.4.1",
     "react-codemirror": "^0.3.0",
     "react-dom": "^15.4.1",

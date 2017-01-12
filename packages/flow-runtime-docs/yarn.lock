@@ -513,9 +513,9 @@ babel-plugin-check-es2015-constants@^6.3.13:
   dependencies:
     babel-runtime "^6.0.0"
 
-babel-plugin-flow-runtime@^0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/babel-plugin-flow-runtime/-/babel-plugin-flow-runtime-0.0.6.tgz#7fd8176c2aecd0b5b9288ca78e02b1e9532825c9"
+babel-plugin-flow-runtime@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/babel-plugin-flow-runtime/-/babel-plugin-flow-runtime-0.0.7.tgz#09f80566cf4ce7200d9e12844c96c72049f96d44"
   dependencies:
     babel-generator "^6.21.0"
     babel-traverse "^6.20.0"
@@ -4026,9 +4026,15 @@ mkdirp@^0.5.0, mkdirp@^0.5.1, "mkdirp@>=0.5 0", mkdirp@~0.5.0, mkdirp@~0.5.1, mk
   dependencies:
     minimist "0.0.8"
 
-mobx-react@^3.5.8, mobx-react@3:
+mobx-react@^3.5.8:
   version "3.5.9"
   resolved "https://registry.yarnpkg.com/mobx-react/-/mobx-react-3.5.9.tgz#b710299539d58d7af1189b5e86bc0be4198a43c1"
+  dependencies:
+    hoist-non-react-statics "^1.2.0"
+
+mobx-react@4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/mobx-react/-/mobx-react-4.1.0.tgz#0b4927a8c4457dbb296c512693acdf9073d9afc7"
   dependencies:
     hoist-non-react-statics "^1.2.0"
 
