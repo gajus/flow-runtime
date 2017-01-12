@@ -66,6 +66,9 @@ export default function firstPassVisitors (context: ConversionContext): Object {
             if (specifier.isImportDefaultSpecifier()) {
               path.parentPath.scope.setData('reactLib', name);
             }
+            else if (specifier.isImportNamespaceSpecifier()) {
+              path.parentPath.scope.setData('reactLib', name);
+            }
             else if (specifier.node.imported.name === 'Component') {
               path.parentPath.scope.setData('reactComponentClass', name);
             }
@@ -73,7 +76,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
               path.parentPath.scope.setData('reactPureComponentClass', name);
             }
           }
-          else if (isFlowRuntime && specifier.isImportDefaultSpecifier()) {
+          else if (isFlowRuntime && (specifier.isImportDefaultSpecifier() || specifier.isImportNamespaceSpecifier())) {
             context.shouldImport = false;
             context.libraryId = name;
           }
