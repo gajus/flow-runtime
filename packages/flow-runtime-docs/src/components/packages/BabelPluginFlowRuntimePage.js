@@ -94,8 +94,10 @@ export default class BabelPluginFlowRuntimePage extends Component {
               <p>The plugin supports the following options:</p>
               <ul>
                 <li><code>assert</code> - Boolean, indicates whether types should be asserted at runtime. Defaults to <code>true</code> if <code>process.env.NODE_ENV === 'development'</code>, otherwise <code>false</code>.</li>
+                <li><code>warn</code> - Boolean, if <code>true</code> flow-runtime will emit warnings instead of throwing in case of a failing check. This can be very useful when first introducing types to a codebase.</li>
                 <li><code>decorate</code> - Boolean, indicates whether object or function values that have type annotations should be decorated with those types at runtime. Defaults to <code>true</code>.</li>
               </ul>
+              <p>You can override these plugin options on a per-file basis using <code>//@flow-runtime</code> comments, see the <Link to="/docs/pragmas">Pragmas</Link> documentation.</p>
               <Example code={adderExample}
                        inline
                        inputTitle={<p>If <code>assert</code> is <code>true</code>, the following code:</p>}

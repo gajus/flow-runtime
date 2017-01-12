@@ -116,7 +116,7 @@ export default class Compiler {
   @observable shouldWarn: boolean;
   @observable shouldDecorate: boolean;
   @observable error: string;
-  @observable log: Array<['log' | 'warn' | 'error' | 'react', string]> = [];
+  @observable.shallow log: Array<['log' | 'warn' | 'error' | 'react', string]> = [];
 
   @computed get isReady (): boolean {
     return sharedState.isReady;
@@ -206,14 +206,7 @@ export default class Compiler {
       return result;
     }
     catch (e) {
-      const {message, stack} = e;
-      if (stack.indexOf(message) !== -1) {
-        // stack already includes the message
-        this.fakeConsole.error(stack);
-      }
-      else {
-        this.fakeConsole.error(message + '\n\n' + stack);
-      }
+      this.fakeConsole.error(e.message);
     }
     t.emitWarningMessage = originalEmit;
   }

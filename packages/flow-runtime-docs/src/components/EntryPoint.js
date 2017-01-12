@@ -27,6 +27,8 @@ import ExoticTypesPage from './docs/ExoticTypesPage';
 import ValidationPage from './docs/ValidationPage';
 import PatternMatchingPage from './docs/PatternMatchingPage';
 import TypeRefinementsPage from './docs/TypeRefinementsPage';
+import WorkingWithFlowPage from './docs/WorkingWithFlowPage';
+import PragmasPage from './docs/PragmasPage';
 
 export default function EntryPoint () {
   return (
@@ -45,6 +47,8 @@ export default function EntryPoint () {
           <Route path="type-inference" component={TypeInferencePage} />
           <Route path="exotic-types" component={ExoticTypesPage} />
           <Route path="validation" component={ValidationPage} />
+          <Route path="working-with-flow" component={WorkingWithFlowPage} />
+          <Route path="pragmas" component={PragmasPage} />
           <Route path="pattern-matching" component={PatternMatchingPage} />
           <Route path="type-refinements" component={TypeRefinementsPage} />
         </Route>

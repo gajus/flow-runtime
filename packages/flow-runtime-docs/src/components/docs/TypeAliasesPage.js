@@ -26,7 +26,9 @@ export default class TypeAliasesPage extends Component {
     return (
       <div>
         <header className="jumbotron jumbotron-fluid text-xs-center">
-          <h1>Type Aliases</h1>
+          <div className="container">
+            <h1>Type Aliases</h1>
+          </div>
         </header>
         <div className="container">
           <h4>Named Types</h4>
