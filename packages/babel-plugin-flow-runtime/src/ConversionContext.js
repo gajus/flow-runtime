@@ -17,6 +17,8 @@ export default class ConversionContext {
   shouldAssert: boolean = true;
   shouldWarn: boolean = false;
   shouldDecorate: boolean = true;
+  suppressCommentPatterns: RegExp[] = [/@flowIgnore/];
+  suppressTypeNames: string[] = ['$FlowIgnore', '$FlowIssue'];
 
   /**
    * A map of global entity definitions.
@@ -80,6 +82,29 @@ export default class ConversionContext {
    */
   defineValue (name: string, path: NodePath): Entity {
     return this.defineEntity(name, 'Value', path);
+  }
+
+  /**
+   * Determines whether the given node path should be ignored
+   * based on its comments.
+   */
+  shouldSuppressPath (path: NodePath) {
+    const comments = getPathComments(path);
+    for (const pattern of this.suppressCommentPatterns) {
+      for (const comment of comments) {
+        if (pattern.test(comment)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Determine whether we should suppress types with the given name.
+   */
+  shouldSuppressTypeName (name: string): boolean {
+    return this.suppressTypeNames.indexOf(name) !== -1;
   }
 
   /**
@@ -244,4 +269,25 @@ export default class ConversionContext {
 
 function filterBlockParent (item: NodePath): NodePath {
   return item.isBlockStatement() || item.isProgram();
+}
+
+function getPathComments (path: NodePath): string[] {
+  //"leadingComments", "trailingComments", "innerComments"
+  const comments = [];
+  if (path.node.comments) {
+    for (const comment of path.node.comments) {
+      comments.push(comment.value || '');
+    }
+  }
+  if (path.node.leadingComments) {
+    for (const comment of path.node.leadingComments) {
+      comments.push(comment.value || '');
+    }
+  }
+  if (path.node.innerComments) {
+    for (const comment of path.node.innerComments) {
+      comments.push(comment.value || '');
+    }
+  }
+  return comments;
 }

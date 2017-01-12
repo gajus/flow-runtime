@@ -28,11 +28,26 @@ export default function transformVisitors (context: ConversionContext): Object {
         attachImport(context, path);
       }
     },
+    'Expression|Statement' (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
+    },
     'DeclareVariable|DeclareTypeAlias|DeclareFunction|DeclareClass|DeclareModule|InterfaceDeclaration' (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        return;
+      }
       const replacement = convert(context, path);
       context.replacePath(path, replacement);
     },
     ImportDeclaration: {
+      enter (path: NodePath) {
+        if (context.shouldSuppressPath(path)) {
+          path.skip();
+          return;
+        }
+      },
       exit (path: NodePath) {
         if (path.node.importKind !== 'type') {
           return;
@@ -41,6 +56,12 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
     },
     ExportDeclaration: {
+      enter (path: NodePath) {
+        if (context.shouldSuppressPath(path)) {
+          path.skip();
+          return;
+        }
+      },
       exit (path: NodePath) {
         if (path.node.exportKind !== 'type') {
           return;
@@ -49,10 +70,18 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
     },
     TypeAlias (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
       const replacement = convert(context, path);
       context.replacePath(path, replacement);
     },
     TypeCastExpression (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
       const expression = path.get('expression');
       const typeAnnotation = path.get('typeAnnotation');
       if (shouldCheck && !expression.isIdentifier()) {
@@ -146,6 +175,10 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
     },
     VariableDeclarator (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
       const id = path.get('id');
       if (!id.has('typeAnnotation')) {
         return;
@@ -204,6 +237,10 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
     },
     AssignmentExpression (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
       const left = path.get('left');
       if (!shouldCheck || !left.isIdentifier()) {
         return;
@@ -221,6 +258,10 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
     Function: {
       enter (path: NodePath) {
+        if (context.shouldSuppressPath(path)) {
+          path.skip();
+          return;
+        }
         if (context.visited.has(path.node)) {
           path.skip();
           return;
@@ -530,6 +571,10 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
 
     ReturnStatement (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
       const fn = path.scope.getFunctionParent().path;
       if (!shouldCheck || !fn.has('returnType')) {
         return;
@@ -544,6 +589,10 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
 
     YieldExpression (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
       const fn = path.scope.getFunctionParent().path;
       if (!shouldCheck || !fn.has('returnType')) {
         return;
@@ -588,6 +637,10 @@ export default function transformVisitors (context: ConversionContext): Object {
 
     Class: {
       enter (path: NodePath) {
+        if (context.shouldSuppressPath(path)) {
+          path.skip();
+          return;
+        }
         const superTypeParameters
             = path.has('superTypeParameters')
             ? path.get('superTypeParameters.params')
@@ -729,6 +782,10 @@ export default function transformVisitors (context: ConversionContext): Object {
     },
 
     ClassProperty (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
       if (!path.has('typeAnnotation')) {
         return;
       }
