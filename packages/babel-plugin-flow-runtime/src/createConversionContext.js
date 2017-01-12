@@ -3,6 +3,7 @@
 import ConversionContext from './ConversionContext';
 
 export type Options = {
+  ignore?: boolean;
   assert?: boolean;
   warn?: boolean;
   decorate?: boolean;

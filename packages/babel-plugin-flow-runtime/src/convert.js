@@ -472,6 +472,9 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     name = id.node.name;
     subject = t.identifier(name);
   }
+  if (context.shouldSuppressTypeName(name)) {
+    return context.call('any');
+  }
   if (context.isBoxed(id.node)) {
     subject = context.call('box', t.arrowFunctionExpression([], subject));
   }

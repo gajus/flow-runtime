@@ -53,6 +53,13 @@ function stripFlowTypes (program: Node): Node {
   traverse(program, {
     Flow (path: NodePath) {
       path.remove();
+    },
+    TypeCastExpression(path) {
+      let { node } = path;
+      do {
+        node = node.expression;
+      } while (node.type === 'TypeCastExpression');
+      path.replaceWith(node);
     }
   });
   return program;
