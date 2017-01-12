@@ -7,7 +7,7 @@ type Demo = 123;
 
 let oneTwoThree: Demo = 123;
 
-(oneTwoThree: $FlowIgnore);
+(oneTwoThree: $FlowFixMe);
 
 oneTwoThree = 456;
 console.log(123, '=', oneTwoThree);

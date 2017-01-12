@@ -17,8 +17,8 @@ export default class ConversionContext {
   shouldAssert: boolean = true;
   shouldWarn: boolean = false;
   shouldDecorate: boolean = true;
-  suppressCommentPatterns: RegExp[] = [/@flowIgnore/];
-  suppressTypeNames: string[] = ['$FlowIgnore', '$FlowIssue'];
+  suppressCommentPatterns: RegExp[] = [/\$FlowFixMe/];
+  suppressTypeNames: string[] = ['$FlowFixMe'];
 
   /**
    * A map of global entity definitions.

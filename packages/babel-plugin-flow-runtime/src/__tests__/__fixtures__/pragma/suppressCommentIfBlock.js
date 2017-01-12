@@ -5,7 +5,7 @@ export const input = `
 
 type Demo = false;
 
-// @flowIgnore
+// $FlowFixMe
 if (true) {
   console.log((false: true));
 }
@@ -20,7 +20,7 @@ import t from "flow-runtime";
 
 const Demo = t.type("Demo", t.boolean(false));
 
-// @flowIgnore
+// $FlowFixMe
 if (true) {
   console.log(false);
 }

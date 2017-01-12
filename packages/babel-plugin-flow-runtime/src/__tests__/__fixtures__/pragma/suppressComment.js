@@ -5,7 +5,7 @@ export const input = `
 
 const demo = (): string => "hello world";
 
-// @flowIgnore
+// $FlowFixMe
 const demo2 = (): string => "hello world";
 `;
 
@@ -18,7 +18,7 @@ const demo = () => {
   return _returnType.assert("hello world");
 };
 
-// @flowIgnore
+// $FlowFixMe
 const demo2 = () => {
   return "hello world";
 };
