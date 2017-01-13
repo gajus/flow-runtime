@@ -189,6 +189,18 @@ describe('Typed API', () => {
 
   });
 
+  it('should apply type parameters', () => {
+    const A = t.type("A", A => {
+      const T = A.typeParameter("T");
+      return T;
+    });
+    const B = t.type("B", t.ref(A, t.string()));
+
+    ok(B.assert("abc"));
+    ok(A.assert(123));
+    throws(() => B.assert(123));
+  });
+
   it('should handle named types', () => {
     const UserEmailAddress = t.type('UserEmailAddress', t.string());
     UserEmailAddress.addConstraint(input => {

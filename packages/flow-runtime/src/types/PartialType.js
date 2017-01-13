@@ -68,14 +68,7 @@ export default class PartialType<X, T> extends Type {
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type<T> {
-    const {length} = typeInstances;
-    for (let i = 0; i < length; i++) {
-      const typeParameter = this.typeParameters[i];
-      if (typeParameter) {
-        typeParameter.recorded = typeInstances[i];
-      }
-    }
+  unwrap (): Type<T> {
     return this.type.unwrap();
   }
 
