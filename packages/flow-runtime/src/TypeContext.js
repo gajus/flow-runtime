@@ -122,6 +122,13 @@ type TypeConstructorRegistry = Map<Function, Class<TypeConstructor<any>>>;
 export type MatchClause<P, R> = (...params: P[]) => R;
 export type PatternMatcher<P, R> = (...params: P[]) => R;
 
+
+/**
+ * Keeps track of invalid references in order to prevent
+ * multiple warnings.
+ */
+const warnedInvalidReferences: WeakSet<any> = new WeakSet();
+
 export default class TypeContext {
 
   // @flowIssue 252
@@ -793,7 +800,11 @@ export default class TypeContext {
       target = subject;
     }
     else {
-      throw new Error('Could not reference the given type.');
+      if (!warnedInvalidReferences.has(subject)) {
+        this.emitWarningMessage('Could not reference the given type, try t.typeOf(value) instead.');
+        warnedInvalidReferences.add(subject);
+      }
+      return this.any();
     }
 
     if (typeInstances.length) {
