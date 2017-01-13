@@ -152,14 +152,6 @@
 	    value: function unwrap() {
 	      return this;
 	    }
-	
-	    // Issue 252
-	
-	  }, {
-	    key: Symbol.hasInstance,
-	    value: function value(input) {
-	      return this.accepts(input);
-	    }
 	  }, {
 	    key: 'toString',
 	    value: function toString() {
@@ -2193,10 +2185,8 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var globalContext = __webpack_require__(325);
-	var symbols = __webpack_require__(53);
 	
 	module.exports = globalContext.default;
-	module.exports.TypeParametersSymbol = symbols.TypeParametersSymbol;
 
 /***/ },
 /* 17 */
@@ -9730,6 +9720,8 @@
 	
 	  if (typeof input === 'function') {
 	    return _returnType4.assert('[[Function ' + (input.name || 'anonymous') + ']]');
+	  } else if (typeof input === 'string') {
+	    return _returnType4.assert(JSON.stringify(input));
 	  } else if (input == null || (typeof input === 'undefined' ? 'undefined' : _typeof(input)) !== 'object') {
 	    return _returnType4.assert(String(input));
 	  } else if (cycles.has(input)) {
@@ -9738,15 +9730,25 @@
 	  cycles.add(input);
 	  var result = void 0;
 	  if (Array.isArray(input)) {
-	    result = '[' + input.map(prepareLogItem).join(', ') + ']';
+	    if (input.length === 0) {
+	      result = '[]';
+	    } else {
+	      result = '[\n' + indent(input.map(prepareLogItem).join(',\n')) + '\n]';
+	    }
 	  } else {
 	    var props = Object.keys(input).map(function (key) {
 	      return key + ': ' + prepareLogItem(input[key]);
 	    });
 	    if (typeof input.constructor === 'function' && input.constructor !== Object) {
-	      result = input.constructor.name + ' {\n' + indent(props.join(',\n')) + '\n}';
-	    } else {
+	      if (props.length === 0) {
+	        result = input.constructor.name + ' {}';
+	      } else {
+	        result = input.constructor.name + ' {\n' + indent(props.join(',\n')) + '\n}';
+	      }
+	    } else if (props.length > 0) {
 	      result = '{\n' + indent(props.join(',\n')) + '\n}';
+	    } else {
+	      result = '{}';
 	    }
 	  }
 	  cycles.delete(input);
@@ -9863,13 +9865,16 @@
 	      var exports = {};
 	      var module = { exports: exports };
 	      var originalEmit = _flowRuntime2.default.emitWarningMessage;
-	      _flowRuntime2.default.emitWarningMessage = _flowRuntime2.default.annotate(function (message) {
-	        var _messageType = _flowRuntime2.default.string();
+	      Object.defineProperty(_flowRuntime2.default, 'emitWarningMessage', {
+	        configurable: true,
+	        value: _flowRuntime2.default.annotate(function (message) {
+	          var _messageType = _flowRuntime2.default.string();
 	
-	        _flowRuntime2.default.param('message', _messageType).assert(message);
+	          _flowRuntime2.default.param('message', _messageType).assert(message);
 	
-	        return _this.fakeConsole.warn(message);
-	      }, _flowRuntime2.default.function(_flowRuntime2.default.param('message', _flowRuntime2.default.string())));
+	          return _this.fakeConsole.warn(message);
+	        }, _flowRuntime2.default.function(_flowRuntime2.default.param('message', _flowRuntime2.default.string())))
+	      });
 	      try {
 	        var result = _flowRuntime2.default.any().assert(fn(this.fakeConsole, module, exports, function (name) {
 	          switch (name) {
@@ -9903,7 +9908,10 @@
 	      } catch (e) {
 	        this.fakeConsole.error(e.message);
 	      }
-	      _flowRuntime2.default.emitWarningMessage = originalEmit;
+	      Object.defineProperty(_flowRuntime2.default, 'emitWarningMessage', {
+	        configurable: true,
+	        value: originalEmit
+	      });
 	    }
 	  }]);
 	
@@ -9952,7 +9960,9 @@
 	        _flowRuntime2.default.rest('args', _argsType).assert(args);
 	
 	        (_console = console).log.apply(_console, _toConsumableArray(args));
-	        _this2.log.push(['log', args.map(prepareLogItem).join(' ')]);
+	        _this2.log.push(['log', args.map(function (item) {
+	          return typeof item === 'string' ? item : prepareLogItem(item);
+	        }).join(' ')]);
 	      }, _flowRuntime2.default.function(_flowRuntime2.default.rest('args', _flowRuntime2.default.array(_flowRuntime2.default.any())))),
 	      warn: _flowRuntime2.default.annotate(function () {
 	        var _console2;
@@ -9966,7 +9976,9 @@
 	        _flowRuntime2.default.rest('args', _argsType2).assert(args);
 	
 	        (_console2 = console).warn.apply(_console2, _toConsumableArray(args));
-	        _this2.log.push(['warn', args.map(prepareLogItem).join(' ')]);
+	        _this2.log.push(['warn', args.map(function (item) {
+	          return typeof item === 'string' ? item : prepareLogItem(item);
+	        }).join(' ')]);
 	      }, _flowRuntime2.default.function(_flowRuntime2.default.rest('args', _flowRuntime2.default.array(_flowRuntime2.default.any())))),
 	      error: _flowRuntime2.default.annotate(function () {
 	        var _console3;
@@ -9980,7 +9992,9 @@
 	        _flowRuntime2.default.rest('args', _argsType3).assert(args);
 	
 	        (_console3 = console).error.apply(_console3, _toConsumableArray(args));
-	        _this2.log.push(['error', args.map(prepareLogItem).join(' ')]);
+	        _this2.log.push(['error', args.map(function (item) {
+	          return typeof item === 'string' ? item : prepareLogItem(item);
+	        }).join(' ')]);
 	      }, _flowRuntime2.default.function(_flowRuntime2.default.rest('args', _flowRuntime2.default.array(_flowRuntime2.default.any()))))
 	    });
 	  }
@@ -13377,18 +13391,6 @@
 	  }, {
 	    key: 'unwrap',
 	    value: function unwrap() {
-	      for (var _len3 = arguments.length, typeInstances = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
-	        typeInstances[_key3] = arguments[_key3];
-	      }
-	
-	      var length = typeInstances.length;
-	
-	      for (var i = 0; i < length; i++) {
-	        var typeParameter = this.typeParameters[i];
-	        if (typeParameter) {
-	          typeParameter.recorded = typeInstances[i];
-	        }
-	      }
 	      return this.type.unwrap();
 	    }
 	  }, {
@@ -27702,6 +27704,10 @@
 	  _createClass(ObjectTypeIndexer, [{
 	    key: 'collectErrors',
 	    value: function collectErrors(validation, path, key, value) {
+	      // special case number types
+	      if (this.key.typeName === 'NumberType' || this.key.typeName === 'NumericLiteralType') {
+	        key = +key;
+	      }
 	      var hasErrors = this.key.collectErrors(validation, path.concat('[[Key]]'), key);
 	      if (this.value.collectErrors(validation, path.concat(key), value)) {
 	        hasErrors = true;
@@ -27716,6 +27722,10 @@
 	  }, {
 	    key: 'acceptsKey',
 	    value: function acceptsKey(key) {
+	      // special case number types
+	      if (this.key.typeName === 'NumberType' || this.key.typeName === 'NumericLiteralType') {
+	        key = +key;
+	      }
 	      return this.key.accepts(key);
 	    }
 	  }, {
@@ -28382,8 +28392,12 @@
 	
 	      if (recorded) {
 	        return recorded.collectErrors(validation, path, input);
-	      } else if (bound && bound.collectErrors(validation, path, input)) {
-	        return true;
+	      } else if (bound) {
+	        if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+	          return false;
+	        } else if (bound.collectErrors(validation, path, input)) {
+	          return true;
+	        }
 	      }
 	
 	      this.recorded = context.typeOf(input);
@@ -28399,11 +28413,15 @@
 	
 	      if (recorded) {
 	        return recorded.accepts(input);
-	      } else if (bound && !bound.accepts(input)) {
-	        return false;
+	      } else if (bound) {
+	        if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+	          return true;
+	        } else if (!bound.accepts(input)) {
+	          return false;
+	        }
 	      }
-	      this.recorded = context.typeOf(input);
 	
+	      this.recorded = context.typeOf(input);
 	      return true;
 	    }
 	  }, {
@@ -30232,6 +30250,8 @@
 	                position: 'fixed',
 	                bottom: 0,
 	                width: '80%',
+	                maxHeight: '70%',
+	                overflow: 'auto',
 	                left: 'calc(20% / 2)',
 	                zIndex: 99999
 	              } })
@@ -30539,9 +30559,9 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var simpleCode = '\nimport t from \'flow-runtime\';\nconst Adder = t.function(\n  t.param(\'a\', t.number()),\n  t.param(\'b\', t.number()),\n  t.return(t.number())\n);\nAdder.assert((a, b) => \'wat?\'); // does not throw, even though the return value is wrong.\nAdder.assert(a => 123); // throws because the function does not have enough parameters.\n'.trim();
+	var simpleCode = '\nimport t from \'flow-runtime\';\nconst Adder = t.function(\n  t.param(\'a\', t.number()),\n  t.param(\'b\', t.number()),\n  t.return(t.number())\n);\nconsole.log(Adder.assert((a, b) => \'wat?\')); // does not throw, even though the return value is wrong.\nconsole.log(Adder.assert(a => 123)); // does not throw, but the signature is wrong.\n\nconsole.log(Adder.assert({nope: true})); // throws because object is not a function.\n'.trim();
 	
-	var annotatedCode = '\nimport t from \'flow-runtime\';\nconst Adder = t.function(\n  t.param(\'a\', t.number()),\n  t.param(\'b\', t.number()),\n  t.return(t.number())\n);\n\nconst add = t.annotate(\n  (a, b) => a + b,\n  Adder\n);\n\nconst bad = t.annotate(\n  (a, b) => "wat",\n  t.function(\n    t.param(\'a\', t.string()),\n    t.param(\'b\', t.string()),\n    t.return(t.string())\n  )\n);\n\nAdder.assert(add); // ok\nAdder.assert(bad); // throws\n';
+	var annotatedCode = '\nimport t from \'flow-runtime\';\nconst Adder = t.function(\n  t.param(\'a\', t.number()),\n  t.param(\'b\', t.number()),\n  t.return(t.number())\n);\n\nconst add = t.annotate(\n  (a, b) => a + b,\n  Adder\n);\n\nconst bad = t.annotate(\n  (a, b) => "wat",\n  t.function(\n    t.param(\'a\', t.string()),\n    t.param(\'b\', t.string()),\n    t.return(t.string())\n  )\n);\n\nconsole.log(Adder.assert(add)); // ok\nconsole.log(Adder.assert(bad)); // throws\n'.trim();
 	
 	var FunctionsPage = (0, _mobxReact.observer)(_class = function (_Component) {
 	  _inherits(FunctionsPage, _Component);
@@ -31891,9 +31911,9 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var simpleCode = '\ntype User = {name: string};\nconst bob: User = {name: \'Bob\'};\n'.trim();
+	var simpleCode = '\ntype User = {name: string};\nconst bob: User = {name: \'Bob\'};\nconsole.log(bob);\n'.trim();
 	
-	var polymorphicCode = '\ntype Dict<K: string | number, V: number> = {[key: K]: V};\nconst dict: Dict = {\n  a: 123,\n  b: false\n};\n\n'.trim();
+	var polymorphicCode = '\ntype Dict<K: string | number, V: number> = {[key: K]: V};\nconst dict: Dict = {\n  a: 123,\n  b: false\n};\nconsole.log(dict);\n'.trim();
 	
 	var TypeAliasesPage = (0, _mobxReact.observer)(_class = function (_Component) {
 	  _inherits(TypeAliasesPage, _Component);
@@ -34013,7 +34033,7 @@
 	                  null,
 	                  'Ensures that the input is a valid ipv6 address:'
 	                ),
-	                _react2.default.createElement(_Example2.default, { code: quick('v.ipv6()("2001:db8::ff00:42:8329")', 'v.ipv6()("nope not valid")'), inline: true, hideOutput: true })
+	                _react2.default.createElement(_Example2.default, { code: quick('v.ipv6()("2001:0db8:85a3:0000:0000:8a2e:0370:7334")', 'v.ipv6()("nope not valid")'), inline: true, hideOutput: true })
 	              ),
 	              _react2.default.createElement('hr', null),
 	              _react2.default.createElement(
@@ -49907,7 +49927,7 @@
 	
 	var time = exports.time = (0, _makeFormatValidator2.default)(/^\d{2}:\d{2}:\d{2}$/, 'must be a valid time (HH:MM:SS)');
 	
-	var color = exports.color = (0, _makeFormatValidator2.default)(/^#[a-z0-9]{6}|#[a-z0-9]{3}|(?:rgb\(\s*(?:[+-]?\d+%?)\s*,\s*(?:[+-]?\d+%?)\s*,\s*(?:[+-]?\d+%?)\s*\))aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow$/i, 'must be a valid color');
+	var color = exports.color = (0, _makeFormatValidator2.default)(/^#[a-z0-9]{6}|#[a-z0-9]{3}|(?:rgb\(\s*(?:[+-]?\d+%?)\s*,\s*(?:[+-]?\d+%?)\s*,\s*(?:[+-]?\d+%?)\s*\))|aqua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|orange|purple|red|silver|teal|white|yellow$/i, 'must be a valid color');
 	
 	var hostName = exports.hostName = (0, _makeFormatValidator2.default)(/^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\-]*[A-Za-z0-9])$/, // eslint-disable-line
 	'must be a valid host name');
@@ -50130,6 +50150,12 @@
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	/**
+	 * Keeps track of invalid references in order to prevent
+	 * multiple warnings.
+	 */
+	var warnedInvalidReferences = new WeakSet();
 	
 	var TypeContext = function () {
 	  function TypeContext() {
@@ -50926,7 +50952,11 @@
 	      } else if (subject instanceof _types.Type) {
 	        target = subject;
 	      } else {
-	        throw new Error('Could not reference the given type.');
+	        if (!warnedInvalidReferences.has(subject)) {
+	          this.emitWarningMessage('Could not reference the given type, try t.typeOf(value) instead.');
+	          warnedInvalidReferences.add(subject);
+	        }
+	        return this.any();
 	      }
 	
 	      for (var _len12 = arguments.length, typeInstances = Array(_len12 > 1 ? _len12 - 1 : 0), _key12 = 1; _key12 < _len12; _key12++) {
@@ -52109,60 +52139,68 @@
 	
 	var _declarations = __webpack_require__(133);
 	
+	var _symbols = __webpack_require__(53);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var globalContext = new _TypeContext2.default();
+	
 	(0, _registerPrimitiveTypes2.default)(globalContext);
 	(0, _registerBuiltins2.default)(globalContext);
 	(0, _registerTypePredicates2.default)(globalContext);
 	
-	globalContext.TypeContext = _TypeContext2.default;
+	function defineProperty(name, value) {
+	  Object.defineProperty(globalContext, name, {
+	    value: value
+	  });
+	}
 	
-	globalContext.Type = _types.Type;
-	globalContext.TypeBox = _types.TypeBox;
-	globalContext.TypeParameter = _types.TypeParameter;
-	globalContext.TypeReference = _types.TypeReference;
-	globalContext.ParameterizedTypeAlias = _types.ParameterizedTypeAlias;
-	globalContext.TypeAlias = _types.TypeAlias;
-	globalContext.TypeConstructor = _types.TypeConstructor;
-	globalContext.GenericType = _types.GenericType;
-	globalContext.NullLiteralType = _types.NullLiteralType;
-	globalContext.NumberType = _types.NumberType;
-	globalContext.NumericLiteralType = _types.NumericLiteralType;
-	globalContext.BooleanType = _types.BooleanType;
-	globalContext.BooleanLiteralType = _types.BooleanLiteralType;
-	globalContext.SymbolType = _types.SymbolType;
-	globalContext.SymbolLiteralType = _types.SymbolLiteralType;
-	globalContext.StringType = _types.StringType;
-	globalContext.StringLiteralType = _types.StringLiteralType;
-	globalContext.ArrayType = _types.ArrayType;
-	globalContext.ObjectType = _types.ObjectType;
-	globalContext.ObjectTypeCallProperty = _types.ObjectTypeCallProperty;
-	globalContext.ObjectTypeIndexer = _types.ObjectTypeIndexer;
-	globalContext.ObjectTypeProperty = _types.ObjectTypeProperty;
-	globalContext.FunctionType = _types.FunctionType;
-	globalContext.ParameterizedFunctionType = _types.ParameterizedFunctionType;
-	globalContext.FunctionTypeParam = _types.FunctionTypeParam;
-	globalContext.FunctionTypeRestParam = _types.FunctionTypeRestParam;
-	globalContext.FunctionTypeReturn = _types.FunctionTypeReturn;
-	globalContext.GeneratorType = _types.GeneratorType;
-	globalContext.ExistentialType = _types.ExistentialType;
-	globalContext.AnyType = _types.AnyType;
-	globalContext.MixedType = _types.MixedType;
-	globalContext.EmptyType = _types.EmptyType;
-	globalContext.NullableType = _types.NullableType;
-	globalContext.TupleType = _types.TupleType;
-	globalContext.UnionType = _types.UnionType;
-	globalContext.IntersectionType = _types.IntersectionType;
-	globalContext.VoidType = _types.VoidType;
-	
-	globalContext.Declaration = _declarations.Declaration;
-	globalContext.VarDeclaration = _declarations.VarDeclaration;
-	globalContext.TypeDeclaration = _declarations.TypeDeclaration;
-	globalContext.ModuleDeclaration = _declarations.ModuleDeclaration;
-	globalContext.ModuleExportsDeclaration = _declarations.ModuleExportsDeclaration;
-	globalContext.ClassDeclaration = _declarations.ClassDeclaration;
-	globalContext.ExtendsDeclaration = _declarations.ExtendsDeclaration;
+	defineProperty('TypeParametersSymbol', _symbols.TypeParametersSymbol);
+	defineProperty('TypeContext', _TypeContext2.default);
+	defineProperty('Type', _types.Type);
+	defineProperty('TypeBox', _types.TypeBox);
+	defineProperty('TypeParameter', _types.TypeParameter);
+	defineProperty('TypeReference', _types.TypeReference);
+	defineProperty('ParameterizedTypeAlias', _types.ParameterizedTypeAlias);
+	defineProperty('TypeAlias', _types.TypeAlias);
+	defineProperty('TypeConstructor', _types.TypeConstructor);
+	defineProperty('GenericType', _types.GenericType);
+	defineProperty('NullLiteralType', _types.NullLiteralType);
+	defineProperty('NumberType', _types.NumberType);
+	defineProperty('NumericLiteralType', _types.NumericLiteralType);
+	defineProperty('BooleanType', _types.BooleanType);
+	defineProperty('BooleanLiteralType', _types.BooleanLiteralType);
+	defineProperty('SymbolType', _types.SymbolType);
+	defineProperty('SymbolLiteralType', _types.SymbolLiteralType);
+	defineProperty('StringType', _types.StringType);
+	defineProperty('StringLiteralType', _types.StringLiteralType);
+	defineProperty('ArrayType', _types.ArrayType);
+	defineProperty('ObjectType', _types.ObjectType);
+	defineProperty('ObjectTypeCallProperty', _types.ObjectTypeCallProperty);
+	defineProperty('ObjectTypeIndexer', _types.ObjectTypeIndexer);
+	defineProperty('ObjectTypeProperty', _types.ObjectTypeProperty);
+	defineProperty('FunctionType', _types.FunctionType);
+	defineProperty('ParameterizedFunctionType', _types.ParameterizedFunctionType);
+	defineProperty('FunctionTypeParam', _types.FunctionTypeParam);
+	defineProperty('FunctionTypeRestParam', _types.FunctionTypeRestParam);
+	defineProperty('FunctionTypeReturn', _types.FunctionTypeReturn);
+	defineProperty('GeneratorType', _types.GeneratorType);
+	defineProperty('ExistentialType', _types.ExistentialType);
+	defineProperty('AnyType', _types.AnyType);
+	defineProperty('MixedType', _types.MixedType);
+	defineProperty('EmptyType', _types.EmptyType);
+	defineProperty('NullableType', _types.NullableType);
+	defineProperty('TupleType', _types.TupleType);
+	defineProperty('UnionType', _types.UnionType);
+	defineProperty('IntersectionType', _types.IntersectionType);
+	defineProperty('VoidType', _types.VoidType);
+	defineProperty('Declaration', _declarations.Declaration);
+	defineProperty('VarDeclaration', _declarations.VarDeclaration);
+	defineProperty('TypeDeclaration', _declarations.TypeDeclaration);
+	defineProperty('ModuleDeclaration', _declarations.ModuleDeclaration);
+	defineProperty('ModuleExportsDeclaration', _declarations.ModuleExportsDeclaration);
+	defineProperty('ClassDeclaration', _declarations.ClassDeclaration);
+	defineProperty('ExtendsDeclaration', _declarations.ExtendsDeclaration);
 	
 	exports.default = globalContext;
 
@@ -55213,41 +55251,49 @@
 	  _createClass(ParameterizedFunctionType, [{
 	    key: 'collectErrors',
 	    value: function collectErrors(validation, path, input) {
-	      return this.partial.collectErrors(validation, path, input);
+	      for (var _len2 = arguments.length, typeInstances = Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
+	        typeInstances[_key2 - 3] = arguments[_key2];
+	      }
+	
+	      return getPartial.apply(undefined, [this].concat(_toConsumableArray(typeInstances))).collectErrors(validation, path, input);
 	    }
 	  }, {
 	    key: 'accepts',
 	    value: function accepts(input) {
-	      return this.partial.accepts(input);
+	      for (var _len3 = arguments.length, typeInstances = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+	        typeInstances[_key3 - 1] = arguments[_key3];
+	      }
+	
+	      return getPartial.apply(undefined, [this].concat(_toConsumableArray(typeInstances))).accepts(input);
 	    }
 	  }, {
 	    key: 'acceptsType',
 	    value: function acceptsType(input) {
-	      return this.partial.acceptsType(input);
+	      return getPartial(this).acceptsType(input);
 	    }
 	  }, {
 	    key: 'acceptsParams',
 	    value: function acceptsParams() {
-	      var _partial$type;
+	      var _getPartial$type;
 	
-	      return (_partial$type = this.partial.type).acceptsParams.apply(_partial$type, arguments);
+	      return (_getPartial$type = getPartial(this).type).acceptsParams.apply(_getPartial$type, arguments);
 	    }
 	  }, {
 	    key: 'acceptsReturn',
 	    value: function acceptsReturn(input) {
-	      return this.partial.type.acceptsReturn(input);
+	      return getPartial(this).type.acceptsReturn(input);
 	    }
 	  }, {
 	    key: 'assertParams',
 	    value: function assertParams() {
-	      var _partial$type2;
+	      var _getPartial$type2;
 	
-	      return (_partial$type2 = this.partial.type).assertParams.apply(_partial$type2, arguments);
+	      return (_getPartial$type2 = getPartial(this).type).assertParams.apply(_getPartial$type2, arguments);
 	    }
 	  }, {
 	    key: 'assertReturn',
 	    value: function assertReturn(input) {
-	      return this.partial.type.assertReturn(input);
+	      return getPartial(this).type.assertReturn(input);
 	    }
 	
 	    /**
@@ -55257,14 +55303,16 @@
 	  }, {
 	    key: 'unwrap',
 	    value: function unwrap() {
-	      var _partial;
+	      for (var _len4 = arguments.length, typeInstances = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+	        typeInstances[_key4] = arguments[_key4];
+	      }
 	
-	      return (_partial = this.partial).unwrap.apply(_partial, arguments);
+	      return getPartial.apply(undefined, [this].concat(_toConsumableArray(typeInstances))).unwrap();
 	    }
 	  }, {
 	    key: 'toString',
 	    value: function toString() {
-	      var partial = this.partial;
+	      var partial = getPartial(this);
 	      var type = partial.type,
 	          typeParameters = partial.typeParameters;
 	
@@ -55281,40 +55329,28 @@
 	  }, {
 	    key: 'toJSON',
 	    value: function toJSON() {
-	      var partial = this.partial;
-	
+	      var partial = getPartial(this);
 	      return partial.toJSON();
-	    }
-	  }, {
-	    key: 'partial',
-	    get: function get() {
-	      var context = this.context,
-	          bodyCreator = this.bodyCreator;
-	
-	      var target = new _PartialType2.default(context);
-	      var body = bodyCreator(target);
-	      target.type = context.function.apply(context, _toConsumableArray(body));
-	      return target;
 	    }
 	  }, {
 	    key: 'typeParameters',
 	    get: function get() {
-	      return this.partial.typeParameters;
+	      return getPartial(this).typeParameters;
 	    }
 	  }, {
 	    key: 'params',
 	    get: function get() {
-	      return this.partial.type.params;
+	      return getPartial(this).type.params;
 	    }
 	  }, {
 	    key: 'rest',
 	    get: function get() {
-	      return this.partial.type.rest;
+	      return getPartial(this).type.rest;
 	    }
 	  }, {
 	    key: 'returnType',
 	    get: function get() {
-	      return this.partial.type.returnType;
+	      return getPartial(this).type.returnType;
 	    }
 	  }]);
 	
@@ -55322,6 +55358,37 @@
 	}(_Type3.default);
 	
 	exports.default = ParameterizedFunctionType;
+	
+	
+	function getPartial(parent) {
+	  var context = parent.context,
+	      bodyCreator = parent.bodyCreator;
+	
+	  var partial = new _PartialType2.default(context);
+	  var body = bodyCreator(partial);
+	  partial.type = context.function.apply(context, _toConsumableArray(body));
+	
+	  var typeParameters = partial.typeParameters;
+	
+	  for (var _len5 = arguments.length, typeInstances = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+	    typeInstances[_key5 - 1] = arguments[_key5];
+	  }
+	
+	  var limit = Math.min(typeInstances.length, typeParameters.length);
+	  for (var i = 0; i < limit; i++) {
+	    var typeParameter = typeParameters[i];
+	    var typeInstance = typeInstances[i];
+	    if (typeParameter.bound && typeParameter.bound !== typeInstance) {
+	      // if the type parameter is already bound we need to
+	      // create an intersection type with this one.
+	      typeParameter.bound = context.intersect(typeParameter.bound, typeInstance);
+	    } else {
+	      typeParameter.bound = typeInstance;
+	    }
+	  }
+	
+	  return partial;
+	}
 
 /***/ },
 /* 346 */
@@ -55380,13 +55447,22 @@
 	  _createClass(ParameterizedTypeAlias, [{
 	    key: 'collectErrors',
 	    value: function collectErrors(validation, path, input) {
-	      return this.partial.collectErrors(validation, path, input);
+	      for (var _len2 = arguments.length, typeInstances = Array(_len2 > 3 ? _len2 - 3 : 0), _key2 = 3; _key2 < _len2; _key2++) {
+	        typeInstances[_key2 - 3] = arguments[_key2];
+	      }
+	
+	      var partial = getPartial.apply(undefined, [this].concat(_toConsumableArray(typeInstances)));
+	
+	      return partial.collectErrors(validation, path, input);
 	    }
 	  }, {
 	    key: 'accepts',
 	    value: function accepts(input) {
-	      var partial = this.partial;
+	      for (var _len3 = arguments.length, typeInstances = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+	        typeInstances[_key3 - 1] = arguments[_key3];
+	      }
 	
+	      var partial = getPartial.apply(undefined, [this].concat(_toConsumableArray(typeInstances)));
 	      if (!partial.accepts(input)) {
 	        return false;
 	      } else if (!(0, _typeConstraints.constraintsAccept)(this, input)) {
@@ -55398,13 +55474,13 @@
 	  }, {
 	    key: 'acceptsType',
 	    value: function acceptsType(input) {
-	      return this.partial.acceptsType(input);
+	      return getPartial(this).acceptsType(input);
 	    }
 	  }, {
 	    key: 'hasProperty',
 	    value: function hasProperty(name) {
-	      for (var _len2 = arguments.length, typeInstances = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-	        typeInstances[_key2 - 1] = arguments[_key2];
+	      for (var _len4 = arguments.length, typeInstances = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+	        typeInstances[_key4 - 1] = arguments[_key4];
 	      }
 	
 	      var inner = this.unwrap.apply(this, _toConsumableArray(typeInstances));
@@ -55417,8 +55493,8 @@
 	  }, {
 	    key: 'getProperty',
 	    value: function getProperty(name) {
-	      for (var _len3 = arguments.length, typeInstances = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-	        typeInstances[_key3 - 1] = arguments[_key3];
+	      for (var _len5 = arguments.length, typeInstances = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+	        typeInstances[_key5 - 1] = arguments[_key5];
 	      }
 	
 	      var inner = this.unwrap.apply(this, _toConsumableArray(typeInstances));
@@ -55434,15 +55510,16 @@
 	  }, {
 	    key: 'unwrap',
 	    value: function unwrap() {
-	      var _partial;
+	      for (var _len6 = arguments.length, typeInstances = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+	        typeInstances[_key6] = arguments[_key6];
+	      }
 	
-	      return (_partial = this.partial).unwrap.apply(_partial, arguments);
+	      return getPartial.apply(undefined, [this].concat(_toConsumableArray(typeInstances))).unwrap();
 	    }
 	  }, {
 	    key: 'toString',
 	    value: function toString(withDeclaration) {
-	      var name = this.name,
-	          partial = this.partial;
+	      var partial = getPartial(this);
 	      var typeParameters = partial.typeParameters;
 	
 	      var items = [];
@@ -55450,6 +55527,9 @@
 	        var typeParameter = typeParameters[i];
 	        items.push(typeParameter.toString(true));
 	      }
+	
+	      var name = this.name;
+	
 	      var identifier = typeParameters.length > 0 ? name + '<' + items.join(', ') + '>' : name;
 	
 	      if (withDeclaration) {
@@ -55461,21 +55541,8 @@
 	  }, {
 	    key: 'toJSON',
 	    value: function toJSON() {
-	      var partial = this.partial;
-	
+	      var partial = getPartial(this);
 	      return partial.toJSON();
-	    }
-	  }, {
-	    key: 'partial',
-	    get: function get() {
-	      var typeCreator = this.typeCreator,
-	          name = this.name;
-	
-	      var target = new _PartialType2.default(this.context);
-	      target.name = name;
-	      target.type = typeCreator(target);
-	      target.constraints = this.constraints;
-	      return target;
 	    }
 	  }]);
 	
@@ -55483,6 +55550,39 @@
 	}(_TypeAlias3.default);
 	
 	exports.default = ParameterizedTypeAlias;
+	
+	
+	function getPartial(parent) {
+	  var typeCreator = parent.typeCreator,
+	      context = parent.context,
+	      name = parent.name;
+	
+	  var partial = new _PartialType2.default(context);
+	  partial.name = name;
+	  partial.type = typeCreator(partial);
+	  partial.constraints = parent.constraints;
+	
+	  var typeParameters = partial.typeParameters;
+	
+	  for (var _len7 = arguments.length, typeInstances = Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
+	    typeInstances[_key7 - 1] = arguments[_key7];
+	  }
+	
+	  var limit = Math.min(typeInstances.length, typeParameters.length);
+	  for (var i = 0; i < limit; i++) {
+	    var typeParameter = typeParameters[i];
+	    var typeInstance = typeInstances[i];
+	    if (typeParameter.bound && typeParameter.bound !== typeInstance) {
+	      // if the type parameter is already bound we need to
+	      // create an intersection type with this one.
+	      typeParameter.bound = context.intersect(typeParameter.bound, typeInstance);
+	    } else {
+	      typeParameter.bound = typeInstance;
+	    }
+	  }
+	
+	  return partial;
+	}
 
 /***/ },
 /* 347 */
@@ -56520,4 +56620,4 @@
 
 /***/ }
 /******/ ])));
-//# sourceMappingURL=main.175c7422.js.map
+//# sourceMappingURL=main.02cfcbb8.js.map
