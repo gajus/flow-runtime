@@ -50,11 +50,6 @@ export default class Type <T> {
     return this;
   }
 
-  // @flowIssue 252
-  [Symbol.hasInstance] (input: any) {
-    return this.accepts(input);
-  }
-
   toString () {
     throw new Error('Not implemented.');
   }
