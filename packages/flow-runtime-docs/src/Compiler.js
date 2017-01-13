@@ -74,6 +74,9 @@ function prepareLogItem (input: any): string {
   if (typeof input === 'function') {
     return `[[Function ${input.name || 'anonymous'}]]`;
   }
+  else if (typeof input === 'string') {
+    return JSON.stringify(input);
+  }
   else if (input == null || typeof input !== 'object') {
     return String(input);
   }
@@ -83,15 +86,28 @@ function prepareLogItem (input: any): string {
   cycles.add(input);
   let result;
   if (Array.isArray(input)) {
-    result = `[${input.map(prepareLogItem).join(', ')}]`;
+    if (input.length === 0) {
+      result = '[]';
+    }
+    else {
+      result = `[\n${indent(input.map(prepareLogItem).join(',\n'))}\n]`;
+    }
   }
   else {
     const props = Object.keys(input).map(key => `${key}: ${prepareLogItem(input[key])}`);
     if (typeof input.constructor === 'function' && input.constructor !== Object) {
-      result = `${input.constructor.name} {\n${indent(props.join(',\n'))}\n}`;
+      if (props.length === 0) {
+        result = `${input.constructor.name} {}`;
+      }
+      else {
+        result = `${input.constructor.name} {\n${indent(props.join(',\n'))}\n}`;
+      }
+    }
+    else if (props.length > 0) {
+      result = `{\n${indent(props.join(',\n'))}\n}`
     }
     else {
-      result = `{\n${indent(props.join(',\n'))}\n}`
+      result = '{}';
     }
   }
   cycles.delete(input);
@@ -125,15 +141,15 @@ export default class Compiler {
   fakeConsole: FakeConsole = makeFakeConsole({
     log: (...args: any[]) => {
       console.log(...args);
-      this.log.push(['log', args.map(prepareLogItem).join(' ')]);
+      this.log.push(['log', args.map(item => typeof item === 'string' ? item : prepareLogItem(item)).join(' ')]);
     },
     warn: (...args: any[]) => {
       console.warn(...args);
-      this.log.push(['warn', args.map(prepareLogItem).join(' ')]);
+      this.log.push(['warn', args.map(item => typeof item === 'string' ? item : prepareLogItem(item)).join(' ')]);
     },
     error: (...args: any[]) => {
       console.error(...args);
-      this.log.push(['error', args.map(prepareLogItem).join(' ')]);
+      this.log.push(['error', args.map(item => typeof item === 'string' ? item : prepareLogItem(item)).join(' ')]);
     }
   });
 
@@ -172,7 +188,10 @@ export default class Compiler {
     const exports = {};
     const module = {exports};
     const originalEmit = t.emitWarningMessage;
-    t.emitWarningMessage = (message: string) => this.fakeConsole.warn(message);
+    Object.defineProperty(t, 'emitWarningMessage', {
+      configurable: true,
+      value: (message: string) => this.fakeConsole.warn(message)
+    });
     try {
       const result: any = fn(this.fakeConsole, module, exports, (name) => {
         switch (name) {
@@ -208,7 +227,10 @@ export default class Compiler {
     catch (e) {
       this.fakeConsole.error(e.message);
     }
-    t.emitWarningMessage = originalEmit;
+    Object.defineProperty(t, 'emitWarningMessage', {
+      configurable: true,
+      value: originalEmit
+    });
   }
 }
 
