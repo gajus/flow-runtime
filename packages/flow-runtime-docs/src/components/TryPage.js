@@ -115,6 +115,8 @@ export default class TryPage extends Component<void, Props, void> {
               position: 'fixed',
               bottom: 0,
               width: '80%',
+              maxHeight: '70%',
+              overflow: 'auto',
               left: 'calc(20% / 2)',
               zIndex: 99999
             }}/>
