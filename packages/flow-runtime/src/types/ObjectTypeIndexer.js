@@ -11,6 +11,10 @@ export default class ObjectTypeIndexer<K: string | number, V> extends Type {
   value: Type<V>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, key: any, value: any): boolean {
+    // special case number types
+    if (this.key.typeName === 'NumberType' || this.key.typeName === 'NumericLiteralType') {
+      key = +key;
+    }
     let hasErrors = this.key.collectErrors(validation, path.concat('[[Key]]'), key);
     if (this.value.collectErrors(validation, path.concat(key), value)) {
       hasErrors = true;
@@ -23,6 +27,10 @@ export default class ObjectTypeIndexer<K: string | number, V> extends Type {
   }
 
   acceptsKey (key: any): boolean {
+    // special case number types
+    if (this.key.typeName === 'NumberType' || this.key.typeName === 'NumericLiteralType') {
+      key = +key;
+    }
     return this.key.accepts(key);
   }
 
