@@ -23,8 +23,13 @@ export default class TypeParameter<T> extends Type {
     if (recorded) {
       return recorded.collectErrors(validation, path, input);
     }
-    else if (bound && bound.collectErrors(validation, path, input)) {
-      return true;
+    else if (bound) {
+      if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+        return false;
+      }
+      else if (bound.collectErrors(validation, path, input)) {
+        return true;
+      }
     }
 
     this.recorded = context.typeOf(input);
@@ -32,17 +37,21 @@ export default class TypeParameter<T> extends Type {
   }
 
   accepts (input: any): boolean {
-
     const {recorded, bound, context} = this;
 
     if (recorded) {
       return recorded.accepts(input);
     }
-    else if (bound && !bound.accepts(input)) {
-      return false;
+    else if (bound) {
+      if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+        return true;
+      }
+      else if (!bound.accepts(input)) {
+        return false;
+      }
     }
-    this.recorded = context.typeOf(input);
 
+    this.recorded = context.typeOf(input);
     return true;
   }
 
