@@ -147,7 +147,7 @@ export default class FlowRuntimeValidatorsPage extends Component {
               <div>
                 <h4>ipv6()</h4>
                 <p>Ensures that the input is a valid ipv6 address:</p>
-                <Example code={quick(`v.ipv6()("2001:db8::ff00:42:8329")`, `v.ipv6()("nope not valid")`)} inline hideOutput />
+                <Example code={quick(`v.ipv6()("2001:0db8:85a3:0000:0000:8a2e:0370:7334")`, `v.ipv6()("nope not valid")`)} inline hideOutput />
               </div>
               <hr />
               <div>

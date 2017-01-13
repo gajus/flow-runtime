@@ -8,6 +8,7 @@ import Example from '../Example';
 const simpleCode = `
 type User = {name: string};
 const bob: User = {name: 'Bob'};
+console.log(bob);
 `.trim();
 
 
@@ -17,7 +18,7 @@ const dict: Dict = {
   a: 123,
   b: false
 };
-
+console.log(dict);
 `.trim();
 
 @observer
