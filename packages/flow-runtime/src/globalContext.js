@@ -57,57 +57,66 @@ import {
   ExtendsDeclaration
 } from './declarations';
 
+import {
+  TypeParametersSymbol
+} from './symbols';
+
 const globalContext: any = new TypeContext();
 registerPrimitiveTypes(globalContext);
 registerBuiltinTypeConstructors(globalContext);
 registerTypePredicates(globalContext);
 
-globalContext.TypeContext = TypeContext;
+function defineProperty (name: string, value: any) {
+  Object.defineProperty(globalContext, name, {
+    value: value
+  });
+}
 
-globalContext.Type = Type;
-globalContext.TypeBox = TypeBox;
-globalContext.TypeParameter = TypeParameter;
-globalContext.TypeReference = TypeReference;
-globalContext.ParameterizedTypeAlias = ParameterizedTypeAlias;
-globalContext.TypeAlias = TypeAlias;
-globalContext.TypeConstructor = TypeConstructor;
-globalContext.GenericType = GenericType;
-globalContext.NullLiteralType = NullLiteralType;
-globalContext.NumberType = NumberType;
-globalContext.NumericLiteralType = NumericLiteralType;
-globalContext.BooleanType = BooleanType;
-globalContext.BooleanLiteralType = BooleanLiteralType;
-globalContext.SymbolType = SymbolType;
-globalContext.SymbolLiteralType = SymbolLiteralType;
-globalContext.StringType = StringType;
-globalContext.StringLiteralType = StringLiteralType;
-globalContext.ArrayType = ArrayType;
-globalContext.ObjectType = ObjectType;
-globalContext.ObjectTypeCallProperty = ObjectTypeCallProperty;
-globalContext.ObjectTypeIndexer = ObjectTypeIndexer;
-globalContext.ObjectTypeProperty = ObjectTypeProperty;
-globalContext.FunctionType = FunctionType;
-globalContext.ParameterizedFunctionType = ParameterizedFunctionType;
-globalContext.FunctionTypeParam = FunctionTypeParam;
-globalContext.FunctionTypeRestParam = FunctionTypeRestParam;
-globalContext.FunctionTypeReturn = FunctionTypeReturn;
-globalContext.GeneratorType = GeneratorType;
-globalContext.ExistentialType = ExistentialType;
-globalContext.AnyType = AnyType;
-globalContext.MixedType = MixedType;
-globalContext.EmptyType = EmptyType;
-globalContext.NullableType = NullableType;
-globalContext.TupleType = TupleType;
-globalContext.UnionType = UnionType;
-globalContext.IntersectionType = IntersectionType;
-globalContext.VoidType = VoidType;
-
-globalContext.Declaration = Declaration;
-globalContext.VarDeclaration = VarDeclaration;
-globalContext.TypeDeclaration = TypeDeclaration;
-globalContext.ModuleDeclaration = ModuleDeclaration;
-globalContext.ModuleExportsDeclaration = ModuleExportsDeclaration;
-globalContext.ClassDeclaration = ClassDeclaration;
-globalContext.ExtendsDeclaration = ExtendsDeclaration;
+defineProperty('TypeParametersSymbol', TypeParametersSymbol);
+defineProperty('TypeContext', TypeContext);
+defineProperty('Type', Type);
+defineProperty('TypeBox', TypeBox);
+defineProperty('TypeParameter', TypeParameter);
+defineProperty('TypeReference', TypeReference);
+defineProperty('ParameterizedTypeAlias', ParameterizedTypeAlias);
+defineProperty('TypeAlias', TypeAlias);
+defineProperty('TypeConstructor', TypeConstructor);
+defineProperty('GenericType', GenericType);
+defineProperty('NullLiteralType', NullLiteralType);
+defineProperty('NumberType', NumberType);
+defineProperty('NumericLiteralType', NumericLiteralType);
+defineProperty('BooleanType', BooleanType);
+defineProperty('BooleanLiteralType', BooleanLiteralType);
+defineProperty('SymbolType', SymbolType);
+defineProperty('SymbolLiteralType', SymbolLiteralType);
+defineProperty('StringType', StringType);
+defineProperty('StringLiteralType', StringLiteralType);
+defineProperty('ArrayType', ArrayType);
+defineProperty('ObjectType', ObjectType);
+defineProperty('ObjectTypeCallProperty', ObjectTypeCallProperty);
+defineProperty('ObjectTypeIndexer', ObjectTypeIndexer);
+defineProperty('ObjectTypeProperty', ObjectTypeProperty);
+defineProperty('FunctionType', FunctionType);
+defineProperty('ParameterizedFunctionType', ParameterizedFunctionType);
+defineProperty('FunctionTypeParam', FunctionTypeParam);
+defineProperty('FunctionTypeRestParam', FunctionTypeRestParam);
+defineProperty('FunctionTypeReturn', FunctionTypeReturn);
+defineProperty('GeneratorType', GeneratorType);
+defineProperty('ExistentialType', ExistentialType);
+defineProperty('AnyType', AnyType);
+defineProperty('MixedType', MixedType);
+defineProperty('EmptyType', EmptyType);
+defineProperty('NullableType', NullableType);
+defineProperty('TupleType', TupleType);
+defineProperty('UnionType', UnionType);
+defineProperty('IntersectionType', IntersectionType);
+defineProperty('VoidType', VoidType);
+defineProperty('Declaration', Declaration);
+defineProperty('VarDeclaration', VarDeclaration);
+defineProperty('TypeDeclaration', TypeDeclaration);
+defineProperty('ModuleDeclaration', ModuleDeclaration);
+defineProperty('ModuleExportsDeclaration', ModuleExportsDeclaration);
+defineProperty('ClassDeclaration', ClassDeclaration);
+defineProperty('ExtendsDeclaration', ExtendsDeclaration);
 
 export default (globalContext: TypeContext);
