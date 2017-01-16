@@ -15,6 +15,9 @@ import makeWarningMessage from './errorReporting/makeWarningMessage';
 import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
 
+import {openTypeParameters, closeTypeParameters} from './types/TypeParameter';
+
+
 import {
   Type,
   TypeParameter,
@@ -500,6 +503,14 @@ export default class TypeContext {
     target.id = id;
     target.bound = bound;
     return target;
+  }
+
+  openTypeParameters <T> (...typeParameters: TypeParameter<T>[]) {
+    openTypeParameters(...typeParameters);
+  }
+
+  closeTypeParameters <T> (...typeParameters: TypeParameter<T>[]) {
+    closeTypeParameters(...typeParameters);
   }
 
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {

@@ -3,6 +3,10 @@
 import Type from './Type';
 import type Validation, {IdentifierPath} from '../Validation';
 
+export type TypeParameterStatus = 'open' | 'closed';
+
+import {TypeParameterStatusSymbol} from '../symbols';
+
 /**
  * # TypeParameter
  *
@@ -17,11 +21,47 @@ export default class TypeParameter<T> extends Type {
 
   recorded: ? Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    const {recorded, bound, context} = this;
+  // @flowIssue 252
+  [TypeParameterStatusSymbol]: TypeParameterStatus = 'closed';
 
+  /**
+   * Determines whether the type parameter is "open" or not.
+   * An open type parameter will make a union of all types it receives,
+   * a closed type parameter will adopt the first type it sees and use that
+   * for all subsequent checks.
+   */
+  get isOpen (): boolean {
+    return (this: $FlowIssue<252>)[TypeParameterStatusSymbol] === 'open';
+  }
+
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    const {recorded, bound, context, isOpen} = this;
+    if (bound instanceof TypeParameter && bound.isOpen) {
+      // We're bound with a type parameter which is open.
+      // We defer to the other type parameter so that values from this
+      // one can flow "upwards".
+      return bound.collectErrors(validation, path, input);
+    }
     if (recorded) {
-      return recorded.collectErrors(validation, path, input);
+      // we've already recorded a value for this type parameter
+      if (isOpen) {
+        if (bound && bound.collectErrors(validation, path, input)) {
+          return true;
+        }
+        else if (recorded.accepts(input)) {
+          // our existing type already permits this value, there's nothing to do.
+          return false;
+        }
+        else {
+          // we need to make a union
+          this.recorded = context.union(recorded, context.typeOf(input));
+          return false;
+        }
+      }
+      else {
+        // when type parameters are closed we check against the recorded value.
+        return recorded.collectErrors(validation, path, input);
+      }
     }
     else if (bound) {
       if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
@@ -37,10 +77,29 @@ export default class TypeParameter<T> extends Type {
   }
 
   accepts (input: any): boolean {
-    const {recorded, bound, context} = this;
-
+    const {recorded, bound, context, isOpen} = this;
+    if (bound instanceof TypeParameter && bound.isOpen) {
+      // We're bound with a type parameter which is open.
+      // We defer to the other type parameter so that values from this
+      // one can flow "upwards".
+      return bound.accepts(input);
+    }
     if (recorded) {
-      return recorded.accepts(input);
+      if (isOpen) {
+        if (bound && !bound.accepts(input)) {
+          return false;
+        }
+        else if (recorded.accepts(input)) {
+          return true;
+        }
+        else {
+          this.recorded = context.union(recorded, context.typeOf(input));
+          return true;
+        }
+      }
+      else {
+        return recorded.accepts(input);
+      }
     }
     else if (bound) {
       if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
@@ -105,5 +164,25 @@ export default class TypeParameter<T> extends Type {
       bound: this.bound,
       recorded: this.recorded
     };
+  }
+}
+
+/**
+ * Open the given type parameters.
+ */
+export function openTypeParameters <T> (...typeParameters: TypeParameter<T>[]) {
+  const {length} = typeParameters;
+  for (let i = 0; i < length; i++) {
+    (typeParameters[i]: $FlowIssue<252>)[TypeParameterStatusSymbol] = 'open';
+  }
+}
+
+/**
+ * Close the given type parameters.
+ */
+export function closeTypeParameters <T> (...typeParameters: TypeParameter<T>[]) {
+  const {length} = typeParameters;
+  for (let i = 0; i < length; i++) {
+    (typeParameters[i]: $FlowIssue<252>)[TypeParameterStatusSymbol] = 'closed';
   }
 }
