@@ -11,7 +11,7 @@ const objectExample = `
 import t, {reify} from 'flow-runtime';
 import type {Type} from 'flow-runtime';
 
-import * as validators from 'flow-runtime-validators';
+import * as v from 'flow-runtime-validators';
 
 type User = {
   username: string;
@@ -21,11 +21,11 @@ type User = {
 const UserType = (reify: Type<User>);
 
 UserType.getProperty('username').addConstraint(
-  validators.length({min: 3, max: 16}),
-  validators.regexp({pattern: /^(\\w+)$/, message: 'must be alphanumeric, no spaces.'})
+  v.length({min: 3, max: 16}),
+  v.regexp({pattern: /^(\\w+)$/, message: 'must be alphanumeric, no spaces.'})
 );
 
-UserType.getProperty('email').addConstraint(validators.email());
+UserType.getProperty('email').addConstraint(v.email());
 
 const demoUsers = [
   {username: 'Sally', email: 'sally@example.com'},
