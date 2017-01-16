@@ -16,8 +16,8 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "flow-runtime";
   import { Component } from "react";
+  import t from "flow-runtime";
 
   const Props = t.type("Props", t.object(
     t.property("x", t.number()),

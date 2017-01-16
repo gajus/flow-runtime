@@ -8,9 +8,9 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "flow-runtime";
   import { reify } from "flow-runtime";
   import { Type } from "flow-runtime";
+  import t from "flow-runtime";
   const Demo = t.type("Demo", t.number());
   console.log(Demo);
 `;

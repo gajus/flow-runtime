@@ -17,8 +17,8 @@ class Point extends R.Component {
 `;
 
 export const expected = `
-import t from "flow-runtime";
 import * as R from 'react';
+import t from "flow-runtime";
 
 const Props = t.type("Props", t.object(
   t.property("x", t.number()),
