@@ -8,7 +8,7 @@ export const expected = `
   import t from "flow-runtime";
   const demo = input => {
   const T = t.typeParameter("T", t.string());
-    let _inputType = T;
+    let _inputType = t.flowInto(T);
     const _returnType = t.return(T);
     t.param("input", _inputType).assert(input);
     return _returnType.assert(input);
@@ -25,7 +25,7 @@ export const decorated = `
     t.function(_fn => {
       const T = _fn.typeParameter("T", t.string());
       return [
-        t.param("input", T),
+        t.param("input", t.flowInto(T)),
         t.return(T)
       ];
     })
@@ -37,7 +37,7 @@ export const combined = `
   const demo = t.annotate(
     input => {
       const T = t.typeParameter("T", t.string());
-      let _inputType = T;
+      let _inputType = t.flowInto(T);
       const _returnType = t.return(T);
       t.param("input", _inputType).assert(input);
       return _returnType.assert(input);
@@ -45,7 +45,7 @@ export const combined = `
     t.function(_fn => {
       const T = _fn.typeParameter("T", t.string());
       return [
-        t.param("input", T),
+        t.param("input", t.flowInto(T)),
         t.return(T)
       ];
     })

@@ -38,6 +38,7 @@ import {
   ObjectTypeCallProperty,
   ObjectTypeIndexer,
   ObjectTypeProperty,
+  FlowIntoType,
   FunctionType,
   ParameterizedFunctionType,
   FunctionTypeParam,
@@ -502,6 +503,12 @@ export default class TypeContext {
     return target;
   }
 
+  flowInto <T> (typeParameter: TypeParameter<T>): FlowIntoType<T> {
+    const target = new FlowIntoType(this);
+    target.typeParameter = typeParameter;
+    return target;
+  }
+
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
     // @flowIssue 252
     const typeParameters = subject[TypeParametersSymbol];
@@ -895,5 +902,6 @@ export default class TypeContext {
     target.addConstraint(...constraints);
     return target;
   }
+
 }
 

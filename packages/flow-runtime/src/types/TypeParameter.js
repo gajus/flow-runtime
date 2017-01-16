@@ -3,6 +3,8 @@
 import Type from './Type';
 import type Validation, {IdentifierPath} from '../Validation';
 
+import FlowIntoType from './FlowIntoType';
+
 /**
  * # TypeParameter
  *
@@ -17,10 +19,16 @@ export default class TypeParameter<T> extends Type {
 
   recorded: ? Type<T>;
 
+
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {recorded, bound, context} = this;
-
-    if (recorded) {
+    if (bound instanceof FlowIntoType) {
+      // We defer to the other type parameter so that values from this
+      // one can flow "upwards".
+      return bound.accepts(input);
+    }
+    else if (recorded) {
+      // we've already recorded a value for this type parameter
       return recorded.collectErrors(validation, path, input);
     }
     else if (bound) {
@@ -38,8 +46,12 @@ export default class TypeParameter<T> extends Type {
 
   accepts (input: any): boolean {
     const {recorded, bound, context} = this;
-
-    if (recorded) {
+    if (bound instanceof FlowIntoType) {
+      // We defer to the other type parameter so that values from this
+      // one can flow "upwards".
+      return bound.accepts(input);
+    }
+    else if (recorded) {
       return recorded.accepts(input);
     }
     else if (bound) {
@@ -59,7 +71,7 @@ export default class TypeParameter<T> extends Type {
     const {recorded, bound} = this;
     if (input instanceof TypeParameter) {
       // We don't need to check for `recorded` or `bound` fields
-      // because the input has already been resolved.
+      // because the input has already been unwrapped.
       return true;
     }
     else if (recorded) {

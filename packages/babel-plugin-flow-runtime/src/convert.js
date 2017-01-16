@@ -39,6 +39,36 @@ function annotationReferencesId (annotation: NodePath, name: string): boolean {
   return false;
 }
 
+/**
+ * Determine whether a given type parameter exists in a position where
+ * values it receives should flow into the union of types the annotation
+ * allows. For example, given a function like `<T> (a: T, b: T) => T`,
+ * T should be a union of whatever `a` and `b` are.
+ *
+ * If the annotation exists in a function parameter, it is considered flowable.
+ */
+function typeParameterCanFlow (annotation: NodePath) {
+  let subject = annotation.parentPath;
+  while (subject) {
+    if (subject.isFlow()) {
+      subject = subject.parentPath;
+      continue;
+    }
+    else if (subject.isStatement()) {
+      return false;
+    }
+
+    if (subject.isIdentifier()) {
+      if (subject.parentPath.isFunction() && subject.listKey === 'params') {
+        return true;
+      }
+    }
+    subject = subject.parentPath;
+  }
+
+  return false;
+}
+
 function annotationParentHasTypeParameter (annotation: NodePath, name: string): boolean {
   let subject = annotation.parentPath;
   while (subject && subject.isFlow()) {
@@ -481,10 +511,20 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 
+  const isTypeParameter = (
+    (entity && entity.isTypeParameter)
+    || annotationParentHasTypeParameter(path, name)
+  );
+
+  if (isTypeParameter && typeParameterCanFlow(path)) {
+    subject = context.call('flowInto', subject);
+  }
+
   const isDirectlyReferenceable
-        = annotationParentHasTypeParameter(path, name)
-        || (entity && (entity.isTypeAlias || entity.isTypeParameter))
+        = isTypeParameter
+        || (entity && entity.isTypeAlias)
         ;
+
 
   if (isDirectlyReferenceable) {
     if (typeParameters.length > 0) {

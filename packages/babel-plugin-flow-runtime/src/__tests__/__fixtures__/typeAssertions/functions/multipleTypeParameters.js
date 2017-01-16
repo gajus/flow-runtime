@@ -9,8 +9,8 @@ export const expected = `
   const demo = (key, value) => {
     const K = t.typeParameter("K");
     const V = t.typeParameter("V");
-    let _keyType = K;
-    let _valueType = V;
+    let _keyType = t.flowInto(K);
+    let _valueType = t.flowInto(V);
     const _returnType = t.return(t.ref(Map, K, V));
     t.param("key", _keyType).assert(key);
     t.param("value", _valueType).assert(value);

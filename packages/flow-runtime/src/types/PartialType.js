@@ -8,7 +8,6 @@ import TypeParameterApplication from './TypeParameterApplication';
 
 import {collectConstraintErrors, constraintsAccept} from '../typeConstraints';
 
-
 export default class PartialType<X, T> extends Type {
   typeName: string = 'PartialType';
   name: string;

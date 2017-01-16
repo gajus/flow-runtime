@@ -40,6 +40,7 @@ import BooleanLiteralType from './BooleanLiteralType';
 import BooleanType from './BooleanType';
 import EmptyType from './EmptyType';
 import ExistentialType from './ExistentialType';
+import FlowIntoType from './FlowIntoType';
 import FunctionType from './FunctionType';
 import FunctionTypeParam from './FunctionTypeParam';
 import FunctionTypeRestParam from './FunctionTypeRestParam';
@@ -82,6 +83,7 @@ export {
   BooleanType,
   EmptyType,
   ExistentialType,
+  FlowIntoType,
   FunctionType,
   FunctionTypeParam,
   FunctionTypeRestParam,

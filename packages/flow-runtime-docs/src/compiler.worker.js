@@ -3,7 +3,6 @@
 declare var self: DedicatedWorkerGlobalScope;
 
 import {parse} from 'babylon';
-import generate from 'babel-generator';
 import transform from 'babel-plugin-flow-runtime/lib/transform';
 import * as Babel from 'babel-standalone';
 
@@ -31,11 +30,10 @@ function getAST (input: string): AST {
   });
 }
 
-function transformFlowRuntime (ast: AST, options: Object): string {
+function transformFlowRuntime (ast: AST, input: string, options: Object): string {
   transform(ast, options);
-  const {code} = generate(ast, {
-    tabWidth: 2
-  });
+
+  const {code} = Babel.transformFromAst(ast, input, { plugins: ['transform-flow-strip-types']});
   return code;
 }
 
@@ -53,7 +51,7 @@ function compileBabel (ast: AST, input: string): string {
     ast = getAST(input);
     result = [
       id,
-      transformFlowRuntime(ast, options),
+      transformFlowRuntime(ast, input, options),
       compileBabel(ast, input)
     ];
   }
