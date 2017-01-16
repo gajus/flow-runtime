@@ -549,7 +549,12 @@ export default function transformVisitors (context: ConversionContext): Object {
               decoration
             )
           );
-          path.insertAfter(replacement);
+          if (path.parentPath.isExportDefaultDeclaration() || path.parentPath.isExportDeclaration()) {
+            path.parentPath.insertAfter(replacement);
+          }
+          else {
+            path.insertAfter(replacement);
+          }
         }
         else if (path.isFunctionDeclaration()) {
           // we don't have an id, so we're probably an `export default function () {}`
