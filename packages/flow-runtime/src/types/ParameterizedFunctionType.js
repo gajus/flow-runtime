@@ -92,9 +92,7 @@ function getPartial <X, P, R> (parent: ParameterizedFunctionType<X, P, R>, ...ty
 
   const {context, bodyCreator} = parent;
   const partial = new PartialType(context);
-  partial.openTypeParameters();
   const body = bodyCreator(partial);
-  partial.closeTypeParameters(); // this may have already beeen done in the bodyCreator, but make sure.
   partial.type = context.function(...body);
 
   const {typeParameters} = partial;

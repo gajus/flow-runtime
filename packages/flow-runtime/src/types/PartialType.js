@@ -3,14 +3,10 @@ import Type from './Type';
 import type {TypeConstraint} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
-import TypeParameter, {openTypeParameters, closeTypeParameters} from './TypeParameter';
-import type {TypeParameterStatus} from './TypeParameter';
+import TypeParameter from './TypeParameter';
 import TypeParameterApplication from './TypeParameterApplication';
 
 import {collectConstraintErrors, constraintsAccept} from '../typeConstraints';
-
-import {TypeParameterStatusSymbol} from '../symbols';
-
 
 export default class PartialType<X, T> extends Type {
   typeName: string = 'PartialType';
@@ -19,31 +15,12 @@ export default class PartialType<X, T> extends Type {
   typeParameters: TypeParameter<X>[] = [];
   constraints: ? TypeConstraint[];
 
-  [TypeParameterStatusSymbol]: TypeParameterStatus = 'closed';
-
   typeParameter (id: string, bound?: Type<X>): TypeParameter<X> {
     const target = new TypeParameter(this.context);
     target.id = id;
     target.bound = bound;
-    target[TypeParameterStatusSymbol] = this[TypeParameterStatusSymbol];
     this.typeParameters.push(target);
     return target;
-  }
-
-  openTypeParameters () {
-    if (this[TypeParameterStatusSymbol] !== 'open') {
-      const {typeParameters} = this;
-      openTypeParameters(...typeParameters);
-      this[TypeParameterStatusSymbol] = 'open';
-    }
-  }
-
-  closeTypeParameters () {
-    if (this[TypeParameterStatusSymbol] !== 'closed') {
-      const {typeParameters} = this;
-      closeTypeParameters(...typeParameters);
-      this[TypeParameterStatusSymbol] = 'closed';
-    }
   }
 
   apply (...typeInstances: Type<X>[]): TypeParameterApplication<X, T> {

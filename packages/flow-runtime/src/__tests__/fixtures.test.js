@@ -6,7 +6,7 @@ import fixtures from './fixtures';
 
 import t from '../globalContext';
 
-describe.only('fixtures', () => {
+describe('fixtures', () => {
   for (const [name, {pass, fail}] of fixtures) {
     const context = t.createContext();
     if (pass) {

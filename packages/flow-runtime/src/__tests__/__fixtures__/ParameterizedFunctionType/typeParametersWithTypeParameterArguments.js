@@ -16,10 +16,8 @@ export function pass (t: TypeContext) {
     const A = t.typeParameter('A');
     const _returnType = t.return(A);
 
-    t.openTypeParameters(A);
-    let _xType = t.ref(T, A);
+    let _xType = t.ref(T, t.flowInto(A));
     t.param('x', _xType).assert(x);
-    t.closeTypeParameters(A);
 
     return _returnType.assert(x.a);
   }
@@ -42,10 +40,8 @@ export function fail (t: TypeContext) {
     const A = t.typeParameter('A');
     const _returnType = t.return(A);
 
-    t.openTypeParameters(A);
-    let _xType = t.ref(T, A);
+    let _xType = t.ref(T, t.flowInto(A));
     t.param('x', _xType).assert(x);
-    t.closeTypeParameters(A);
 
     return _returnType.assert(false);
   }

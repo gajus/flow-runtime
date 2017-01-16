@@ -15,9 +15,6 @@ import makeWarningMessage from './errorReporting/makeWarningMessage';
 import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
 
-import {openTypeParameters, closeTypeParameters} from './types/TypeParameter';
-
-
 import {
   Type,
   TypeParameter,
@@ -41,6 +38,7 @@ import {
   ObjectTypeCallProperty,
   ObjectTypeIndexer,
   ObjectTypeProperty,
+  FlowIntoType,
   FunctionType,
   ParameterizedFunctionType,
   FunctionTypeParam,
@@ -505,12 +503,10 @@ export default class TypeContext {
     return target;
   }
 
-  openTypeParameters <T> (...typeParameters: TypeParameter<T>[]) {
-    openTypeParameters(...typeParameters);
-  }
-
-  closeTypeParameters <T> (...typeParameters: TypeParameter<T>[]) {
-    closeTypeParameters(...typeParameters);
+  flowInto <T> (typeParameter: TypeParameter<T>): FlowIntoType<T> {
+    const target = new FlowIntoType(this);
+    target.typeParameter = typeParameter;
+    return target;
   }
 
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
@@ -906,5 +902,6 @@ export default class TypeContext {
     target.addConstraint(...constraints);
     return target;
   }
+
 }
 

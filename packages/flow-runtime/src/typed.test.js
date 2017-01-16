@@ -135,7 +135,7 @@ describe('Typed API', () => {
     const bad = () => undefined;
     ok(type.accepts(good));
     ok(type.accepts(better));
-    no(type.accepts(bad));
+    ok(type.accepts(bad)); // not enough type information to reject.
   });
 
   it('should make a parameterized function type', () => {
@@ -159,7 +159,7 @@ describe('Typed API', () => {
     }
     ok(type.accepts(good));
     ok(type.accepts(better));
-    no(type.accepts(bad));
+    ok(type.accepts(bad)); // not enough type information to reject.
   });
 
   it('should build a tree-like object', () => {

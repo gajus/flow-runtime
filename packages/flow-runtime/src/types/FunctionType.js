@@ -22,8 +22,8 @@ export default class FunctionType<P, R> extends Type {
       return true;
     }
     const annotation = input[TypeSymbol];
+    const {returnType, params} = this;
     if (annotation) {
-      const {returnType, params} = this;
       let hasErrors = false;
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
@@ -44,7 +44,14 @@ export default class FunctionType<P, R> extends Type {
       return hasErrors;
     }
     else {
+      const {context} = this;
       // We cannot safely check an unannotated function.
+      // But we need to propagate `any` type feedback upwards.
+      for (let i = 0; i < params.length; i++) {
+        const param = params[i];
+        param.acceptsType(context.any());
+      }
+      returnType.acceptsType(context.any());
       return false;
     }
   }
@@ -53,10 +60,9 @@ export default class FunctionType<P, R> extends Type {
     if (typeof input !== 'function') {
       return false;
     }
-    const {params} = this;
+    const {returnType, params} = this;
     const annotation = input[TypeSymbol];
     if (annotation) {
-      const {returnType, params} = this;
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
         const annotationParam = annotation.params[i];
@@ -72,21 +78,17 @@ export default class FunctionType<P, R> extends Type {
       }
       return true;
     }
-    else if (params.length > input.length) {
-      // function might not have enough parameters,
-      // see how many are really required.
-      let needed = 0;
+    else {
+      const {context} = this;
+      // We cannot safely check an unannotated function.
+      // But we need to propagate `any` type feedback upwards.
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
-        if (!param.optional) {
-          needed++;
-        }
+        param.acceptsType(context.any());
       }
-      if (needed > input.length) {
-        return false;
-      }
+      returnType.acceptsType(context.any());
+      return true;
     }
-    return true;
   }
 
   acceptsType (input: Type<any>): boolean {
