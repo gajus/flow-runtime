@@ -202,6 +202,7 @@ export default class TypeContext {
 
   /**
    * Get the predicate for a given type name.
+   * e.g. `t.getPredicate('Array')`.
    */
   getPredicate (name: string): ? TypePredicate {
     const item: ? TypePredicate = (this: any)[TypePredicateRegistrySymbol][name];
@@ -226,6 +227,7 @@ export default class TypeContext {
   /**
    * Check the given value against the named predicate.
    * Returns false if no such predicate exists.
+   * e.g. `t.checkPredicate('Array', [1, 2, 3])`
    */
   checkPredicate (name: string, input: any): boolean {
     const predicate = this.getPredicate(name);
@@ -511,8 +513,10 @@ export default class TypeContext {
 
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
     // @flowIssue 252
-    const typeParameters = subject[TypeParametersSymbol];
-    if (typeParameters) {
+    const typeParametersPointer = subject[TypeParametersSymbol];
+
+    if (typeParametersPointer) {
+      const typeParameters = subject[typeParametersPointer];
       const keys = Object.keys(typeParameters);
       const length = Math.min(keys.length, typeInstances.length);
       for (let i = 0; i < length; i++) {
