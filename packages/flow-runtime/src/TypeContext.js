@@ -759,9 +759,7 @@ export default class TypeContext {
   }
 
   union <T> (...types: Type<T>[]): UnionType<T> {
-    const target = new UnionType(this);
-    target.types = types;
-    return target;
+    return makeUnion(this, types);
   }
 
   intersect <T> (...types: Type<T>[]): IntersectionType<T> {
@@ -827,17 +825,30 @@ export default class TypeContext {
     }
   }
 
-  validate <T> (type: Type<T>, input: any): Validation<T> {
+  validate <T> (type: Type<T>, input: any, prefix: string = '', path?: string[]): Validation<T> {
     const validation = new Validation(this, input);
-    if (typeof type.name === 'string') {
-      validation.inputName = type.name;
+    if (path) {
+      validation.path.push(...path);
     }
+    else if (typeof type.name === 'string') {
+      validation.path.push(type.name);
+    }
+    validation.prefix = prefix;
     type.collectErrors(validation, [], input);
     return validation;
   }
 
-  warn <T, V: T | any> (type: Type<T>, input: V): V {
-    const validation = this.validate(type, input);
+  assert <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
+    const validation = this.validate(type, input, prefix, path);
+    const error = this.makeTypeError(validation);
+    if (error) {
+      throw error;
+    }
+    return input;
+  }
+
+  warn <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
+    const validation = this.validate(type, input, prefix, path);
     const message = makeWarningMessage(validation);
     if (typeof message === 'string') {
       this.emitWarningMessage(message);

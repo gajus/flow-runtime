@@ -25,7 +25,9 @@ export default class Validation<T> {
 
   input: T;
 
-  inputName: string = '';
+  path: string[] = [];
+
+  prefix: string = '';
 
   errors: ErrorTuple[] = [];
 

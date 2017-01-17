@@ -12,7 +12,7 @@ export default function makeJSONError <T> (validation: Validation<T>) {
   for (const [path, message, expectedType] of validation.errors) {
     const expected = expectedType ? expectedType.toString() : null;
     const actual = context.typeOf(resolvePath(input, path)).toString();
-    const field = stringifyPath(validation.inputName ? [validation.inputName].concat(path) : path);
+    const field = stringifyPath(validation.path.concat(path));
 
     const pointer = `/${path.join('/')}`;
 
