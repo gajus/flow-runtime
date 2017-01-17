@@ -10,5 +10,4 @@ export const TraverseValueSymbol = Symbol('TraverseValue');
 export const TraverseTypeSymbol = Symbol('TraverseType');
 export const TypeSymbol = Symbol('Type');
 export const TypeParametersSymbol = Symbol('TypeParameters');
-export const TypeParameterStatusSymbol = Symbol('TypeParameterStatus');
 export const TypePredicateRegistrySymbol = Symbol('TypePredicateRegistry');

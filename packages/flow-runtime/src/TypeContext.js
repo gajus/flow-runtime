@@ -506,9 +506,7 @@ export default class TypeContext {
   }
 
   flowInto <T> (typeParameter: TypeParameter<T>): FlowIntoType<T> {
-    const target = new FlowIntoType(this);
-    target.typeParameter = typeParameter;
-    return target;
+    return flowIntoTypeParameter(typeParameter);
   }
 
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
