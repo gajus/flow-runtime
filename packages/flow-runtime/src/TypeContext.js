@@ -12,6 +12,11 @@ import makeJSONError from './errorReporting/makeJSONError';
 import makeTypeError from './errorReporting/makeTypeError';
 import makeWarningMessage from './errorReporting/makeWarningMessage';
 
+import makeUnion from './makeUnion';
+import {makePropertyDescriptor} from './classDecorators';
+
+import {flowIntoTypeParameter} from './types/TypeParameter';
+
 import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
 
@@ -242,28 +247,17 @@ export default class TypeContext {
   /**
    * Returns a decorator for a function or object with the given type.
    */
-  decorate (type: Type<any>): * {
+  decorate (type: (() => Type<any>) | Type<any>): * {
     return (input: Object | Function, propertyName?: string, descriptor?: Object): * => {
       if (descriptor && typeof propertyName === 'string') {
-        if (typeof descriptor.get === 'function' || typeof descriptor.set === 'function') {
-          return descriptor; // @todo decorate getters/setters
-        }
-        else {
-          return {
-            enumerable: true,
-            writable: true,
-            configurable: true,
-            value: descriptor.value,
-            initializer: descriptor.initializer
-          };
-        }
+        return makePropertyDescriptor(type, input, propertyName, descriptor);
       }
       else {
+        invariant(typeof type !== 'function', 'Cannot decorate an object or function as a method.');
         return this.annotate(input, type);
       }
     };
   }
-
 
   /**
    * Annotates an object or function with the given type.
