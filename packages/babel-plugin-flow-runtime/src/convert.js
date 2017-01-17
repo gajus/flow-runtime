@@ -50,7 +50,10 @@ function annotationReferencesId (annotation: NodePath, name: string): boolean {
 function typeParameterCanFlow (annotation: NodePath) {
   let subject = annotation.parentPath;
   while (subject) {
-    if (subject.isFlow()) {
+    if (subject.isClassProperty()) {
+      return true;
+    }
+    else if (subject.isFlow()) {
       subject = subject.parentPath;
       continue;
     }
@@ -516,6 +519,7 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     || annotationParentHasTypeParameter(path, name)
   );
 
+
   if (isTypeParameter && typeParameterCanFlow(path)) {
     subject = context.call('flowInto', subject);
   }
@@ -539,7 +543,8 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   }
   else if (entity.isClassTypeParameter) {
     let target;
-    const typeParametersUid = path.scope.getData('typeParametersUid');
+    const typeParametersUid = context.getClassData(path, 'typeParametersUid');
+    const typeParametersSymbolUid = context.getClassData(path, 'typeParametersSymbolUid');
     if (typeParametersUid && parentIsStaticMethod(path)) {
       target = t.memberExpression(
         t.identifier(typeParametersUid),
@@ -552,15 +557,33 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
         subject
       );
     }
-    else {
+    else if (typeParametersSymbolUid) {
       target = t.memberExpression(
         t.memberExpression(
           t.thisExpression(),
-          context.symbol('TypeParameters'),
+          t.identifier(typeParametersSymbolUid),
           true
         ),
         subject
       );
+    }
+    else {
+      target = t.memberExpression(
+        t.memberExpression(
+          t.thisExpression(),
+          t.memberExpression(
+            t.thisExpression(),
+            context.symbol('TypeParameters'),
+            true
+          ),
+          true
+        ),
+        subject
+      );
+    }
+
+    if (typeParameterCanFlow(path)) {
+      target =  context.call('flowInto', target);
     }
 
     if (typeParameters.length > 0) {

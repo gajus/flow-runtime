@@ -115,10 +115,17 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       }
     },
     Class (path: NodePath) {
+      let className = 'AnonymousClass';
       if (path.isClassDeclaration() && path.has('id')) {
         const {name} = path.node.id;
+        className = name;
         context.defineValue(name, path.parentPath);
       }
+      context.setClassData(
+        path,
+        'currentClassName',
+        className
+      );
       const typeParameters = getTypeParameters(path);
       typeParameters.forEach(item => {
         const {name} = item.node;
@@ -126,7 +133,26 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       });
       if (typeParameters.length > 0 || path.has('superTypeParameters')) {
         ensureConstructor(path);
-        path.parentPath.scope.setData('typeParametersUid', path.parentPath.scope.generateUid('typeParameters'));
+        context.setClassData(
+          path,
+          'typeParametersUid',
+          path.parentPath.scope.generateUid(`_typeParameters`)
+        );
+      }
+
+      if (typeParameters.length > 0) {
+        context.setClassData(
+          path,
+          'typeParametersSymbolUid',
+          path.parentPath.scope.generateUid(`${className}TypeParametersSymbol`)
+        );
+      }
+      else {
+        context.setClassData(
+          path,
+          'typeParametersSymbolUid',
+          ''
+        );
       }
     }
   };

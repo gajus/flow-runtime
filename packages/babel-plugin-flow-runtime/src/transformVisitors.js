@@ -646,6 +646,30 @@ export default function transformVisitors (context: ConversionContext): Object {
           path.skip();
           return;
         }
+        const typeParametersSymbolUid = context.getClassData(path, 'typeParametersSymbolUid');
+        if (typeParametersSymbolUid) {
+          path.getStatementParent().insertBefore(
+            t.variableDeclaration('const', [
+              t.VariableDeclarator(
+                t.identifier(typeParametersSymbolUid),
+                t.callExpression(
+                  t.identifier('Symbol'),
+                  [t.stringLiteral(
+                    `${context.getClassData(path, 'currentClassName')}TypeParameters`
+                  )]
+                )
+              )
+            ])
+          );
+
+          const staticProp = t.classProperty(
+            context.symbol('TypeParameters'),
+            t.identifier(typeParametersSymbolUid)
+          );
+          staticProp.computed = true;
+          staticProp.static = true;
+          path.get('body').unshiftContainer('body', staticProp);
+        }
         const superTypeParameters
             = path.has('superTypeParameters')
             ? path.get('superTypeParameters.params')
@@ -685,7 +709,15 @@ export default function transformVisitors (context: ConversionContext): Object {
         const [constructor] = path.get('body.body').filter(
           item => item.node.kind === 'constructor'
         );
-        const typeParametersUid = t.identifier(path.scope.getData('typeParametersUid'));
+        const typeParametersUid = t.identifier(context.getClassData(path, 'typeParametersUid'));
+        const typeParametersSymbolUid = t.identifier(context.getClassData(path, 'typeParametersSymbolUid'));
+
+        const thisTypeParameters = t.memberExpression(
+          t.thisExpression(),
+          typeParametersSymbolUid,
+          true
+        );
+
         if (path.has('superClass')) {
           const body = constructor.get('body');
 
@@ -703,12 +735,6 @@ export default function transformVisitors (context: ConversionContext): Object {
                 }))
               )]
             ));
-
-            const thisTypeParameters = t.memberExpression(
-              t.thisExpression(),
-              context.symbol('TypeParameters'),
-              true
-            );
 
             trailer.push(
               t.ifStatement(
@@ -752,11 +778,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           constructor.get('body').unshiftContainer('body', t.expressionStatement(
             t.assignmentExpression(
               '=',
-              t.memberExpression(
-                t.thisExpression(),
-                context.symbol('TypeParameters'),
-                true
-              ),
+              thisTypeParameters,
               t.objectExpression(typeParameters.map(typeParameter => {
                 return t.objectProperty(
                   t.identifier(typeParameter.node.name),
@@ -814,7 +836,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       if (!path.has('decorators')) {
         path.node.decorators = [];
       }
-      path.pushContainer('decorators', decorator);
+      path.unshiftContainer('decorators', decorator);
     }
   };
 }

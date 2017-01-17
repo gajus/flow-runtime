@@ -28,22 +28,27 @@ export const input = `
 export const expected = `
   import t from "flow-runtime";
 
+  const _PointTypeParametersSymbol = Symbol("PointTypeParameters");
+
   class Point {
+
+    static [t.TypeParametersSymbol] = _PointTypeParametersSymbol;
+
     @t.decorate(function () {
-      return this[t.TypeParametersSymbol].T;
+      return t.flowInto(this[_PointTypeParametersSymbol].T);
     })
     x = 0;
     @t.decorate(function () {
-      return this[t.TypeParametersSymbol].T;
+      return t.flowInto(this[_PointTypeParametersSymbol].T);
     })
     y = 0;
 
     constructor(x, y) {
-      this[t.TypeParametersSymbol] = {
+      this[_PointTypeParametersSymbol] = {
         T: t.typeParameter("T", t.number())
       };
-      let _xType = this[t.TypeParametersSymbol].T;
-      let _yType = this[t.TypeParametersSymbol].T;
+      let _xType = t.flowInto(this[_PointTypeParametersSymbol].T);
+      let _yType = t.flowInto(this[_PointTypeParametersSymbol].T);
       t.param("x", _xType).assert(x);
       t.param("y", _yType).assert(y);
       this.x = x;
@@ -60,20 +65,24 @@ export const expected = `
     }
   }
 
+  const _FPointTypeParametersSymbol = Symbol("FPointTypeParameters");
+
   class FPoint extends Point {
+    static [t.TypeParametersSymbol] = _FPointTypeParametersSymbol;
+
     constructor([x, y]) {
       const _typeParameters3 = {
         F: t.typeParameter("F", Float)
       };
       t.param("arguments[0]", t.tuple(_typeParameters3.F, _typeParameters3.F)).assert(arguments[0]);
       super(x, y);
-      if (this[t.TypeParametersSymbol]) {
-        Object.assign(this[t.TypeParametersSymbol], _typeParameters3);
+      if (this[_FPointTypeParametersSymbol]) {
+        Object.assign(this[_FPointTypeParametersSymbol], _typeParameters3);
       }
       else {
-        this[t.TypeParametersSymbol] = _typeParameters3;
+        this[_FPointTypeParametersSymbol] = _typeParameters3;
       }
-      t.bindTypeParameters(this, this[t.TypeParametersSymbol].F);
+      t.bindTypeParameters(this, this[_FPointTypeParametersSymbol].F);
     }
   }
 `;
