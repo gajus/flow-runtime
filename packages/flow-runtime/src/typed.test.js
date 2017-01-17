@@ -24,6 +24,28 @@ describe('Typed API', () => {
     }));
   });
 
+  it('should check nullable types', () => {
+    const type = t.nullable(t.string());
+
+    ok(type.accepts());
+    ok(type.accepts(null));
+    ok(type.accepts(undefined));
+    ok(type.accepts(''));
+    ok(type.accepts('foo'));
+    no(type.accepts(2));
+    no(type.accepts(true));
+  });
+
+  it('should assert nullable types', () => {
+    const type = t.nullable(t.string());
+
+    type.assert();
+    type.assert(null);
+    type.assert(undefined);
+    type.assert('');
+    type.assert('foo');
+  });
+
 
   it('should check a simple object with shortcut syntax', () => {
     const type = t.exactObject({
