@@ -702,7 +702,7 @@ export default function transformVisitors (context: ConversionContext): Object {
             ;
         const hasTypeParameters = typeParameters.length > 0;
         const hasSuperTypeParameters = superTypeParameters.length > 0;
-        if (!hasTypeParameters && !hasSuperTypeParameters) {
+        if (!shouldCheck || (!hasTypeParameters && !hasSuperTypeParameters)) {
           // Nothing to do here.
           return;
         }
@@ -797,7 +797,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         path.skip();
         return;
       }
-      if (!path.has('typeAnnotation')) {
+      if (!shouldCheck || !path.has('typeAnnotation') || path.node.computed) {
         return;
       }
       const typeAnnotation = path.get('typeAnnotation');
