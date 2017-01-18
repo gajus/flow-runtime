@@ -503,9 +503,23 @@ export default class TypeContext {
     return flowIntoTypeParameter(typeParameter);
   }
 
+  /**
+   * Bind the type parameters for the parent class of the given instance.
+   */
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
+
+    const instancePrototype = Object.getPrototypeOf(subject);
+    // @flowIssue
+    const parentPrototype = instancePrototype && Object.getPrototypeOf(instancePrototype);
+    // @flowIssue
+    const parentClass = parentPrototype && parentPrototype.constructor;
+
+    if (!parentClass) {
+      this.emitWarningMessage('Could not bind type parameters for non-existent parent class.');
+      return subject;
+    }
     // @flowIssue 252
-    const typeParametersPointer = subject[TypeParametersSymbol];
+    const typeParametersPointer = parentClass[TypeParametersSymbol];
 
     if (typeParametersPointer) {
       const typeParameters = subject[typeParametersPointer];
