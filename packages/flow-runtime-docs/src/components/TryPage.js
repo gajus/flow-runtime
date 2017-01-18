@@ -67,7 +67,7 @@ export default class TryPage extends Component<void, Props, void> {
 
 
   handleClickDecoration = () => {
-    this.compiler.shouldDecorate = !this.compiler.shouldDecorate;
+    this.compiler.shouldAnnotate = !this.compiler.shouldAnnotate;
     this.compiler.updateCode(this.compiler.code);
   };
 
@@ -94,7 +94,7 @@ export default class TryPage extends Component<void, Props, void> {
                 {compiler.shouldWarn ? 'Disable Warnings' : 'Enable Warnings'}
               </button>
               <button className="btn btn-secondary" onClick={this.handleClickDecoration}>
-                {compiler.shouldDecorate ? 'Disable Decorations' : 'Enable Decorations'}
+                {compiler.shouldAnnotate ? 'Disable Decorations' : 'Enable Decorations'}
               </button>
               <button className="btn btn-primary" onClick={this.runCode} disabled={!compiler.isReady}>
                 {!compiler.isReady && <i className="fa fa-spinner fa-pulse" />}

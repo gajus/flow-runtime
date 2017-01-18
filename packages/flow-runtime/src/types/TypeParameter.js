@@ -5,6 +5,8 @@ import type Validation, {IdentifierPath} from '../Validation';
 
 import FlowIntoType from './FlowIntoType';
 
+const FlowIntoSymbol = Symbol('FlowInto');
+
 /**
  * # TypeParameter
  *
@@ -18,6 +20,9 @@ export default class TypeParameter<T> extends Type {
   bound: ? Type<T>;
 
   recorded: ? Type<T>;
+
+  // @flowIssue 252
+  [FlowIntoSymbol]: ? FlowIntoType = null;
 
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
@@ -118,4 +123,16 @@ export default class TypeParameter<T> extends Type {
       recorded: this.recorded
     };
   }
+}
+
+export function flowIntoTypeParameter <T> (typeParameter: TypeParameter<T>): FlowIntoType<T> {
+  const existing: ? FlowIntoType<T> = (typeParameter: $FlowIssue<252>)[FlowIntoSymbol];
+  if (existing) {
+    return existing;
+  }
+
+  const target = new FlowIntoType(typeParameter.context);
+  target.typeParameter = typeParameter;
+  (typeParameter: $FlowIssue<252>)[FlowIntoSymbol] = target;
+  return target;
 }

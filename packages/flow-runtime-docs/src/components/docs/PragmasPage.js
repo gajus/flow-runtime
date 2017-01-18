@@ -55,14 +55,14 @@ export default class PragmasPage extends Component {
           <p>When used with Flow, they should appear <em>after</em> Flow's own special comment:</p>
           <pre>{'// @flow\n// @flow-runtime'}</pre>
           <p>The behaviour of the plugin changes depending on the options you specify at the end of the comment:</p>
-          <p><code>{'/* @flow-runtime */'}</code>: no options is the equivalent of specifying <code>{'/* @flow-runtime assert, decorate */'}</code>.</p>
+          <p><code>{'/* @flow-runtime */'}</code>: no options is the equivalent of specifying <code>{'/* @flow-runtime assert, annotate */'}</code>.</p>
           <p><code>{'/* @flow-runtime ignore */'}</code>: ignore the whole file, don't process it at all, no assertions or type transformations.</p>
           <p><code>{'/* @flow-runtime assert */'}</code>: any type error in the file will throw an exception.</p>
           <p><code>{'/* @flow-runtime warn */'}</code>: turns type errors into warnings rather than exceptions.</p>
-          <p><code>{'/* @flow-runtime decorate */'}</code>: functions and classes will be decorated with type annotations.</p>
+          <p><code>{'/* @flow-runtime annotate */'}</code>: functions and classes will be decorated with type annotations.</p>
           <br />
           <p>You can also specify multiple options at once:</p>
-          <p><code>{'/* @flow-runtime warn, decorate */'}</code>: type errors will produce warnings, functions and classes will be decorated with type annotations.</p>
+          <p><code>{'/* @flow-runtime warn, annotate */'}</code>: type errors will produce warnings, functions and classes will be decorated with type annotations.</p>
           <hr />
           <h4>Suppressing Individual Type Errors</h4>
           <p>Sometimes you need an escape hatch for code you know to be correct, but which doesn't type check for some reason.</p>

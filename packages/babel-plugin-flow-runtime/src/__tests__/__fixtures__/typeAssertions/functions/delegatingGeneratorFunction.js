@@ -16,7 +16,7 @@ export const expected = `
   }
 `;
 
-export const decorated = `
+export const annotated = `
   import t from "flow-runtime";
   function* demo() {
     yield* "hello world";

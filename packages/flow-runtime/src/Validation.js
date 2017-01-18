@@ -17,7 +17,7 @@ export type ValidationJSON<T> = {
   }>
 };
 
-const validIdentifier = /^[$A-Z_][0-9A-Z_$]*$/i;
+const validIdentifierOrAccessor = /^[$A-Z_][0-9A-Z_$[\].]*$/i;
 
 export default class Validation<T> {
 
@@ -25,7 +25,9 @@ export default class Validation<T> {
 
   input: T;
 
-  inputName: string = '';
+  path: string[] = [];
+
+  prefix: string = '';
 
   errors: ErrorTuple[] = [];
 
@@ -95,7 +97,7 @@ export function stringifyPath (path: IdentifierPath): string {
     if (part === '[[Return Type]]') {
       parts[i] = 'Return Type';
     }
-    else if (typeof part !== 'string' || !validIdentifier.test(part)) {
+    else if (typeof part !== 'string' || !validIdentifierOrAccessor.test(part)) {
       parts[i] = `[${String(part)}]`;
     }
     else if (i > 0) {

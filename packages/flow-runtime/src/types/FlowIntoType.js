@@ -11,7 +11,7 @@ import TypeParameter from './TypeParameter';
  * A virtual type which allows types it receives to "flow" upwards into a type parameter.
  * The type parameter will become of a union of any types seen by this instance.
  */
-export default class FlowIntoType<T> extends Type {
+export default class FlowIntoType<T: any> extends Type {
   typeName: string = 'FlowIntoType';
 
   typeParameter: TypeParameter<T>;

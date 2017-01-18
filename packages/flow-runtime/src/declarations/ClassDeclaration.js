@@ -82,6 +82,6 @@ export default class ClassDeclaration<O: {}> extends Declaration {
   toString (withDeclaration?: boolean) {
     const {name, superClass, body} = this;
     const superClassName = superClass && ((typeof superClass.name === 'string' && superClass.name) || superClass.toString());
-    return `${withDeclaration ? 'declare ' : ''}class ${name}${superClassName ? `extends ${superClassName} ` : ''} ${body.toString()}`;
+    return `${withDeclaration ? 'declare ' : ''}class ${name}${superClassName ? ` extends ${superClassName}` : ''} ${body.toString()}`;
   }
 }
