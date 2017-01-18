@@ -737,28 +737,12 @@ export default function transformVisitors (context: ConversionContext): Object {
             ));
 
             trailer.push(
-              t.ifStatement(
-                thisTypeParameters,
-                t.blockStatement([
-                  t.expressionStatement(
-                    t.callExpression(
-                      t.memberExpression(
-                        t.identifier('Object'),
-                        t.identifier('assign')
-                      ),
-                      [thisTypeParameters, typeParametersUid]
-                    )
-                  )
-                ]),
-                t.blockStatement([
-                  t.expressionStatement(
-                    t.assignmentExpression(
-                      '=',
-                      thisTypeParameters,
-                      typeParametersUid
-                    )
-                  )
-                ])
+              t.expressionStatement(
+                t.assignmentExpression(
+                  '=',
+                  thisTypeParameters,
+                  typeParametersUid
+                )
               )
             );
           }

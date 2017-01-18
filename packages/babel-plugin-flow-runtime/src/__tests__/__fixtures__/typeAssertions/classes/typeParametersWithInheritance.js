@@ -74,14 +74,9 @@ export const expected = `
       const _typeParameters3 = {
         F: t.typeParameter("F", Float)
       };
-      t.param("arguments[0]", t.tuple(_typeParameters3.F, _typeParameters3.F)).assert(arguments[0]);
+      t.param("arguments[0]", t.tuple(t.flowInto(_typeParameters3.F), t.flowInto(_typeParameters3.F))).assert(arguments[0]);
       super(x, y);
-      if (this[_FPointTypeParametersSymbol]) {
-        Object.assign(this[_FPointTypeParametersSymbol], _typeParameters3);
-      }
-      else {
-        this[_FPointTypeParametersSymbol] = _typeParameters3;
-      }
+      this[_FPointTypeParametersSymbol] = _typeParameters3;
       t.bindTypeParameters(this, this[_FPointTypeParametersSymbol].F);
     }
   }
