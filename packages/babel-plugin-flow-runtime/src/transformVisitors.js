@@ -18,10 +18,19 @@ type FunctionSignature = {
   returnType: ? Node;
 };
 
+type ClassSignature = {
+  name: string;
+  isExpression: boolean;
+  hasTypeAnnotations: boolean;
+  typeParameters: Array<[string, Node[]]>;
+  properties: Node[];
+  methods: Node[];
+};
+
 export default function transformVisitors (context: ConversionContext): Object {
   const shouldCheck = context.shouldAssert || context.shouldWarn;
   const shouldDecorate = context.shouldDecorate;
-  const nodeSignatures: WeakMap<Node, FunctionSignature> = new WeakMap();
+  const nodeSignatures: WeakMap<Node, FunctionSignature | ClassSignature> = new WeakMap();
   return {
     Program (path: NodePath) {
       if (context.shouldImport) {
@@ -496,7 +505,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       },
       exit (path: NodePath) {
         const signature = nodeSignatures.get(path.node);
-        if (!shouldDecorate || !signature || !signature.hasTypeAnnotations || path.isClassMethod()) {
+        if (!shouldDecorate || !signature || !Array.isArray(signature.params) || !signature.hasTypeAnnotations || path.isClassMethod()) {
           return;
         }
         let decoration;
@@ -646,6 +655,27 @@ export default function transformVisitors (context: ConversionContext): Object {
           path.skip();
           return;
         }
+        const signature: ClassSignature = {
+          name: path.has('id') ? path.node.id.name : 'AnonymousClass',
+          isExpression: path.isExpression(),
+          hasTypeAnnotations: false,
+          typeParameters: [],
+          properties: [],
+          methods: []
+        };
+        nodeSignatures.set(path.node, signature);
+
+        const body = path.get('body');
+
+        for (const child of body.get('body')) {
+          if (child.isClassMethod()) {
+            signature.methods.push(convert(context, child));
+          }
+          else if (child.isClassProperty()) {
+            signature.properties.push(convert(context, child));
+          }
+        }
+
         const typeParametersSymbolUid = context.getClassData(path, 'typeParametersSymbolUid');
         if (typeParametersSymbolUid) {
           path.getStatementParent().insertBefore(
@@ -668,7 +698,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           );
           staticProp.computed = true;
           staticProp.static = true;
-          path.get('body').unshiftContainer('body', staticProp);
+          body.unshiftContainer('body', staticProp);
         }
         const superTypeParameters
             = path.has('superTypeParameters')
@@ -683,7 +713,6 @@ export default function transformVisitors (context: ConversionContext): Object {
                            ;
 
           if (annotation) {
-            const body = path.get('body');
             const propTypes = t.classProperty(
               t.identifier('propTypes'),
               context.call('propTypes', convert(context, annotation))
@@ -702,6 +731,22 @@ export default function transformVisitors (context: ConversionContext): Object {
             ;
         const hasTypeParameters = typeParameters.length > 0;
         const hasSuperTypeParameters = superTypeParameters.length > 0;
+        const signature = nodeSignatures.get(path.node);
+        if (shouldDecorate && signature) {
+          const {name, properties, methods} = ((signature: any): ClassSignature);
+          const args = properties.concat(methods);
+          const decorator = t.decorator(
+            context.call('decorate', context.call(
+              'class',
+              t.stringLiteral(name),
+              ...args
+            ))
+          );
+          if (!path.has('decorators')) {
+            path.node.decorators = [];
+          }
+          path.unshiftContainer('decorators', decorator);
+        }
         if (!shouldCheck || (!hasTypeParameters && !hasSuperTypeParameters)) {
           // Nothing to do here.
           return;

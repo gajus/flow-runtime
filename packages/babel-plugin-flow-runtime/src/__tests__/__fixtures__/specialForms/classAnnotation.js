@@ -21,6 +21,7 @@ export const expected = `
 
 export const decorated = `
   import t from "flow-runtime";
+  @t.decorate(t.class("User"))
   class User {}
 
   function demo(model) {}
@@ -35,6 +36,7 @@ export const decorated = `
 
 export const combined = `
   import t from "flow-runtime";
+  @t.decorate(t.class("User"))
   class User {}
 
   function demo(model) {

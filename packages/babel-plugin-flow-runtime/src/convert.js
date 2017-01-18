@@ -703,4 +703,81 @@ converters.FunctionTypeParam = (context: ConversionContext, path: NodePath): Nod
 };
 
 
+
+converters.ClassProperty = (context: ConversionContext, path: NodePath): Node => {
+  const typeAnnotation = path.has('typeAnnotation')
+                       ? convert(context, path.get('typeAnnotation'))
+                       : context.call('any')
+                       ;
+  if (path.node.computed) {
+    // make an object type indexer
+    const keyType = context.call('union',
+      context.call('number'),
+      context.call('string'),
+      context.call('symbol'),
+    );
+    return context.call('indexer', t.stringLiteral('key'), keyType, typeAnnotation);
+  }
+  else {
+    return context.call(path.node.static ? 'staticProperty' : 'property', t.stringLiteral(path.node.key.name), typeAnnotation);
+  }
+};
+
+converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
+  const params = path.get('params').map(param => convert(context, param));
+  const returnType = path.has('returnTypeAnnotation')
+                   ? convert(context, path.get('returnTypeAnnotation'))
+                   : context.call('any')
+                   ;
+  const args = [...params, returnType];
+  if (path.node.computed) {
+    // make an object type indexer.
+    const keyType = context.call('union',
+      context.call('number'),
+      context.call('string'),
+      context.call('symbol'),
+    );
+    return context.call('indexer', t.stringLiteral('key'), keyType, context.call('function', ...args));
+  }
+  else {
+    return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(path.node.key.name), ...args);
+  }
+};
+
+converters.RestElement = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('array', context.call('any'));
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
+converters.Identifier = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('any');
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
+converters.ArrayPattern = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('array', context.call('any'));
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
+converters.ObjectPattern = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('ref', t.identifier('Object'));
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
 export default convert;
