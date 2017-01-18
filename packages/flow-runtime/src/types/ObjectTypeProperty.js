@@ -12,6 +12,8 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
   key: K;
   value: Type<V>;
   optional: boolean;
+  // @flowIgnore
+  'static': boolean;
   constraints: TypeConstraint[] = [];
 
   addConstraint (...constraints: TypeConstraint[]): ObjectTypeProperty<K, V> {
@@ -58,7 +60,12 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
   }
 
   toString (): string {
-    return `${this.key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
+    if (this.static) {
+      return `static ${this.key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
+    }
+    else {
+      return `${this.key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
+    }
   }
 
   toJSON () {

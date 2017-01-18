@@ -17,8 +17,11 @@ import {makePropertyDescriptor} from './classDecorators';
 
 import {flowIntoTypeParameter} from './types/TypeParameter';
 
+import annotateValue from './annotateValue';
+
 import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
+
 
 import {
   Type,
@@ -271,10 +274,16 @@ export default class TypeContext {
 
   /**
    * Annotates an object or function with the given type.
+   * If a type is specified as the sole argument, returns a
+   * function which can decorate classes or functions with the given type.
    */
-  annotate <T: Object | Function> (input: T, type: Type<any>): T {
-    input[TypeSymbol] = type;
-    return input;
+  annotate <T> (input: Type<T> | T, type?: Type<T>) {
+    if (type === undefined) {
+      return annotateValue(input);
+    }
+    else {
+      return annotateValue(input, type);
+    }
   }
 
   getAnnotation <T> (input: T): ? Type<T> {
@@ -760,6 +769,18 @@ export default class TypeContext {
     target.key = name;
     target.value = this.function(head, ...tail);
     return target;
+  }
+
+  staticProperty <K: string | number, V> (key: K, value: Type<V> | ObjectPropertyDict<Object>, optional: boolean = false): ObjectTypeProperty<K, V> {
+    const prop = this.property(key, value, optional);
+    (prop: $FlowIssue).static = true;
+    return prop;
+  }
+
+  staticMethod <K: string | number, X, P, R> (name: K, head: FunctionBodyCreator<X, P, R> | ValidFunctionBody<X, P, R>, ...tail: Array<ValidFunctionBody<X, P, R>>): ObjectTypeProperty<K, (...params: P[]) => R> {
+    const prop = this.method(name, head, ...tail);
+    (prop: $FlowIssue).static = true;
+    return prop;
   }
 
   tuple <T> (...types: Type<T>[]): TupleType<any> {

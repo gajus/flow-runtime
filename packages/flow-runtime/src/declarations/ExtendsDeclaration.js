@@ -18,4 +18,14 @@ export default class ExtendsDeclaration<T> extends Declaration {
   unwrap () {
     return this.type.unwrap();
   }
+
+  toString (withDeclaration?: boolean) {
+    const {type} = this;
+    if (withDeclaration) {
+      return `extends ${type.toString()}`;
+    }
+    else {
+      return type.toString();
+    }
+  }
 }
