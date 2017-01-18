@@ -14,7 +14,21 @@ config.entry = 'src/index.cjs.js';
 config.plugins = [
   ...common.plugins,
   babel({
-    presets: ['react']
+    babelrc: false,
+    presets: [
+      ['env', {
+        targets: {
+          browsers: ['last 2 versions']
+        },
+        modules: false
+      }],
+      'stage-0',
+      'react'
+    ],
+    plugins: [
+      'transform-decorators-legacy',
+      'external-helpers'
+    ]
   }),
   nodeResolve({
     // not all files you want to resolve are .js files

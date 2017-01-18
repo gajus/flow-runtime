@@ -11,9 +11,9 @@
     "lint": "eslint ./src && flow check",
     "prepublish": "npm run build",
     "build": "npm run build-browser && npm run build-cjs && npm run build-es2015",
-    "build-browser": "NODE_ENV=production BABEL_ENV=browser rollup -c ./rollup/browser.config.js",
-    "build-cjs": "NODE_ENV=production BABEL_ENV=node rollup -c ./rollup/cjs.config.js",
-    "build-es2015": "NODE_ENV=production BABEL_ENV=node rollup -c ./rollup/es2015.config.js",
+    "build-browser": "NODE_ENV=production rollup -c ./rollup/browser.config.js",
+    "build-cjs": "NODE_ENV=production rollup -c ./rollup/cjs.config.js",
+    "build-es2015": "NODE_ENV=production rollup -c ./rollup/es2015.config.js",
     "test": "mocha",
     "watch": "mocha --watch"
   },

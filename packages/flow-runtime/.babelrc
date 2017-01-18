@@ -2,53 +2,13 @@
   "presets": [
     ["env", {
       "targets": {
-        "node": 4
-      },
-      "exclude": [
-        "transform-regenerator"
-      ]
+        "browsers": ["last 2 versions"]
+      }
     }],
     "stage-0",
     "react"
   ],
   "plugins": [
     "transform-decorators-legacy"
-  ],
-  "env": {
-    "browser": {
-      "presets": [
-        ["env", {
-          "targets": {
-            "browsers": ["last 2 versions"]
-          },
-          "modules": false
-        }],
-        "stage-0",
-        "react"
-      ],
-      "plugins": [
-        "transform-decorators-legacy",
-        "external-helpers"
-      ]
-    },
-    "node": {
-      "presets": [
-        ["env", {
-          "targets": {
-            "node": 4
-          },
-          "exclude": [
-            "transform-regenerator"
-          ],
-          "modules": false
-        }],
-        "stage-0",
-        "react"
-      ],
-      "plugins": [
-        "transform-decorators-legacy",
-        "external-helpers"
-      ]
-    }
-  }
+  ]
 }
