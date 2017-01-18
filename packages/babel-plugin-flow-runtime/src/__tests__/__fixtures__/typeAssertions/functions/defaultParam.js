@@ -12,5 +12,34 @@ export const expected = `
     t.param("input", _inputType).assert(input);
     return _returnType.assert(input);
   };
+`;
 
+
+export const annotated = `
+  import t from "flow-runtime";
+  const demo = t.annotate(
+    (input = "Hello World") => {
+      return input;
+    },
+    t.function(
+      t.param("input", t.string()),
+      t.return(t.string())
+    )
+  );
+`;
+
+export const combined = `
+  import t from "flow-runtime";
+  const demo = t.annotate(
+    (input = "Hello World") => {
+      let _inputType = t.string();
+      const _returnType = t.return(t.string());
+      t.param("input", _inputType).assert(input);
+      return _returnType.assert(input);
+    },
+    t.function(
+      t.param("input", t.string()),
+      t.return(t.string())
+    )
+  );
 `;

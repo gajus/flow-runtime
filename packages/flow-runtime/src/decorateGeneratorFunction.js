@@ -13,7 +13,7 @@ export type DecoratedGeneratorFunction<P, G> = (...args: P[]) => G;
 export default function decorateGeneratorFunction <X, P, Y, R, N, G: Generator<Y, R, N>, F: (...args: P[]) => G> (type: FunctionType<P, R> | ParameterizedFunctionType<X, P, R>, fn: F): DecoratedGeneratorFunction<P, G> {
 
 
-  const generatorType = type.returnType;
+  // const generatorType = type.returnType;
 
   const decorated = function *decorated (...args: any[]): G {
     type.assertParams(...args);

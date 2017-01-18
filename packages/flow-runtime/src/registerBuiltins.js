@@ -198,7 +198,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       invariant(typeof shapeType.getProperty === 'function', "Can only $Shape<T> object types.");
 
       let hasErrors = false;
-      for (const key in input) {
+      for (const key in input) { // eslint-disable-line guard-for-in
         const property = shapeType.getProperty(key);
         if (!property) {
           continue;
@@ -216,7 +216,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       }
       shapeType = shapeType.unwrap();
       invariant(typeof shapeType.getProperty === 'function', "Can only $Shape<T> object types.");
-      for (const key in input) {
+      for (const key in input) { // eslint-disable-line guard-for-in
         const property = shapeType.getProperty(key);
         if (!property || !property.accepts(input)) {
           return false;
@@ -459,14 +459,16 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     impl: Promise,
     typeName: 'PromiseType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, futureType: Type<any>): boolean {
-      if (!input || typeof input.then !== 'function') {
+      const {context} = this;
+      if (!context.checkPredicate('Promise', input)) {
         validation.addError(path, this, getErrorMessage('ERR_EXPECT_PROMISE', futureType));
         return true;
       }
       return false;
     },
     accepts (input): boolean {
-      return input && typeof input.then === 'function' && input.then.length > 1;
+      const {context} = this;
+      return context.checkPredicate('Promise', input);
     },
     inferTypeParameters (input: any): Type<any>[] {
       return [];
@@ -479,7 +481,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     typeName: 'MapType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, keyType: Type<any>, valueType?: Type<any>): boolean {
       invariant(valueType, "Must specify two type parameters.");
-      if (!(input instanceof Map)) {
+      const {context} = this;
+      if (!context.checkPredicate('Map', input)) {
         validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Map'));
         return true;
       }
@@ -496,7 +499,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       return hasErrors;
     },
     accepts (input, keyType: Type<any>, valueType: Type<any>): boolean {
-      if (!(input instanceof Map)) {
+      const {context} = this;
+      if (!context.checkPredicate('Map', input)) {
         return false;
       }
       for (const [key, value] of input) {
@@ -559,7 +563,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     impl: Set,
     typeName: 'SetType',
     collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, valueType: Type<any>): boolean {
-      if (!(input instanceof Set)) {
+      const {context} = this;
+      if (!context.checkPredicate('Set', input)) {
         validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Set'));
         return true;
       }
@@ -572,7 +577,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       return hasErrors;
     },
     accepts (input, valueType) {
-      if (!(input instanceof Set)) {
+      const {context} = this;
+      if (!context.checkPredicate('Set', input)) {
         return false;
       }
       for (const value of input) {

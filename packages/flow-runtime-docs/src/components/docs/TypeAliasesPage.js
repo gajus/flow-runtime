@@ -8,6 +8,7 @@ import Example from '../Example';
 const simpleCode = `
 type User = {name: string};
 const bob: User = {name: 'Bob'};
+console.log(bob);
 `.trim();
 
 
@@ -17,7 +18,7 @@ const dict: Dict = {
   a: 123,
   b: false
 };
-
+console.log(dict);
 `.trim();
 
 @observer
@@ -26,7 +27,9 @@ export default class TypeAliasesPage extends Component {
     return (
       <div>
         <header className="jumbotron jumbotron-fluid text-xs-center">
-          <h1>Type Aliases</h1>
+          <div className="container">
+            <h1>Type Aliases</h1>
+          </div>
         </header>
         <div className="container">
           <h4>Named Types</h4>

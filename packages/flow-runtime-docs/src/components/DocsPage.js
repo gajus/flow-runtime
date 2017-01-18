@@ -17,6 +17,8 @@ export default class DocsPage extends Component<void, Props, void> {
           <div className="col-sm-3 col-lg-2 no-gutter">
             <nav className="nav nav-pills nav-stacked">
               <IndexLink className="nav-item nav-link" activeClassName="active" to="/docs">Getting Started</IndexLink>
+              <Link className="nav-item nav-link" activeClassName="active" to="/docs/working-with-flow">Working With Flow</Link>
+              <Link className="nav-item nav-link" activeClassName="active" to="/docs/pragmas">Pragmas & Suppressing Type Errors</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/primitive-types">Primitive Types</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/object-types">Object Types</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/arrays-and-tuples">Arrays & Tuples</Link>
@@ -26,7 +28,9 @@ export default class DocsPage extends Component<void, Props, void> {
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/unions-and-intersections">Unions & Intersections</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/type-inference">Type Inference</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/exotic-types">Exotic Types</Link>
+              <Link className="nav-item nav-link" activeClassName="active" to="/docs/type-refinements">Type Refinements</Link>
               <Link className="nav-item nav-link" activeClassName="active" to="/docs/validation">Validation & Error Reporting</Link>
+              <Link className="nav-item nav-link" activeClassName="active" to="/docs/pattern-matching">Pattern Matching</Link>
             </nav>
           </div>
           <div className="col-sm-9 col-lg-10 no-gutter">

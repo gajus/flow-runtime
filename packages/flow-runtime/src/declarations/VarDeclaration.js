@@ -6,6 +6,8 @@ import type {Type, TypeConstraint} from '../types';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
+import {addConstraints, collectConstraintErrors, constraintsAccept} from '../typeConstraints';
+
 export default class VarDeclaration<T> extends Declaration {
   typeName: string = 'VarDeclaration';
 
@@ -13,42 +15,34 @@ export default class VarDeclaration<T> extends Declaration {
   type: Type<T>;
   constraints: TypeConstraint[] = [];
 
-  addConstraint (constraint: TypeConstraint): VarDeclaration<T> {
-    this.constraints.push(constraint);
+  addConstraint (...constraints: TypeConstraint[]): VarDeclaration<T> {
+    addConstraints(this, ...constraints);
     return this;
   }
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    const {constraints, type} = this;
+    const {type} = this;
     let hasErrors = false;
     if (type.collectErrors(validation, path, input)) {
       hasErrors = true;
     }
-    const {length} = constraints;
-    for (let i = 0; i < length; i++) {
-      const constraint = constraints[i];
-      const violation = constraint(input);
-      if (typeof violation === 'string') {
-        validation.addError(path, this, violation);
-        hasErrors = true;
-      }
+    else if (collectConstraintErrors(this, validation, path, input)) {
+      hasErrors = true;
     }
     return hasErrors;
   }
 
   accepts (input: any): boolean {
-    const {constraints, type} = this;
+    const {type} = this;
     if (!type.accepts(input)) {
       return false;
     }
-    const {length} = constraints;
-    for (let i = 0; i < length; i++) {
-      const constraint = constraints[i];
-      if (typeof constraint(input) === 'string') {
-        return false;
-      }
+    else if (!constraintsAccept(this, input)) {
+      return false;
     }
-    return true;
+    else {
+      return true;
+    }
   }
 
   acceptsType (input: Type<any>): boolean {

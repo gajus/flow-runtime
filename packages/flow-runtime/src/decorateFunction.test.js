@@ -72,7 +72,7 @@ describe('decorateFunction', () => {
     );
 
 
-    const decorated = decorateFunction(type, stringer);
+    decorateFunction(type, stringer);
 
     //console.log(decorated(false));
   });

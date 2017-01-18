@@ -12,8 +12,10 @@ const Adder = t.function(
   t.param('b', t.number()),
   t.return(t.number())
 );
-Adder.assert((a, b) => 'wat?'); // does not throw, even though the return value is wrong.
-Adder.assert(a => 123); // throws because the function does not have enough parameters.
+console.log(Adder.assert((a, b) => 'wat?')); // does not throw, even though the return value is wrong.
+console.log(Adder.assert(a => 123)); // does not throw, but the signature is wrong.
+
+console.log(Adder.assert({nope: true})); // throws because object is not a function.
 `.trim();
 
 const annotatedCode = `
@@ -38,9 +40,9 @@ const bad = t.annotate(
   )
 );
 
-Adder.assert(add); // ok
-Adder.assert(bad); // throws
-`;
+console.log(Adder.assert(add)); // ok
+console.log(Adder.assert(bad)); // throws
+`.trim();
 
 @observer
 export default class FunctionsPage extends Component {

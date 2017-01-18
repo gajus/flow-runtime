@@ -22,8 +22,8 @@ export default class TypeDeclaration<T> extends Declaration {
 
   typeAlias: TypeAlias<T> | ParameterizedTypeAlias<T>;
 
-  addConstraint (constraint: TypeConstraint): TypeDeclaration<T> {
-    this.typeAlias.addConstraint(constraint);
+  addConstraint (...constraints: TypeConstraint[]): TypeDeclaration<T> {
+    this.typeAlias.addConstraint(...constraints);
     return this;
   }
 

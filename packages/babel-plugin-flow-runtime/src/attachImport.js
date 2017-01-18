@@ -10,12 +10,21 @@ export default function attachImport (context: ConversionContext, program: NodeP
     [t.importDefaultSpecifier(t.identifier(context.libraryId))],
     t.stringLiteral(context.libraryName)
   );
+  let last;
   for (const item of program.get('body')) {
-    if (item.type === 'Directive') {
+    if (item.isDirective() || item.isImportDeclaration()) {
+      last = item;
       continue;
     }
+
     item.insertBefore(importDeclaration);
     return;
   }
-  program.insertAfter(importDeclaration);
+
+  if (last) {
+    last.insertAfter(importDeclaration);
+  }
+  else {
+    program.get('body').unshiftContainer('body', importDeclaration);
+  }
 }

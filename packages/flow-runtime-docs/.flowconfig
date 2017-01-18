@@ -14,7 +14,6 @@
 
 [include]
 flow-typed
-flow-typed/npm
 
 [libs]
 

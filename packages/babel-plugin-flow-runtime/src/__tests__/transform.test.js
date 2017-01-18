@@ -13,16 +13,38 @@ import type {Node, NodePath} from 'babel-traverse';
 
 
 describe('transform', () => {
-  for (const [name, {input, expected}] of fixtures) {
+  for (const [name, {input, expected, annotated, combined}] of fixtures) {
     it(`should transform ${name}`, () => {
       const parsed = parse(input);
       const transformed = stripFlowTypes(transform(parsed, {
         assert: true,
-        decorate: true
+        annotate: false
       }));
       const generated = generate(transformed).code;
       equal(normalize(generated), normalize(expected));
     });
+    if (annotated) {
+      it(`should transform ${name} with decorations`, () => {
+        const parsed = parse(input);
+        const transformed = stripFlowTypes(transform(parsed, {
+          assert: false,
+          annotate: true
+        }));
+        const generated = generate(transformed).code;
+        equal(normalize(generated), normalize(annotated));
+      });
+    }
+    if (combined) {
+      it(`should transform ${name} with decorations and assertions`, () => {
+        const parsed = parse(input);
+        const transformed = stripFlowTypes(transform(parsed, {
+          assert: true,
+          annotate: true
+        }));
+        const generated = generate(transformed).code;
+        equal(normalize(generated), normalize(combined));
+      });
+    }
   }
 });
 
@@ -31,6 +53,13 @@ function stripFlowTypes (program: Node): Node {
   traverse(program, {
     Flow (path: NodePath) {
       path.remove();
+    },
+    TypeCastExpression(path) {
+      let { node } = path;
+      do {
+        node = node.expression;
+      } while (node.type === 'TypeCastExpression');
+      path.replaceWith(node);
     }
   });
   return program;
@@ -64,7 +93,7 @@ function normalize (input: string): string {
     .replace(/\{\s+/g, '{\n')
     .replace(/\s+\}/g, '\n}')
     .replace(/\[\s+/g, '[')
-    .replace(/\s+\]/g, ']')
+    .replace(/\s+]/g, ']')
     .replace(/\}\s+([A-Za-z])/g, '\n}\n$1')
     .split(';')
     .join(';\n')

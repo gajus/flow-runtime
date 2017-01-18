@@ -3,6 +3,10 @@
 import Type from './Type';
 import type Validation, {IdentifierPath} from '../Validation';
 
+import FlowIntoType from './FlowIntoType';
+
+const FlowIntoSymbol = Symbol('FlowInto');
+
 /**
  * # TypeParameter
  *
@@ -17,14 +21,28 @@ export default class TypeParameter<T> extends Type {
 
   recorded: ? Type<T>;
 
+  // @flowIssue 252
+  [FlowIntoSymbol]: ? FlowIntoType = null;
+
+
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     const {recorded, bound, context} = this;
-
-    if (recorded) {
+    if (bound instanceof FlowIntoType) {
+      // We defer to the other type parameter so that values from this
+      // one can flow "upwards".
+      return bound.accepts(input);
+    }
+    else if (recorded) {
+      // we've already recorded a value for this type parameter
       return recorded.collectErrors(validation, path, input);
     }
-    else if (bound && bound.collectErrors(validation, path, input)) {
-      return true;
+    else if (bound) {
+      if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+        return false;
+      }
+      else if (bound.collectErrors(validation, path, input)) {
+        return true;
+      }
     }
 
     this.recorded = context.typeOf(input);
@@ -32,17 +50,25 @@ export default class TypeParameter<T> extends Type {
   }
 
   accepts (input: any): boolean {
-
     const {recorded, bound, context} = this;
-
-    if (recorded) {
+    if (bound instanceof FlowIntoType) {
+      // We defer to the other type parameter so that values from this
+      // one can flow "upwards".
+      return bound.accepts(input);
+    }
+    else if (recorded) {
       return recorded.accepts(input);
     }
-    else if (bound && !bound.accepts(input)) {
-      return false;
+    else if (bound) {
+      if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+        return true;
+      }
+      else if (!bound.accepts(input)) {
+        return false;
+      }
     }
-    this.recorded = context.typeOf(input);
 
+    this.recorded = context.typeOf(input);
     return true;
   }
 
@@ -50,7 +76,7 @@ export default class TypeParameter<T> extends Type {
     const {recorded, bound} = this;
     if (input instanceof TypeParameter) {
       // We don't need to check for `recorded` or `bound` fields
-      // because the input has already been resolved.
+      // because the input has already been unwrapped.
       return true;
     }
     else if (recorded) {
@@ -97,4 +123,16 @@ export default class TypeParameter<T> extends Type {
       recorded: this.recorded
     };
   }
+}
+
+export function flowIntoTypeParameter <T> (typeParameter: TypeParameter<T>): FlowIntoType<T> {
+  const existing: ? FlowIntoType<T> = (typeParameter: $FlowIssue<252>)[FlowIntoSymbol];
+  if (existing) {
+    return existing;
+  }
+
+  const target = new FlowIntoType(typeParameter.context);
+  target.typeParameter = typeParameter;
+  (typeParameter: $FlowIssue<252>)[FlowIntoSymbol] = target;
+  return target;
 }

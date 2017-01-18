@@ -6,12 +6,26 @@ import getTypeParameters from './getTypeParameters';
 import type ConversionContext from './ConversionContext';
 
 export default function firstPassVisitors (context: ConversionContext): Object {
+
   return {
     Identifier (path: NodePath) {
-      if (!context.shouldImport || path.parentPath.isFlow()) {
+      const {parentPath} = path;
+      if (parentPath.isFlow()) {
+        // This identifier might point to a type that has not been resolved yet
+        if (parentPath.isTypeAlias() || parentPath.isInterfaceDeclaration()) {
+          if (path.key === 'id') {
+            return; // this is part of the declaration name
+          }
+        }
+        if (context.hasTDZIssue(path.node.name, path)) {
+          context.markBoxed(path.node);
+        }
         return;
       }
-      if (path.key === 'property' && path.parentPath.isMemberExpression() && path.parentPath.node.computed) {
+      else if (!context.shouldImport) {
+        return;
+      }
+      if (path.key === 'property' && parentPath.isMemberExpression() && parentPath.node.computed) {
         return;
       }
       const {name} = path.node;
@@ -52,6 +66,9 @@ export default function firstPassVisitors (context: ConversionContext): Object {
             if (specifier.isImportDefaultSpecifier()) {
               path.parentPath.scope.setData('reactLib', name);
             }
+            else if (specifier.isImportNamespaceSpecifier()) {
+              path.parentPath.scope.setData('reactLib', name);
+            }
             else if (specifier.node.imported.name === 'Component') {
               path.parentPath.scope.setData('reactComponentClass', name);
             }
@@ -59,7 +76,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
               path.parentPath.scope.setData('reactPureComponentClass', name);
             }
           }
-          else if (isFlowRuntime && specifier.isImportDefaultSpecifier()) {
+          else if (isFlowRuntime && (specifier.isImportDefaultSpecifier() || specifier.isImportNamespaceSpecifier())) {
             context.shouldImport = false;
             context.libraryId = name;
           }
@@ -71,7 +88,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       context.defineValue(name, path);
     },
     Function (path: NodePath) {
-      if (path.isFunctionDeclaration()) {
+      if (path.isFunctionDeclaration() && path.has('id')) {
         const {name} = path.node.id;
         context.defineValue(name, path.parentPath);
       }
@@ -98,11 +115,17 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       }
     },
     Class (path: NodePath) {
-      if (path.isClassDeclaration()) {
+      let className = 'AnonymousClass';
+      if (path.isClassDeclaration() && path.has('id')) {
         const {name} = path.node.id;
+        className = name;
         context.defineValue(name, path.parentPath);
       }
-      const body = path.get('body');
+      context.setClassData(
+        path,
+        'currentClassName',
+        className
+      );
       const typeParameters = getTypeParameters(path);
       typeParameters.forEach(item => {
         const {name} = item.node;
@@ -110,7 +133,26 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       });
       if (typeParameters.length > 0 || path.has('superTypeParameters')) {
         ensureConstructor(path);
-        path.parentPath.scope.setData('typeParametersUid', path.parentPath.scope.generateUid('typeParameters'));
+        context.setClassData(
+          path,
+          'typeParametersUid',
+          path.parentPath.scope.generateUid(`_typeParameters`)
+        );
+      }
+
+      if (typeParameters.length > 0) {
+        context.setClassData(
+          path,
+          'typeParametersSymbolUid',
+          path.parentPath.scope.generateUid(`${className}TypeParametersSymbol`)
+        );
+      }
+      else {
+        context.setClassData(
+          path,
+          'typeParametersSymbolUid',
+          ''
+        );
       }
     }
   };

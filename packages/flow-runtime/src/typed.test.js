@@ -24,6 +24,28 @@ describe('Typed API', () => {
     }));
   });
 
+  it('should check nullable types', () => {
+    const type = t.nullable(t.string());
+
+    ok(type.accepts());
+    ok(type.accepts(null));
+    ok(type.accepts(undefined));
+    ok(type.accepts(''));
+    ok(type.accepts('foo'));
+    no(type.accepts(2));
+    no(type.accepts(true));
+  });
+
+  it('should assert nullable types', () => {
+    const type = t.nullable(t.string());
+
+    type.assert();
+    type.assert(null);
+    type.assert(undefined);
+    type.assert('');
+    type.assert('foo');
+  });
+
 
   it('should check a simple object with shortcut syntax', () => {
     const type = t.exactObject({
@@ -135,7 +157,7 @@ describe('Typed API', () => {
     const bad = () => undefined;
     ok(type.accepts(good));
     ok(type.accepts(better));
-    no(type.accepts(bad));
+    ok(type.accepts(bad)); // not enough type information to reject.
   });
 
   it('should make a parameterized function type', () => {
@@ -159,7 +181,7 @@ describe('Typed API', () => {
     }
     ok(type.accepts(good));
     ok(type.accepts(better));
-    no(type.accepts(bad));
+    ok(type.accepts(bad)); // not enough type information to reject.
   });
 
   it('should build a tree-like object', () => {
@@ -187,6 +209,18 @@ describe('Typed API', () => {
     };
     ok(Tree.assert(candidate));
 
+  });
+
+  it('should apply type parameters', () => {
+    const A = t.type("A", A => {
+      const T = A.typeParameter("T");
+      return T;
+    });
+    const B = t.type("B", t.ref(A, t.string()));
+
+    ok(B.assert("abc"));
+    ok(A.assert(123));
+    throws(() => B.assert(123));
   });
 
   it('should handle named types', () => {
@@ -364,7 +398,7 @@ describe('Typed API', () => {
   });
 
   it('should build an object', () => {
-    const type = t.object(
+    t.object(
       t.property('foo', t.string('bar')),
       t.property('qux', t.union(
         t.string(),

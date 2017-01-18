@@ -53,7 +53,7 @@ console.log(JSON.stringify(config, null, 2));
 `.trim();
 
 @observer
-export default class FlowRuntimePage extends Component {
+export default class FlowConfigParserPage extends Component {
   render() {
     return (
       <div>
@@ -63,7 +63,7 @@ export default class FlowRuntimePage extends Component {
               <p className="lead">
                 Parses <code>.flowconfig</code> files and provides an API for inspecting the configuration.
             </p>
-            <a href="https://github.com/codemix/flow-config-parser/tree/master/packages/flow-config-parser" className="btn btn-primary">
+            <a href="https://github.com/codemix/flow-runtime/tree/master/packages/flow-config-parser" className="btn btn-primary">
               <i className="fa fa-github" />
               {' '}
               flow-config-parser on github

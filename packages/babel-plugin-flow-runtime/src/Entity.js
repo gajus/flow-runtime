@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath, Scope} from 'babel-traverse';
 
 
 export type EntityType
@@ -18,6 +18,10 @@ export default class Entity {
 
   get node (): ? Node {
     return this.path && this.path.node;
+  }
+
+  get scope (): ? Scope {
+    return this.path && this.path.scope;
   }
 
   get isTypeAlias (): boolean {

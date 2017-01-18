@@ -22,12 +22,12 @@ function convert (context: ConversionContext, path: NodePath): Node {
   if (!converter) {
     throw new Error(`Unsupported node type: ${path.type}`);
   }
-  try {
-    return converter(context, path);
+  const loc = path.node.loc;
+  const result = converter(context, path);
+  if (result && loc) {
+    result.loc = loc;
   }
-  catch (e) {
-    throw new Error(e.stack);
-  }
+  return result;
 }
 
 function annotationReferencesId (annotation: NodePath, name: string): boolean {
@@ -36,6 +36,39 @@ function annotationReferencesId (annotation: NodePath, name: string): boolean {
       return true;
     }
   }
+  return false;
+}
+
+/**
+ * Determine whether a given type parameter exists in a position where
+ * values it receives should flow into the union of types the annotation
+ * allows. For example, given a function like `<T> (a: T, b: T) => T`,
+ * T should be a union of whatever `a` and `b` are.
+ *
+ * If the annotation exists in a function parameter, it is considered flowable.
+ */
+function typeParameterCanFlow (annotation: NodePath) {
+  let subject = annotation.parentPath;
+  while (subject) {
+    if (subject.isClassProperty()) {
+      return true;
+    }
+    else if (subject.isFlow()) {
+      subject = subject.parentPath;
+      continue;
+    }
+    else if (subject.isStatement()) {
+      return false;
+    }
+
+    if (subject.isIdentifier() || subject.isArrayPattern() || subject.isObjectPattern()) {
+      if (subject.parentPath.isFunction() && subject.listKey === 'params') {
+        return true;
+      }
+    }
+    subject = subject.parentPath;
+  }
+
   return false;
 }
 
@@ -472,13 +505,30 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     name = id.node.name;
     subject = t.identifier(name);
   }
+  if (context.shouldSuppressTypeName(name)) {
+    return context.call('any');
+  }
+  if (context.isBoxed(id.node)) {
+    subject = context.call('box', t.arrowFunctionExpression([], subject));
+  }
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 
+  const isTypeParameter = (
+    (entity && entity.isTypeParameter)
+    || annotationParentHasTypeParameter(path, name)
+  );
+
+
+  if (isTypeParameter && typeParameterCanFlow(path)) {
+    subject = context.call('flowInto', subject);
+  }
+
   const isDirectlyReferenceable
-        = annotationParentHasTypeParameter(path, name)
-        || (entity && (entity.isTypeAlias || entity.isTypeParameter))
+        = isTypeParameter
+        || (entity && entity.isTypeAlias)
         ;
+
 
   if (isDirectlyReferenceable) {
     if (typeParameters.length > 0) {
@@ -493,7 +543,8 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   }
   else if (entity.isClassTypeParameter) {
     let target;
-    const typeParametersUid = path.scope.getData('typeParametersUid');
+    const typeParametersUid = context.getClassData(path, 'typeParametersUid');
+    const typeParametersSymbolUid = context.getClassData(path, 'typeParametersSymbolUid');
     if (typeParametersUid && parentIsStaticMethod(path)) {
       target = t.memberExpression(
         t.identifier(typeParametersUid),
@@ -506,15 +557,33 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
         subject
       );
     }
-    else {
+    else if (typeParametersSymbolUid) {
       target = t.memberExpression(
         t.memberExpression(
           t.thisExpression(),
-          context.symbol('TypeParameters'),
+          t.identifier(typeParametersSymbolUid),
           true
         ),
         subject
       );
+    }
+    else {
+      target = t.memberExpression(
+        t.memberExpression(
+          t.thisExpression(),
+          t.memberExpression(
+            t.thisExpression(),
+            context.symbol('TypeParameters'),
+            true
+          ),
+          true
+        ),
+        subject
+      );
+    }
+
+    if (typeParameterCanFlow(path)) {
+      target =  context.call('flowInto', target);
     }
 
     if (typeParameters.length > 0) {
@@ -633,5 +702,108 @@ converters.FunctionTypeParam = (context: ConversionContext, path: NodePath): Nod
   }
 };
 
+
+
+converters.ClassProperty = (context: ConversionContext, path: NodePath): Node => {
+  const typeAnnotation = path.has('typeAnnotation')
+                       ? convert(context, path.get('typeAnnotation'))
+                       : context.call('any')
+                       ;
+  if (path.node.computed) {
+    // make an object type indexer
+    const keyType = context.call('union',
+      context.call('number'),
+      context.call('string'),
+      context.call('symbol'),
+    );
+    return context.call('indexer', t.stringLiteral('key'), keyType, typeAnnotation);
+  }
+  else {
+    return context.call(path.node.static ? 'staticProperty' : 'property', t.stringLiteral(path.node.key.name), typeAnnotation);
+  }
+};
+
+converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
+  const params = path.get('params').map(param => {
+    if (param.isIdentifier()) {
+      return context.call('param',
+        t.stringLiteral(param.node.name),
+        convert(context, param)
+      );
+    }
+    else if (param.isAssignmentPattern() && param.get('left').isIdentifier()) {
+      return context.call('param',
+        t.stringLiteral(param.node.left.name),
+        convert(context, param)
+      );
+    }
+    else {
+      return context.call('param',
+        t.stringLiteral(`_arg${param.key}`),
+        convert(context, param)
+      );
+    }
+  });
+  const returnType = context.call(
+    'return',
+    path.has('returnType')
+      ? convert(context, path.get('returnType'))
+      : context.call('any')
+  );
+  const args = [...params, returnType];
+  if (path.node.computed) {
+    // make an object type indexer.
+    const keyType = context.call('union',
+      context.call('number'),
+      context.call('string'),
+      context.call('symbol'),
+    );
+    return context.call('indexer', t.stringLiteral('key'), keyType, context.call('function', ...args));
+  }
+  else {
+    return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(path.node.key.name), ...args);
+  }
+};
+
+
+converters.RestElement = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('array', context.call('any'));
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
+converters.Identifier = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('any');
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
+converters.ArrayPattern = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('array', context.call('any'));
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
+converters.ObjectPattern = (context: ConversionContext, path: NodePath): Node => {
+  if (!path.has('typeAnnotation')) {
+    return context.call('ref', t.identifier('Object'));
+  }
+  else {
+    return convert(context, path.get('typeAnnotation'));
+  }
+};
+
+converters.AssignmentPattern = (context: ConversionContext, path: NodePath): Node => {
+  return convert(context, path.get('left'));
+};
 
 export default convert;

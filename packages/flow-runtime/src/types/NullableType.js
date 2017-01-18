@@ -9,7 +9,7 @@ export default class NullableType<T> extends Type {
   type: Type<T>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    if (input === null) {
+    if (input == null) {
       return false;
     }
     else {

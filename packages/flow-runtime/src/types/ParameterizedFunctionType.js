@@ -17,68 +17,59 @@ export default class ParameterizedFunctionType <X, P: any, R: any> extends Type 
   typeName: string = 'ParameterizedFunctionType';
   bodyCreator: FunctionBodyCreator<P, R>;
 
-  get partial (): PartialType<(...params: P[]) => R> {
-    const {context, bodyCreator} = this;
-    const target = new PartialType(context);
-    const body = bodyCreator(target);
-    target.type = context.function(...body);
-    return target;
-  }
-
   get typeParameters (): TypeParameter<X>[] {
-    return this.partial.typeParameters;
+    return getPartial(this).typeParameters;
   }
 
   get params (): FunctionTypeParam<P>[] {
-    return this.partial.type.params;
+    return getPartial(this).type.params;
   }
 
   get rest (): ? FunctionTypeRestParam<P> {
-    return this.partial.type.rest;
+    return getPartial(this).type.rest;
   }
 
   get returnType (): Type<R> {
-    return this.partial.type.returnType;
+    return getPartial(this).type.returnType;
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    return this.partial.collectErrors(validation, path, input);
+  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): boolean {
+    return getPartial(this, ...typeInstances).collectErrors(validation, path, input);
   }
 
-  accepts (input: any): boolean {
-    return this.partial.accepts(input);
+  accepts (input: any, ...typeInstances: Type<any>[]): boolean {
+    return getPartial(this, ...typeInstances).accepts(input);
   }
-
 
   acceptsType (input: Type<any>): boolean {
-    return this.partial.acceptsType(input);
+    return getPartial(this).acceptsType(input);
   }
 
   acceptsParams (...args: any[]): boolean {
-    return this.partial.type.acceptsParams(...args);
+    return getPartial(this).type.acceptsParams(...args);
   }
 
   acceptsReturn (input: any): boolean {
-    return this.partial.type.acceptsReturn(input);
+    return getPartial(this).type.acceptsReturn(input);
   }
 
   assertParams <T> (...args: T[]): T[] {
-    return this.partial.type.assertParams(...args);
+    return getPartial(this).type.assertParams(...args);
   }
 
   assertReturn <T> (input: T): T {
-    return this.partial.type.assertReturn(input);
+    return getPartial(this).type.assertReturn(input);
   }
 
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type<(...params: P[]) => R> {
-    return this.partial.unwrap(...typeInstances);
+  unwrap (...typeInstances: Type<any>[]): Type<(...params: P[]) => R | mixed> {
+    return getPartial(this, ...typeInstances).unwrap();
   }
 
   toString (): string {
-    const {partial} = this;
+    const partial = getPartial(this);
     const {type, typeParameters} = partial;
     if (typeParameters.length === 0) {
       return type.toString();
@@ -92,7 +83,32 @@ export default class ParameterizedFunctionType <X, P: any, R: any> extends Type 
   }
 
   toJSON () {
-    const {partial} = this;
+    const partial = getPartial(this);
     return partial.toJSON();
   }
+}
+
+function getPartial <X, P, R> (parent: ParameterizedFunctionType<X, P, R>, ...typeInstances: Type<any>[]): PartialType<(...params: P[]) => R> {
+
+  const {context, bodyCreator} = parent;
+  const partial = new PartialType(context);
+  const body = bodyCreator(partial);
+  partial.type = context.function(...body);
+
+  const {typeParameters} = partial;
+  const limit = Math.min(typeInstances.length, typeParameters.length);
+  for (let i = 0; i < limit; i++) {
+    const typeParameter = typeParameters[i];
+    const typeInstance = typeInstances[i];
+    if (typeParameter.bound && typeParameter.bound !== typeInstance) {
+      // if the type parameter is already bound we need to
+      // create an intersection type with this one.
+      typeParameter.bound = context.intersect(typeParameter.bound, typeInstance);
+    }
+    else {
+      typeParameter.bound = typeInstance;
+    }
+  }
+
+  return partial;
 }

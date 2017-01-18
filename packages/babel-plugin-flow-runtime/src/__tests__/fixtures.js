@@ -5,6 +5,11 @@ import path from 'path';
 
 const fixturesDir = path.join(__dirname, '__fixtures__');
 
+const INCLUDE_PATTERN = process.env.TEST_FILTER
+                   ? new RegExp(process.env.TEST_FILTER)
+                   : null
+                   ;
+
 function findFiles (dirname: string, filenames: string[]): string[] {
   for (const filename of fs.readdirSync(dirname)) {
     const qualified = path.join(dirname, filename);
@@ -21,14 +26,25 @@ function findFiles (dirname: string, filenames: string[]): string[] {
   return filenames;
 }
 
+function filterIncluded (filename: string): boolean {
+  if (INCLUDE_PATTERN) {
+    return INCLUDE_PATTERN.test(filename);
+  }
+  else {
+    return true;
+  }
+}
+
 const files = findFiles(fixturesDir, []);
 
 export type Fixture = {
   input: string;
   expected: string;
+  annotated?: string;
+  combined?: string;
 };
 
-const fixtures: Map<string, Fixture> = new Map(files.map(filename => {
+const fixtures: Map<string, Fixture> = new Map(files.filter(filterIncluded).map(filename => {
   // @flowIgnore
   return [filename, require(`./__fixtures__/${filename}`)];
 }));

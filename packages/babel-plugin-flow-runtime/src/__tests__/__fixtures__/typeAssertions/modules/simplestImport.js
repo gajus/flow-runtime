@@ -5,9 +5,8 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "flow-runtime";
-
   import {
     Demo
   } from './simplestExport';
+  import t from "flow-runtime";
 `;

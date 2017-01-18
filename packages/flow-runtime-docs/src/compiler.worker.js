@@ -1,9 +1,9 @@
 /* @flow */
 
+declare var self: DedicatedWorkerGlobalScope;
+
 import {parse} from 'babylon';
-import generate from 'babel-generator';
 import transform from 'babel-plugin-flow-runtime/lib/transform';
-import Recast from 'recast';
 import * as Babel from 'babel-standalone';
 
 type AST = {
@@ -30,41 +30,31 @@ function getAST (input: string): AST {
   });
 }
 
-function transformFlowRuntime (ast: AST, options: Object): string {
+function transformFlowRuntime (ast: AST, input: string, options: Object): string {
   transform(ast, options);
-  try {
-    const {code} = Recast.print(ast, {
-      tabWidth: 2
-    });
-    return code;
-  }
-  catch (e) {
-    // fall-back to babel.
-    const {code} = generate(ast, {
-      tabWidth: 2
-    });
-    return code;
-  }
-}
 
-function compileBabel (ast: AST, input: string): string {
-  const {code} = Babel.transformFromAst(ast, input, { presets: ['es2015', 'stage-0', 'react']});
+  const {code} = Babel.transformFromAst(ast, input, { plugins: ['transform-flow-strip-types']});
   return code;
 }
 
-function removeComments (code: string): string {
-  return code.replace(/^\/\/(.*)$/gm, '').trim();
+function compileBabel (ast: AST, input: string): string {
+  const {code} = Babel.transformFromAst(ast, input, {
+    presets: [['es2015', {generators: false}], 'stage-0', 'react'],
+    plugins: ['transform-decorators-legacy']
+  });
+  return code;
 }
 
-onmessage = (event) => {
-  const [id, input, options] = event.data;
+
+(self: any).addEventListener('message', (event: MessageEvent) => {
+  const [id, input, options] = (event: any).data;
   let ast;
   let result;
   try {
     ast = getAST(input);
     result = [
       id,
-      removeComments(transformFlowRuntime(ast, options)),
+      transformFlowRuntime(ast, input, options),
       compileBabel(ast, input)
     ];
   }
@@ -73,8 +63,8 @@ onmessage = (event) => {
       id,
       '',
       '',
-      e.message
+      e.stack
     ];
   }
-  postMessage(result);
-};
+  self.postMessage(result);
+}, false);

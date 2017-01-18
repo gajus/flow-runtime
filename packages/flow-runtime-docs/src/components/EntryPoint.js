@@ -11,6 +11,8 @@ import PackageListPage from './PackageListPage';
 import BabelPluginFlowRuntimePage from './packages/BabelPluginFlowRuntimePage';
 import FlowRuntimePage from './packages/FlowRuntimePage';
 import FlowConfigParserPage from './packages/FlowConfigParserPage';
+import FlowRuntimeMobxPage from './packages/FlowRuntimeMobxPage';
+import FlowRuntimeValidatorsPage from './packages/FlowRuntimeValidatorsPage';
 
 import GettingStartedPage from './docs/GettingStartedPage';
 import ObjectTypesPage from './docs/ObjectTypesPage';
@@ -23,6 +25,10 @@ import TypeInferencePage from './docs/TypeInferencePage';
 import UnionsAndIntersectionsPage from './docs/UnionsAndIntersectionsPage';
 import ExoticTypesPage from './docs/ExoticTypesPage';
 import ValidationPage from './docs/ValidationPage';
+import PatternMatchingPage from './docs/PatternMatchingPage';
+import TypeRefinementsPage from './docs/TypeRefinementsPage';
+import WorkingWithFlowPage from './docs/WorkingWithFlowPage';
+import PragmasPage from './docs/PragmasPage';
 
 export default function EntryPoint () {
   return (
@@ -41,11 +47,17 @@ export default function EntryPoint () {
           <Route path="type-inference" component={TypeInferencePage} />
           <Route path="exotic-types" component={ExoticTypesPage} />
           <Route path="validation" component={ValidationPage} />
+          <Route path="working-with-flow" component={WorkingWithFlowPage} />
+          <Route path="pragmas" component={PragmasPage} />
+          <Route path="pattern-matching" component={PatternMatchingPage} />
+          <Route path="type-refinements" component={TypeRefinementsPage} />
         </Route>
         <Route path="try" component={TryPage} />
         <Route path="packages" component={PackageListPage} />
         <Route path="flow-config-parser" component={FlowConfigParserPage} />
         <Route path="flow-runtime" component={FlowRuntimePage} />
+        <Route path="flow-runtime-validators" component={FlowRuntimeValidatorsPage} />
+        <Route path="flow-runtime-mobx" component={FlowRuntimeMobxPage} />
         <Route path="babel-plugin-flow-runtime" component={BabelPluginFlowRuntimePage} />
       </Route>
     </Router>
