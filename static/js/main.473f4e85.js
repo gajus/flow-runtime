@@ -27573,7 +27573,7 @@
 	
 	var defaultExample = '\ntype Thing = {\n  id: string | number;\n  name: string;\n};\n\nconst widget: Thing = {\n  id: false,\n  name: \'Widget\'\n};\n\nconsole.log(widget);\n'.trim();
 	
-	var TryPage = (_dec = _flowRuntime2.default.annotate(_flowRuntime2.default.class('TryPage', _flowRuntime2.default.property('compiler', _flowRuntime2.default.ref(_Compiler2.default)), _flowRuntime2.default.property('handleChange', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleSelectExample', _flowRuntime2.default.any()), _flowRuntime2.default.property('runCode', _flowRuntime2.default.any()), _flowRuntime2.default.property('hideLog', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleClickAssertions', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleClickWarnings', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleClickDecoration', _flowRuntime2.default.any()), _flowRuntime2.default.method('constructor', _flowRuntime2.default.param('props', Props), _flowRuntime2.default.return(_flowRuntime2.default.any())), _flowRuntime2.default.method('render', _flowRuntime2.default.return(_flowRuntime2.default.any())), _flowRuntime2.default.method('renderSelect', _flowRuntime2.default.return(_flowRuntime2.default.any())), _flowRuntime2.default.extends(_react.Component, _flowRuntime2.default.void(), Props, _flowRuntime2.default.void()))), _dec2 = _flowRuntime2.default.decorate(function () {
+	var TryPage = (_dec = _flowRuntime2.default.annotate(_flowRuntime2.default.class('TryPage', _flowRuntime2.default.property('compiler', _flowRuntime2.default.ref(_Compiler2.default)), _flowRuntime2.default.property('handleChange', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleSelectExample', _flowRuntime2.default.any()), _flowRuntime2.default.property('runCode', _flowRuntime2.default.any()), _flowRuntime2.default.property('hideLog', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleClickAssertions', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleClickWarnings', _flowRuntime2.default.any()), _flowRuntime2.default.property('handleClickAnnotation', _flowRuntime2.default.any()), _flowRuntime2.default.method('constructor', _flowRuntime2.default.param('props', Props), _flowRuntime2.default.return(_flowRuntime2.default.any())), _flowRuntime2.default.method('render', _flowRuntime2.default.return(_flowRuntime2.default.any())), _flowRuntime2.default.method('renderSelect', _flowRuntime2.default.return(_flowRuntime2.default.any())), _flowRuntime2.default.extends(_react.Component, _flowRuntime2.default.void(), Props, _flowRuntime2.default.void()))), _dec2 = _flowRuntime2.default.decorate(function () {
 	  return _flowRuntime2.default.ref(_Compiler2.default);
 	}), _dec(_class = (0, _mobxReact.observer)(_class = (_class2 = (_temp = _class3 = function (_Component) {
 	  _inherits(TryPage, _Component);
@@ -27633,7 +27633,7 @@
 	      _this.compiler.updateCode(_this.compiler.code);
 	    };
 	
-	    _this.handleClickDecoration = function () {
+	    _this.handleClickAnnotation = function () {
 	      _this.compiler.shouldAnnotate = !_this.compiler.shouldAnnotate;
 	      _this.compiler.updateCode(_this.compiler.code);
 	    };
@@ -27677,8 +27677,8 @@
 	              ),
 	              _react2.default.createElement(
 	                'button',
-	                { className: 'btn btn-secondary', onClick: this.handleClickDecoration },
-	                compiler.shouldAnnotate ? 'Disable Decorations' : 'Enable Decorations'
+	                { className: 'btn btn-secondary', onClick: this.handleClickAnnotation },
+	                compiler.shouldAnnotate ? 'Disable Annotations' : 'Enable Annotations'
 	              ),
 	              _react2.default.createElement(
 	                'button',
@@ -48400,4 +48400,4 @@
 
 /***/ }
 /******/ ])));
-//# sourceMappingURL=main.b781e2ca.js.map
+//# sourceMappingURL=main.473f4e85.js.map
