@@ -4,11 +4,16 @@
   "repository": "https://github.com/codemix/flow-runtime.git",
   "version": "0.1.0",
   "description": "A flow compatible type system for JS.",
-  "main": "flow-runtime.js",
+  "main": "dist/flow-runtime.js",
+  "module": "dist/flow-runtime.es2015.js",
+  "browser": "dist/flow-runtime.min.js",
   "scripts": {
     "lint": "eslint ./src && flow check",
     "prepublish": "npm run build",
-    "build": "babel -d ./lib ./src",
+    "build": "npm run build-browser && npm run build-cjs && npm run build-es2015",
+    "build-browser": "NODE_ENV=production BABEL_ENV=browser rollup -c ./rollup/browser.config.js",
+    "build-cjs": "NODE_ENV=production BABEL_ENV=node rollup -c ./rollup/cjs.config.js",
+    "build-es2015": "NODE_ENV=production BABEL_ENV=node rollup -c ./rollup/es2015.config.js",
     "test": "mocha",
     "watch": "mocha --watch"
   },
@@ -42,5 +47,8 @@
   },
   "eslintConfig": {
     "extends": "./config/eslint.js"
+  },
+  "dependencies": {
+    "rollup": "0.41"
   }
 }

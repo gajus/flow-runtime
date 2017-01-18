@@ -2,7 +2,7 @@
   "presets": [
     ["env", {
       "targets": {
-        "browsers": ["last 2 versions"]
+        "node": 4
       },
       "exclude": [
         "transform-regenerator"
@@ -16,12 +16,31 @@
     "transform-decorators-legacy"
   ],
   "env": {
-    "production": {
+    "browser": {
       "presets": [
         ["env", {
           "targets": {
             "browsers": ["last 2 versions"]
           },
+          "modules": false
+        }],
+        "stage-0",
+        "react"
+      ],
+      "plugins": [
+        "transform-decorators-legacy",
+        "external-helpers"
+      ]
+    },
+    "node": {
+      "presets": [
+        ["env", {
+          "targets": {
+            "node": 4
+          },
+          "exclude": [
+            "transform-regenerator"
+          ],
           "modules": false
         }],
         "stage-0",
