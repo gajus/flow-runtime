@@ -61,7 +61,7 @@ function typeParameterCanFlow (annotation: NodePath) {
       return false;
     }
 
-    if (subject.isIdentifier()) {
+    if (subject.isIdentifier() || subject.isArrayPattern() || subject.isObjectPattern()) {
       if (subject.parentPath.isFunction() && subject.listKey === 'params') {
         return true;
       }
