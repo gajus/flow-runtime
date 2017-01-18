@@ -12,8 +12,16 @@ import makeJSONError from './errorReporting/makeJSONError';
 import makeTypeError from './errorReporting/makeTypeError';
 import makeWarningMessage from './errorReporting/makeWarningMessage';
 
+import makeUnion from './makeUnion';
+import {makePropertyDescriptor} from './classDecorators';
+
+import {flowIntoTypeParameter} from './types/TypeParameter';
+
+import annotateValue from './annotateValue';
+
 import type {PropTypeDict} from './makeReactPropTypes';
 import type {IdentifierPath} from './Validation';
+
 
 import {
   Type,
@@ -123,6 +131,10 @@ type TypeConstructorRegistry = Map<Function, Class<TypeConstructor<any>>>;
 export type MatchClause<P, R> = (...params: P[]) => R;
 export type PatternMatcher<P, R> = (...params: P[]) => R;
 
+export type CheckMode
+  = 'assert'
+  | 'warn'
+  ;
 
 /**
  * Keeps track of invalid references in order to prevent
@@ -131,6 +143,12 @@ export type PatternMatcher<P, R> = (...params: P[]) => R;
 const warnedInvalidReferences: WeakSet<any> = new WeakSet();
 
 export default class TypeContext {
+
+  /**
+   * Calls to `t.check(...)` will call either
+   * `t.assert(...)` or `t.warn(...)` depending on this setting.
+   */
+  mode: CheckMode = 'assert';
 
   // @flowIssue 252
   [ParentSymbol]: ? TypeContext;
@@ -202,6 +220,7 @@ export default class TypeContext {
 
   /**
    * Get the predicate for a given type name.
+   * e.g. `t.getPredicate('Array')`.
    */
   getPredicate (name: string): ? TypePredicate {
     const item: ? TypePredicate = (this: any)[TypePredicateRegistrySymbol][name];
@@ -226,6 +245,7 @@ export default class TypeContext {
   /**
    * Check the given value against the named predicate.
    * Returns false if no such predicate exists.
+   * e.g. `t.checkPredicate('Array', [1, 2, 3])`
    */
   checkPredicate (name: string, input: any): boolean {
     const predicate = this.getPredicate(name);
@@ -240,35 +260,30 @@ export default class TypeContext {
   /**
    * Returns a decorator for a function or object with the given type.
    */
-  decorate (type: Type<any>): * {
+  decorate (type: (() => Type<any>) | Type<any>): * {
     return (input: Object | Function, propertyName?: string, descriptor?: Object): * => {
       if (descriptor && typeof propertyName === 'string') {
-        if (typeof descriptor.get === 'function' || typeof descriptor.set === 'function') {
-          return descriptor; // @todo decorate getters/setters
-        }
-        else {
-          return {
-            enumerable: true,
-            writable: true,
-            configurable: true,
-            value: descriptor.value,
-            initializer: descriptor.initializer
-          };
-        }
+        return makePropertyDescriptor(type, input, propertyName, descriptor);
       }
       else {
+        invariant(typeof type !== 'function', 'Cannot decorate an object or function as a method.');
         return this.annotate(input, type);
       }
     };
   }
 
-
   /**
    * Annotates an object or function with the given type.
+   * If a type is specified as the sole argument, returns a
+   * function which can decorate classes or functions with the given type.
    */
-  annotate <T: Object | Function> (input: T, type: Type<any>): T {
-    input[TypeSymbol] = type;
-    return input;
+  annotate <T> (input: Type<T> | T, type?: Type<T>) {
+    if (type === undefined) {
+      return annotateValue(input);
+    }
+    else {
+      return annotateValue(input, type);
+    }
   }
 
   getAnnotation <T> (input: T): ? Type<T> {
@@ -504,15 +519,29 @@ export default class TypeContext {
   }
 
   flowInto <T> (typeParameter: TypeParameter<T>): FlowIntoType<T> {
-    const target = new FlowIntoType(this);
-    target.typeParameter = typeParameter;
-    return target;
+    return flowIntoTypeParameter(typeParameter);
   }
 
+  /**
+   * Bind the type parameters for the parent class of the given instance.
+   */
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
+
+    const instancePrototype = Object.getPrototypeOf(subject);
+    // @flowIssue
+    const parentPrototype = instancePrototype && Object.getPrototypeOf(instancePrototype);
+    // @flowIssue
+    const parentClass = parentPrototype && parentPrototype.constructor;
+
+    if (!parentClass) {
+      this.emitWarningMessage('Could not bind type parameters for non-existent parent class.');
+      return subject;
+    }
     // @flowIssue 252
-    const typeParameters = subject[TypeParametersSymbol];
-    if (typeParameters) {
+    const typeParametersPointer = parentClass[TypeParametersSymbol];
+
+    if (typeParametersPointer) {
+      const typeParameters = subject[typeParametersPointer];
       const keys = Object.keys(typeParameters);
       const length = Math.min(keys.length, typeInstances.length);
       for (let i = 0; i < length; i++) {
@@ -742,6 +771,18 @@ export default class TypeContext {
     return target;
   }
 
+  staticProperty <K: string | number, V> (key: K, value: Type<V> | ObjectPropertyDict<Object>, optional: boolean = false): ObjectTypeProperty<K, V> {
+    const prop = this.property(key, value, optional);
+    (prop: $FlowIssue).static = true;
+    return prop;
+  }
+
+  staticMethod <K: string | number, X, P, R> (name: K, head: FunctionBodyCreator<X, P, R> | ValidFunctionBody<X, P, R>, ...tail: Array<ValidFunctionBody<X, P, R>>): ObjectTypeProperty<K, (...params: P[]) => R> {
+    const prop = this.method(name, head, ...tail);
+    (prop: $FlowIssue).static = true;
+    return prop;
+  }
+
   tuple <T> (...types: Type<T>[]): TupleType<any> {
     const target = new TupleType(this);
     target.types = types;
@@ -755,9 +796,7 @@ export default class TypeContext {
   }
 
   union <T> (...types: Type<T>[]): UnionType<T> {
-    const target = new UnionType(this);
-    target.types = types;
-    return target;
+    return makeUnion(this, types);
   }
 
   intersect <T> (...types: Type<T>[]): IntersectionType<T> {
@@ -823,17 +862,39 @@ export default class TypeContext {
     }
   }
 
-  validate <T> (type: Type<T>, input: any): Validation<T> {
+  validate <T> (type: Type<T>, input: any, prefix: string = '', path?: string[]): Validation<T> {
     const validation = new Validation(this, input);
-    if (typeof type.name === 'string') {
-      validation.inputName = type.name;
+    if (path) {
+      validation.path.push(...path);
     }
+    else if (typeof type.name === 'string') {
+      validation.path.push(type.name);
+    }
+    validation.prefix = prefix;
     type.collectErrors(validation, [], input);
     return validation;
   }
 
-  warn <T, V: T | any> (type: Type<T>, input: V): V {
-    const validation = this.validate(type, input);
+  check <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
+    if (this.mode === 'assert') {
+      return this.assert(type, input, prefix, path);
+    }
+    else {
+      return this.warn(type, input, prefix, path);
+    }
+  }
+
+  assert <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
+    const validation = this.validate(type, input, prefix, path);
+    const error = this.makeTypeError(validation);
+    if (error) {
+      throw error;
+    }
+    return input;
+  }
+
+  warn <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
+    const validation = this.validate(type, input, prefix, path);
     const message = makeWarningMessage(validation);
     if (typeof message === 'string') {
       this.emitWarningMessage(message);

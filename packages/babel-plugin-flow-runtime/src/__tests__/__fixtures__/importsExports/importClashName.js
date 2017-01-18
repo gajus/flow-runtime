@@ -6,7 +6,7 @@ export const input = `
 `;
 
 export const expected = `
-  import _t from "flow-runtime";
   import t from "babel-types";
+  import _t from "flow-runtime";
   const Demo = _t.type("Demo", _t.number());
 `;

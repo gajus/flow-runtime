@@ -119,7 +119,7 @@ describe('makeJSONError', () => {
 
     it('should reject an invalid value', () => {
       const validation = t.validate(type, [{items: [1, 2, 3]}, {items: [1, 2, "foo"]}]);
-      validation.inputName = 'input';
+      validation.path = ['input'];
       const report = makeJSONError(validation);
       expect(report, [
         'input[1].items[2] must be a number, got string'
@@ -151,7 +151,7 @@ describe('makeJSONError', () => {
 
     it('should reject an invalid value', () => {
       const validation = t.validate(type, invalid);
-      validation.inputName = 'input';
+      validation.path = ['input'];
       const report = makeJSONError(validation);
       expect(report, [
         'input argument "b" must be: number, got (a: number) => number'

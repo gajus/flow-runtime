@@ -1,8 +1,11 @@
 /* @flow */
 
 export const input = `
-  class Point {
+  class Parent {
     x: number = 0;
+  }
+
+  class Child extends Parent {
     y: number = 0;
   }
 `;
@@ -10,10 +13,12 @@ export const input = `
 export const expected = `
   import t from "flow-runtime";
 
-  class Point {
+  class Parent {
     @t.decorate(t.number())
     x = 0;
+  }
 
+  class Child extends Parent {
     @t.decorate(t.number())
     y = 0;
   }
@@ -24,12 +29,19 @@ export const annotated = `
   import t from "flow-runtime";
 
   @t.annotate(t.class(
-    "Point",
-    t.property("x", t.number()),
-    t.property("y", t.number())
+    "Parent",
+    t.property("x", t.number())
   ))
-  class Point {
+  class Parent {
     x = 0;
+  }
+
+  @t.annotate(t.class(
+    "Child",
+    t.property("y", t.number()),
+    t.extends(Parent)
+  ))
+  class Child extends Parent {
     y = 0;
   }
 `;
@@ -38,14 +50,20 @@ export const combined = `
   import t from "flow-runtime";
 
   @t.annotate(t.class(
-    "Point",
-    t.property("x", t.number()),
-    t.property("y", t.number())
+    "Parent",
+    t.property("x", t.number())
   ))
-  class Point {
+  class Parent {
     @t.decorate(t.number())
     x = 0;
+  }
 
+  @t.annotate(t.class(
+    "Child",
+    t.property("y", t.number()),
+    t.extends(Parent)
+  ))
+  class Child extends Parent {
     @t.decorate(t.number())
     y = 0;
   }

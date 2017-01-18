@@ -15,7 +15,7 @@ export default function makeWarningMessage <T> (validation: Validation<T>): ? st
     const expected = expectedType ? expectedType.toString() : "*";
     const actual = context.typeOf(resolvePath(input, path)).toString();
 
-    const field = stringifyPath(validation.inputName ? [validation.inputName].concat(path) : path);
+    const field = stringifyPath(validation.path.concat(path));
 
 
     collected.push(

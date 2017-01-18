@@ -12,8 +12,8 @@ export const input = `
 `;
 
 export const expected = `
-  import t from "flow-runtime";
   import { Demo } from './simplestExportType';
+  import t from "flow-runtime";
 
   const Local = t.type("Local", t.number());
 

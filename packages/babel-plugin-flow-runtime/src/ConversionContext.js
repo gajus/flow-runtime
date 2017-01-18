@@ -16,7 +16,7 @@ export default class ConversionContext {
   shouldImport: boolean = true;
   shouldAssert: boolean = true;
   shouldWarn: boolean = false;
-  shouldDecorate: boolean = true;
+  shouldAnnotate: boolean = true;
   suppressCommentPatterns: RegExp[] = [/\$FlowFixMe/];
   suppressTypeNames: string[] = ['$FlowFixMe'];
 
@@ -264,6 +264,44 @@ export default class ConversionContext {
   replacePath (path: NodePath, replacement: Node) {
     this.visited.add(replacement);
     path.replaceWith(replacement);
+  }
+
+  getClassData (path: NodePath, key: string): any {
+    const candidates = path.scope.getData(`classData:${key}`);
+    if (candidates instanceof Map) {
+      const declaration = path.isClass()
+                        ? path
+                        : path.findParent(item => item.isClass())
+                        ;
+
+      if (declaration) {
+        return candidates.get(declaration.node);
+      }
+      else {
+        console.warn('Could not find class declaration to get data from:', key);
+      }
+    }
+  }
+
+  setClassData (path: NodePath, key: string, value: any) {
+    const {scope} = path;
+    const qualifiedKey = `classData:${key}`;
+    const declaration = path.isClass()
+                      ? path
+                      : path.findParent(item => item.isClass())
+                      ;
+    if (!declaration) {
+      console.warn('Could not find class declaration to set data on:', key);
+      return;
+    }
+
+    let map = scope.data[qualifiedKey];
+    if (!(map instanceof Map)) {
+      map = new Map();
+      scope.data[qualifiedKey] = map;
+    }
+
+    map.set(declaration.node, value);
   }
 }
 

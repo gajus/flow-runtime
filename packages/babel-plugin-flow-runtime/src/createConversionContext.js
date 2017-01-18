@@ -6,6 +6,8 @@ export type Options = {
   ignore?: boolean;
   assert?: boolean;
   warn?: boolean;
+  annotate?: boolean;
+  // deprecated
   decorate?: boolean;
 };
 
@@ -20,9 +22,16 @@ export default function createConversionContext (options: Options): ConversionCo
 
   context.shouldWarn = options.warn ? true : false;
 
-  context.shouldDecorate = options.decorate === 'undefined'
+  if ('decorate' in options) {
+    console.warn('Warning: "decorate" option for babel-plugin-flow-runtime is now called "annotate", support for "decorate" will be removed in a future version.');
+    if (!('annotate' in options)) {
+      options.annotate = options.decorate;
+    }
+  }
+
+  context.shouldAnnotate = options.annotate === 'undefined'
                          ? true
-                         : Boolean(options.decorate)
+                         : Boolean(options.annotate)
                          ;
   return context;
 }
