@@ -1,10 +1,12 @@
 /* @flow */
 
-declare var self: DedicatedWorkerGlobalScope;
+import 'regenerator-runtime/runtime';
 
 import {parse} from 'babylon';
 import transform from 'babel-plugin-flow-runtime/lib/transform';
 import * as Babel from 'babel-standalone';
+
+declare var self: DedicatedWorkerGlobalScope;
 
 type AST = {
   type: string;
