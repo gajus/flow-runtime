@@ -594,7 +594,7 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         for (let i = 0; i < valueTypes.length; i++) {
           const type = valueTypes[i];
           if (type.accepts(value)) {
-            continue loop; // foo.
+            continue loop;
           }
         }
         valueTypes.push(t.typeOf(value));
