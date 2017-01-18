@@ -78,7 +78,7 @@ function propertyToAccessor <O: {}, T> (typeSource: TypeSource<T>, input: O, pro
         const type = resolveType(this, typeSource);
         const value = initializer.call(this);
         const context = type.context;
-        context.assert(type, value, 'Default value for property', propertyPath);
+        context.check(type, value, 'Default value for property', propertyPath);
         Object.defineProperty(this, safeName, {
           writable: true,
           value: value
@@ -95,7 +95,7 @@ function propertyToAccessor <O: {}, T> (typeSource: TypeSource<T>, input: O, pro
     set (value: T): void {
       const type = resolveType(this, typeSource);
       const context = type.context;
-      context.assert(type, value, 'Property', propertyPath);
+      context.check(type, value, 'Property', propertyPath);
       if (safeName in this) {
         this[safeName] = value;
       }
@@ -119,7 +119,7 @@ function augmentExistingAccessors <O: {}, T> (typeSource: TypeSource<T>, input: 
   descriptor.set = function set (value: T): void {
     const type = resolveType(this, typeSource);
     const context = type.context;
-    context.assert(type, value, 'Property', propertyPath);
+    context.check(type, value, 'Property', propertyPath);
     originalSetter.call(this, value);
   };
 

@@ -128,6 +128,10 @@ type TypeConstructorRegistry = Map<Function, Class<TypeConstructor<any>>>;
 export type MatchClause<P, R> = (...params: P[]) => R;
 export type PatternMatcher<P, R> = (...params: P[]) => R;
 
+export type CheckMode
+  = 'assert'
+  | 'warn'
+  ;
 
 /**
  * Keeps track of invalid references in order to prevent
@@ -136,6 +140,12 @@ export type PatternMatcher<P, R> = (...params: P[]) => R;
 const warnedInvalidReferences: WeakSet<any> = new WeakSet();
 
 export default class TypeContext {
+
+  /**
+   * Calls to `t.check(...)` will call either
+   * `t.assert(...)` or `t.warn(...)` depending on this setting.
+   */
+  mode: CheckMode = 'assert';
 
   // @flowIssue 252
   [ParentSymbol]: ? TypeContext;
@@ -842,6 +852,15 @@ export default class TypeContext {
     validation.prefix = prefix;
     type.collectErrors(validation, [], input);
     return validation;
+  }
+
+  check <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
+    if (this.mode === 'assert') {
+      return this.assert(type, input, prefix, path);
+    }
+    else {
+      return this.warn(type, input, prefix, path);
+    }
   }
 
   assert <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
