@@ -13,6 +13,6 @@
   ],
   "plugins": [
     "transform-decorators-legacy",
-    ["flow-runtime", {assert: true, decorate: true}]
+    ["flow-runtime", {assert: true, annotate: true}]
   ]
 }
