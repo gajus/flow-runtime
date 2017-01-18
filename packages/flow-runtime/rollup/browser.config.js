@@ -11,8 +11,7 @@ const config = Object.assign({}, common);
 
 config.entry = 'src/index.cjs.js';
 
-config.plugins = [
-  ...common.plugins,
+config.plugins = common.plugins.concat([
   babel({
     babelrc: false,
     presets: [
@@ -35,7 +34,7 @@ config.plugins = [
     extensions: [ '.js', '.json' ]
   }),
   uglify({}, minify)
-];
+]);
 
 config.targets = [
   { dest: 'dist/flow-runtime.min.js', format: 'umd' },

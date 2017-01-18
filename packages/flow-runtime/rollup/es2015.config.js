@@ -9,8 +9,7 @@ const config = Object.assign({}, common);
 
 config.entry = 'src/index.js';
 
-config.plugins = [
-  ...common.plugins,
+config.plugins = common.plugins.concat([
   babel({
     babelrc: false,
     presets: [
@@ -35,7 +34,7 @@ config.plugins = [
     // not all files you want to resolve are .js files
     extensions: [ '.js', '.json' ]
   })
-];
+]);
 
 config.targets = [
   { dest: 'dist/flow-runtime.es2015.js', format: 'es' },
