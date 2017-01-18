@@ -23,7 +23,7 @@ export const expected = `
 export const decorated = `
   import t from "flow-runtime";
 
-  @t.decorate(t.class(
+  @t.annotate(t.class(
     "Point",
     t.property("x", t.number()),
     t.staticProperty("y", t.number())
@@ -37,7 +37,7 @@ export const decorated = `
 export const combined = `
   import t from "flow-runtime";
 
-  @t.decorate(t.class(
+  @t.annotate(t.class(
     "Point",
     t.property("x", t.number()),
     t.staticProperty("y", t.number())

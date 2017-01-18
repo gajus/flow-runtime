@@ -724,11 +724,32 @@ converters.ClassProperty = (context: ConversionContext, path: NodePath): Node =>
 };
 
 converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
-  const params = path.get('params').map(param => convert(context, param));
-  const returnType = path.has('returnTypeAnnotation')
-                   ? convert(context, path.get('returnTypeAnnotation'))
-                   : context.call('any')
-                   ;
+  const params = path.get('params').map(param => {
+    if (param.isIdentifier()) {
+      return context.call('param',
+        t.stringLiteral(param.node.name),
+        convert(context, param)
+      );
+    }
+    else if (param.isAssignmentPattern() && param.get('left').isIdentifier()) {
+      return context.call('param',
+        t.stringLiteral(param.node.left.name),
+        convert(context, param)
+      );
+    }
+    else {
+      return context.call('param',
+        t.stringLiteral(`_arg${param.key}`),
+        convert(context, param)
+      );
+    }
+  });
+  const returnType = context.call(
+    'return',
+    path.has('returnType')
+      ? convert(context, path.get('returnType'))
+      : context.call('any')
+  );
   const args = [...params, returnType];
   if (path.node.computed) {
     // make an object type indexer.
@@ -743,6 +764,7 @@ converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
     return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(path.node.key.name), ...args);
   }
 };
+
 
 converters.RestElement = (context: ConversionContext, path: NodePath): Node => {
   if (!path.has('typeAnnotation')) {
@@ -778,6 +800,10 @@ converters.ObjectPattern = (context: ConversionContext, path: NodePath): Node =>
   else {
     return convert(context, path.get('typeAnnotation'));
   }
+};
+
+converters.AssignmentPattern = (context: ConversionContext, path: NodePath): Node => {
+  return convert(context, path.get('left'));
 };
 
 export default convert;

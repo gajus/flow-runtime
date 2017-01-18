@@ -25,6 +25,7 @@ type ClassSignature = {
   typeParameters: Array<[string, Node[]]>;
   properties: Node[];
   methods: Node[];
+  extends: ? Node;
 };
 
 export default function transformVisitors (context: ConversionContext): Object {
@@ -661,7 +662,8 @@ export default function transformVisitors (context: ConversionContext): Object {
           hasTypeAnnotations: false,
           typeParameters: [],
           properties: [],
-          methods: []
+          methods: [],
+          extends: null
         };
         nodeSignatures.set(path.node, signature);
 
@@ -677,6 +679,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
 
         const typeParametersSymbolUid = context.getClassData(path, 'typeParametersSymbolUid');
+
         if (typeParametersSymbolUid) {
           path.getStatementParent().insertBefore(
             t.variableDeclaration('const', [
@@ -700,25 +703,44 @@ export default function transformVisitors (context: ConversionContext): Object {
           staticProp.static = true;
           body.unshiftContainer('body', staticProp);
         }
+
         const superTypeParameters
             = path.has('superTypeParameters')
             ? path.get('superTypeParameters.params')
             : []
             ;
-        const hasSuperTypeParameters = superTypeParameters.length > 0;
-        if (path.has('superClass') && isReactComponentClass(path.get('superClass'))) {
-          const annotation = hasSuperTypeParameters
-                           ? superTypeParameters[1]
-                           : getClassPropertyAnnotation(path, 'props')
-                           ;
 
-          if (annotation) {
-            const propTypes = t.classProperty(
-              t.identifier('propTypes'),
-              context.call('propTypes', convert(context, annotation))
+        const hasSuperTypeParameters = superTypeParameters.length > 0;
+        if (path.has('superClass')) {
+          if (hasSuperTypeParameters) {
+            signature.extends = context.call(
+              'extends',
+              path.node.superClass,
+              ...superTypeParameters.map(item => convert(context, item))
             );
-            propTypes.static = true;
-            body.unshiftContainer('body', propTypes);
+          }
+          else {
+            signature.extends = context.call(
+              'extends',
+              path.node.superClass
+            );
+          }
+
+
+          if (isReactComponentClass(path.get('superClass'))) {
+            const annotation = hasSuperTypeParameters
+                             ? superTypeParameters[1]
+                             : getClassPropertyAnnotation(path, 'props')
+                             ;
+
+            if (annotation) {
+              const propTypes = t.classProperty(
+                t.identifier('propTypes'),
+                context.call('propTypes', convert(context, annotation))
+              );
+              propTypes.static = true;
+              body.unshiftContainer('body', propTypes);
+            }
           }
         }
       },
@@ -733,10 +755,14 @@ export default function transformVisitors (context: ConversionContext): Object {
         const hasSuperTypeParameters = superTypeParameters.length > 0;
         const signature = nodeSignatures.get(path.node);
         if (shouldDecorate && signature) {
+
           const {name, properties, methods} = ((signature: any): ClassSignature);
           const args = properties.concat(methods);
+          if (signature.extends) {
+            args.push(signature.extends);
+          }
           const decorator = t.decorator(
-            context.call('decorate', context.call(
+            context.call('annotate', context.call(
               'class',
               t.stringLiteral(name),
               ...args
