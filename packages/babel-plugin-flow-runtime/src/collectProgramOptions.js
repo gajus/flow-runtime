@@ -8,7 +8,7 @@ import type {Options} from './createConversionContext';
 /**
  * Collects the program level pragmas which override the plugin options.
  * Pragmas are specified via comments like `@flow-runtime ignore`
- * and `@flow-runtime warn, decorate`.
+ * and `@flow-runtime warn, annotate`.
  * Collected options are applied to the conversion context, if the program
  * has a `@flow-runtime ignore` comment or doesn't use any flow types this function
  * will return `false`, if any other flow-runtime pragmas are present or the file
@@ -33,8 +33,8 @@ export default function collectProgramOptions (context: ConversionContext, node:
   if (options.warn) {
     context.shouldWarn = true;
   }
-  if (options.decorate) {
-    context.shouldDecorate = true;
+  if (options.annotate) {
+    context.shouldAnnotate = true;
   }
   return true;
 }
@@ -53,7 +53,7 @@ function collectOptionsFromPragma (context: ConversionContext, node: Node): ? Op
           // we have a comment but no options, this is strict by default.
           return {
             assert: true,
-            decorate: true
+            annotate: true
           };
         }
         else {

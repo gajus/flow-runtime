@@ -30,7 +30,7 @@ type ClassSignature = {
 
 export default function transformVisitors (context: ConversionContext): Object {
   const shouldCheck = context.shouldAssert || context.shouldWarn;
-  const shouldDecorate = context.shouldDecorate;
+  const shouldAnnotate = context.shouldAnnotate;
   const nodeSignatures: WeakMap<Node, FunctionSignature | ClassSignature> = new WeakMap();
   return {
     Program (path: NodePath) {
@@ -305,7 +305,7 @@ export default function transformVisitors (context: ConversionContext): Object {
               context.call('typeParameter', ...args)
             )
           ]));
-          if (shouldDecorate) {
+          if (shouldAnnotate) {
             signature.typeParameters.push([name, args]);
           }
         }
@@ -332,7 +332,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           }
 
           if (!param.has('typeAnnotation')) {
-            if (shouldDecorate) {
+            if (shouldAnnotate) {
               signature.params.push(context.call(
                 'param',
                 t.stringLiteral(argumentName),
@@ -345,7 +345,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           signature.hasTypeAnnotations = true;
 
           if (param.isObjectPattern() || param.isArrayPattern()) {
-            if (shouldDecorate) {
+            if (shouldAnnotate) {
               signature.params.push(context.call(
                 'param',
                 t.stringLiteral(argumentName),
@@ -398,7 +398,7 @@ export default function transformVisitors (context: ConversionContext): Object {
             if (param.isRestElement()) {
               methodName = 'rest';
               name = param.node.argument.name;
-              if (shouldDecorate) {
+              if (shouldAnnotate) {
                 signature.params.push(context.call(
                   'rest',
                   t.stringLiteral(name),
@@ -408,7 +408,7 @@ export default function transformVisitors (context: ConversionContext): Object {
             }
             else {
               invariant(param.isIdentifier(), 'Param must be an identifier');
-              if (shouldDecorate) {
+              if (shouldAnnotate) {
                 signature.params.push(context.call(
                   'param',
                   t.stringLiteral(name),
@@ -445,7 +445,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           if (returnType.type === 'TypeAnnotation') {
             returnType = returnType.get('typeAnnotation');
           }
-          if (shouldDecorate) {
+          if (shouldAnnotate) {
             signature.returnType = context.call(
               'return',
               convert(context, returnType)
@@ -506,7 +506,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       },
       exit (path: NodePath) {
         const signature = nodeSignatures.get(path.node);
-        if (!shouldDecorate || !signature || !Array.isArray(signature.params) || !signature.hasTypeAnnotations || path.isClassMethod()) {
+        if (!shouldAnnotate || !signature || !Array.isArray(signature.params) || !signature.hasTypeAnnotations || path.isClassMethod()) {
           return;
         }
         let decoration;
@@ -754,7 +754,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         const hasTypeParameters = typeParameters.length > 0;
         const hasSuperTypeParameters = superTypeParameters.length > 0;
         const signature = nodeSignatures.get(path.node);
-        if (shouldDecorate && signature) {
+        if (shouldAnnotate && signature) {
 
           const {name, properties, methods} = ((signature: any): ClassSignature);
           const args = properties.concat(methods);

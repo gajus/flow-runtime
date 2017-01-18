@@ -2,7 +2,7 @@
 
 export const input = `
 /* @flow */
-/* @flow-runtime warn, decorate */
+/* @flow-runtime warn, annotate */
 
 type Demo = 123;
 
@@ -14,7 +14,7 @@ const demo = ([foo]: string[]): string => foo;
 export const expected = `
 import t from "flow-runtime";
 /* @flow */
-/* @flow-runtime warn, decorate */
+/* @flow-runtime warn, annotate */
 
 const Demo = t.type("Demo", t.number(123));
 

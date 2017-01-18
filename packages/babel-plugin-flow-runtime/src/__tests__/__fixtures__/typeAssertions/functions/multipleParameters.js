@@ -16,7 +16,7 @@ export const expected = `
   };
 `;
 
-export const decorated = `
+export const annotated = `
   import t from "flow-runtime";
   const demo = t.annotate(
     (a, b) => {

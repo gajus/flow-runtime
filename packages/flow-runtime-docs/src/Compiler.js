@@ -130,7 +130,7 @@ export default class Compiler {
   @observable compiled: string;
   @observable shouldAssert: boolean;
   @observable shouldWarn: boolean;
-  @observable shouldDecorate: boolean;
+  @observable shouldAnnotate: boolean;
   @observable error: string;
   @observable.shallow log: Array<['log' | 'warn' | 'error' | 'react', string]> = [];
 
@@ -158,7 +158,7 @@ export default class Compiler {
     this.transformed = '';
     this.compiled = '';
     this.error = '';
-    this.shouldDecorate = true;
+    this.shouldAnnotate = true;
     this.shouldAssert = true;
     this.shouldWarn = false;
     this.updateCode(this.code);
@@ -169,7 +169,7 @@ export default class Compiler {
     try {
       const [transformed, compiled] = await compile(code, {
         assert: this.shouldAssert,
-        decorate: this.shouldDecorate,
+        annotate: this.shouldAnnotate,
         warn: this.shouldWarn
       });
 

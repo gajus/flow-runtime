@@ -17,7 +17,7 @@ export default function test(id) {
 `;
 
 
-export const decorated = `
+export const annotated = `
 import t from "flow-runtime";
 export default function test(id) {
   return id;

@@ -38,7 +38,10 @@ function transformFlowRuntime (ast: AST, input: string, options: Object): string
 }
 
 function compileBabel (ast: AST, input: string): string {
-  const {code} = Babel.transformFromAst(ast, input, { presets: [['es2015', {generators: false}], 'stage-0', 'react']});
+  const {code} = Babel.transformFromAst(ast, input, {
+    presets: [['es2015', {generators: false}], 'stage-0', 'react'],
+    plugins: ['transform-decorators-legacy']
+  });
   return code;
 }
 

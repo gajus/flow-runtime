@@ -19,7 +19,7 @@ export const expected = `
   }
 `;
 
-export const decorated = `
+export const annotated = `
   import t from "flow-runtime";
   @t.annotate(t.class("User"))
   class User {}

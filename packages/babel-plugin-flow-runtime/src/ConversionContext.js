@@ -16,7 +16,7 @@ export default class ConversionContext {
   shouldImport: boolean = true;
   shouldAssert: boolean = true;
   shouldWarn: boolean = false;
-  shouldDecorate: boolean = true;
+  shouldAnnotate: boolean = true;
   suppressCommentPatterns: RegExp[] = [/\$FlowFixMe/];
   suppressTypeNames: string[] = ['$FlowFixMe'];
 

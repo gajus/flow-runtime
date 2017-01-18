@@ -40,7 +40,7 @@ const files = findFiles(fixturesDir, []);
 export type Fixture = {
   input: string;
   expected: string;
-  decorated?: string;
+  annotated?: string;
   combined?: string;
 };
 
