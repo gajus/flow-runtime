@@ -1,0 +1,20 @@
+{
+  "name": "flow-runtime-cli",
+  "version": "0.2.1",
+  "description": "A command line tool for working with flow and flow-runtime.",
+  "main": "index.js",
+  "repository": {
+    "url": "https://github.com/codemix/flow-runtime.git",
+    "type": "git"
+  },
+  "author": "Charles Pick <charles@codemix.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel-plugin-flow-runtime": "^0.2.1"
+  },
+  "dependencies": {
+    "flow-config-parser": "^0.0.6",
+    "flow-runtime": "^0.2.1",
+    "minimist": "^1.2.0"
+  }
+}
