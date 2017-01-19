@@ -26,12 +26,12 @@ type TypeSource<T>
  | Type<T>
  ;
 
-export function makePropertyDescriptor <O: {} | Function, T> (typeSource: TypeSource<T>, input: O, propertyName: string, descriptor: Descriptor<T>): ? Descriptor<T> {
+export function makePropertyDescriptor <O: {} | Function, T> (typeSource: TypeSource<T>, input: O, propertyName: string, descriptor: Descriptor<T>, shouldAssert: boolean): ? Descriptor<T> {
   if (typeof descriptor.get === 'function' && typeof descriptor.set === 'function') {
-    return augmentExistingAccessors(typeSource, input, propertyName, (descriptor: $FlowIssue<AccessorDescriptor<T>>));
+    return augmentExistingAccessors(typeSource, input, propertyName, (descriptor: $FlowIssue<AccessorDescriptor<T>>), shouldAssert);
   }
   else {
-    return propertyToAccessor(typeSource, input, propertyName, (descriptor: $FlowIssue<ValueDescriptor<T>>));
+    return propertyToAccessor(typeSource, input, propertyName, (descriptor: $FlowIssue<ValueDescriptor<T>>), shouldAssert);
   }
 }
 
@@ -60,7 +60,7 @@ function resolveType <T> (receiver: any, typeSource: TypeSource<T>): Type<T> {
   }
 }
 
-function propertyToAccessor <O: {}, T> (typeSource: TypeSource<T>, input: O, propertyName: string, descriptor: ValueDescriptor<T>): AccessorDescriptor<T> {
+function propertyToAccessor <O: {}, T> (typeSource: TypeSource<T>, input: O, propertyName: string, descriptor: ValueDescriptor<T>, shouldAssert: boolean): AccessorDescriptor<T> {
   const safeName = makePropertyName(propertyName);
   const className = getClassName(input);
   const {initializer, writable, ...config} = descriptor; // eslint-disable-line no-unused-vars
@@ -95,7 +95,12 @@ function propertyToAccessor <O: {}, T> (typeSource: TypeSource<T>, input: O, pro
     set (value: T): void {
       const type = resolveType(this, typeSource);
       const context = type.context;
-      context.check(type, value, 'Property', propertyPath);
+      if (shouldAssert) {
+        context.assert(type, value, 'Property', propertyPath);
+      }
+      else {
+        context.warn(type, value, 'Property', propertyPath);
+      }
       if (safeName in this) {
         this[safeName] = value;
       }
@@ -109,7 +114,7 @@ function propertyToAccessor <O: {}, T> (typeSource: TypeSource<T>, input: O, pro
   };
 }
 
-function augmentExistingAccessors <O: {}, T> (typeSource: TypeSource<T>, input: O, propertyName: string, descriptor: AccessorDescriptor<T>) {
+function augmentExistingAccessors <O: {}, T> (typeSource: TypeSource<T>, input: O, propertyName: string, descriptor: AccessorDescriptor<T>, shouldAssert: boolean) {
 
   const className = getClassName(input);
   const propertyPath = [className, propertyName];
@@ -119,7 +124,12 @@ function augmentExistingAccessors <O: {}, T> (typeSource: TypeSource<T>, input: 
   descriptor.set = function set (value: T): void {
     const type = resolveType(this, typeSource);
     const context = type.context;
-    context.check(type, value, 'Property', propertyPath);
+    if (shouldAssert) {
+      context.assert(type, value, 'Property', propertyPath);
+    }
+    else {
+      context.warn(type, value, 'Property', propertyPath);
+    }
     originalSetter.call(this, value);
   };
 

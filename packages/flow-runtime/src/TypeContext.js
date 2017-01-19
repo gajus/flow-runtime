@@ -260,10 +260,13 @@ export default class TypeContext {
   /**
    * Returns a decorator for a function or object with the given type.
    */
-  decorate (type: (() => Type<any>) | Type<any>): * {
+  decorate (type: (() => Type<any>) | Type<any>, shouldAssert?: boolean): * {
+    if (shouldAssert == null) {
+      shouldAssert = this.mode === 'assert';
+    }
     return (input: Object | Function, propertyName?: string, descriptor?: Object): * => {
       if (descriptor && typeof propertyName === 'string') {
-        return makePropertyDescriptor(type, input, propertyName, descriptor);
+        return makePropertyDescriptor(type, input, propertyName, descriptor, Boolean(shouldAssert));
       }
       else {
         invariant(typeof type !== 'function', 'Cannot decorate an object or function as a method.');

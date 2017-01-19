@@ -874,8 +874,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       const typeAnnotation = path.get('typeAnnotation');
       let decorator;
       if (annotationReferencesClassEntity(context, typeAnnotation)) {
-        decorator = t.decorator(context.call(
-          'decorate',
+        const args = [
           t.functionExpression(
             null,
             [],
@@ -883,10 +882,24 @@ export default function transformVisitors (context: ConversionContext): Object {
               t.returnStatement(convert(context, typeAnnotation))
             ])
           )
+        ];
+        if (context.shouldWarn) {
+          args.push(t.booleanLiteral(false));
+        }
+        decorator = t.decorator(context.call(
+          'decorate',
+          ...args
         ));
       }
+      else if (context.shouldWarn) {
+        decorator = t.decorator(
+          context.call('decorate', convert(context, typeAnnotation), t.booleanLiteral(false))
+        );
+      }
       else {
-        decorator = t.decorator(context.call('decorate', convert(context, typeAnnotation)));
+        decorator = t.decorator(
+          context.call('decorate', convert(context, typeAnnotation))
+        );
       }
       if (!path.has('decorators')) {
         path.node.decorators = [];
