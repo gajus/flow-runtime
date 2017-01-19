@@ -2,4 +2,3 @@ lib
 .DS_Store
 node_modules
 dist
-suggest-test.js

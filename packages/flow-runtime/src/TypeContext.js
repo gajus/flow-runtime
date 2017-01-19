@@ -846,7 +846,10 @@ export default class TypeContext {
       target = subject;
     }
     else {
-      if (!warnedInvalidReferences.has(subject)) {
+      if (subject == null || typeof subject !== 'object') {
+        this.emitWarningMessage(`Could not reference the given type, try t.typeOf(value) instead. (got ${String(subject)})`);
+      }
+      else if (!warnedInvalidReferences.has(subject)) {
         this.emitWarningMessage('Could not reference the given type, try t.typeOf(value) instead.');
         warnedInvalidReferences.add(subject);
       }
