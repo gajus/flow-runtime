@@ -38,6 +38,7 @@ import {
   MixedType,
   EmptyType,
   NullableType,
+  ThisType,
   TupleType,
   UnionType,
   IntersectionType,
@@ -108,6 +109,7 @@ defineProperty('AnyType', AnyType);
 defineProperty('MixedType', MixedType);
 defineProperty('EmptyType', EmptyType);
 defineProperty('NullableType', NullableType);
+defineProperty('ThisType', ThisType);
 defineProperty('TupleType', TupleType);
 defineProperty('UnionType', UnionType);
 defineProperty('IntersectionType', IntersectionType);

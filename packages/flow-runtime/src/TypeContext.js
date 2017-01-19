@@ -58,6 +58,7 @@ import {
   MixedType,
   EmptyType,
   NullableType,
+  ThisType,
   TupleType,
   UnionType,
   IntersectionType,
@@ -454,6 +455,7 @@ export default class TypeContext {
     return primitiveTypes.existential;
   }
 
+
   empty (): EmptyType {
     return primitiveTypes.empty;
   }
@@ -468,6 +470,14 @@ export default class TypeContext {
 
   void (): VoidType {
     return primitiveTypes.void;
+  }
+
+  this <T> (input?: T): ThisType<T> {
+    const target = new ThisType(this);
+    if (input !== undefined) {
+      target.recorded = input;
+    }
+    return target;
   }
 
   number <T: number> (input?: T): NumberType | NumericLiteralType<T> {

@@ -492,6 +492,10 @@ converters.IntersectionTypeAnnotation = (context: ConversionContext, path: NodeP
   return context.call('intersection', ...types);
 };
 
+converters.ThisTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
+  return context.call('this');
+};
+
 converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
   const id = path.get('id');
   let name;

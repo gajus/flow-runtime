@@ -24,6 +24,7 @@ const errorMessages = {
   ERR_EXPECT_PROMISE: 'must be promise of $0',
   ERR_EXPECT_STRING: 'must be a string',
   ERR_EXPECT_SYMBOL: 'must be a symbol',
+  ERR_EXPECT_THIS: 'must be exactly this',
   ERR_EXPECT_VOID: 'must be undefined',
   ERR_INVALID_DATE: 'must be a valid date',
   ERR_NO_INDEXER: 'is not one of the permitted indexer types',

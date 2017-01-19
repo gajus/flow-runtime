@@ -38,6 +38,7 @@ import StringLiteralType from './types/StringLiteralType';
 import StringType from './types/StringType';
 import SymbolLiteralType from './types/SymbolLiteralType';
 import SymbolType from './types/SymbolType';
+import ThisType from './types/ThisType';
 import TupleType from './types/TupleType';
 import Type from './types/Type';
 import TypeBox from './types/TypeBox';
@@ -91,6 +92,7 @@ export {
   StringType,
   SymbolLiteralType,
   SymbolType,
+  ThisType,
   TupleType,
   Type,
   TypeBox,
