@@ -504,7 +504,12 @@ converters.IntersectionTypeAnnotation = (context: ConversionContext, path: NodeP
 };
 
 converters.ThisTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
-  return context.call('this');
+  if (context.isAnnotating) {
+    return context.call('this');
+  }
+  else {
+    return context.call('this', t.thisExpression());
+  }
 };
 
 converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {

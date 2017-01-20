@@ -13,7 +13,7 @@ export const expected = `
 
   class A {
     b() {
-      const _returnType = t.return(t.this());
+      const _returnType = t.return(t.this(this));
       return _returnType.assert(this);
     }
   }
@@ -43,7 +43,7 @@ export const combined = `
   ))
   class A {
     b() {
-      const _returnType = t.return(t.this());
+      const _returnType = t.return(t.this(this));
       return _returnType.assert(this);
     }
   }
