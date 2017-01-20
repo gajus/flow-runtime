@@ -18,11 +18,22 @@ const converters: ConverterDict = {};
  * Convert a type definition to a typed method call.
  */
 function convert (context: ConversionContext, path: NodePath): Node {
-  const converter = converters[path.type];
-  if (!converter) {
-    throw new Error(`Unsupported node type: ${path.type}`);
-  }
   const loc = path.node.loc;
+  let converter = converters[path.type];
+  if (!converter) {
+    if (path.isClass()) {
+      converter = converters.Class;
+    }
+    else if (path.isFunction()) {
+      converter = converters.Function;
+    }
+    else {
+      console.warn(`Unsupported node type: ${path.type}, please report this issue at http://github.com/codemix/flow-runtime/issues`);
+      const fallback = context.call('any');
+      fallback.loc = loc;
+      return fallback;
+    }
+  }
   const result = converter(context, path);
   if (result && loc) {
     result.loc = loc;
@@ -518,8 +529,10 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 
+
   const isTypeParameter = (
     (entity && entity.isTypeParameter)
+    || (context.isAnnotating && entity && entity.isClassTypeParameter)
     || annotationParentHasTypeParameter(path, name)
   );
 
@@ -587,7 +600,7 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     }
 
     if (typeParameterCanFlow(path)) {
-      target =  context.call('flowInto', target);
+      target = context.call('flowInto', target);
     }
 
     if (typeParameters.length > 0) {
@@ -707,6 +720,230 @@ converters.FunctionTypeParam = (context: ConversionContext, path: NodePath): Nod
 };
 
 
+// ---- CONCRETE NODES ----
+// Everything after here deals with converting "real" nodes instead of flow nodes.
+
+
+converters.Function = (context: ConversionContext, path: NodePath): Node => {
+  const params = path.get('params');
+
+  const typeParameters = getTypeParameters(path);
+
+  const shouldBox = typeParameters.length > 0;
+
+  const invocations = [];
+
+  for (let param of params) {
+    const argumentIndex = +param.key;
+    let argumentName;
+    if (param.isAssignmentPattern()) {
+      param = param.get('left');
+    }
+
+    if (param.isIdentifier()) {
+      argumentName = param.node.name;
+    }
+    else if (param.isRestElement()) {
+      argumentName = param.node.argument.name;
+    }
+    else {
+      argumentName = `_arg${argumentIndex === 0 ? '' : argumentIndex}`;
+    }
+
+    if (!param.has('typeAnnotation')) {
+      invocations.push(context.call(
+        'param',
+        t.stringLiteral(argumentName),
+        context.call('any')
+      ));
+      continue;
+    }
+
+    const typeAnnotation = param.get('typeAnnotation');
+
+    if (param.isIdentifier()) {
+      invocations.push(context.call(
+        'param',
+        t.stringLiteral(param.node.name),
+        convert(context, typeAnnotation)
+      ));
+    }
+    else if (param.isRestElement()) {
+      invocations.push(context.call(
+        'rest',
+        t.stringLiteral(param.node.argument.name),
+        convert(context, typeAnnotation)
+      ));
+    }
+    else {
+      invocations.push(context.call(
+        'param',
+        t.stringLiteral(argumentName),
+        convert(context, typeAnnotation)
+      ));
+    }
+  }
+
+  if (path.has('returnType')) {
+    invocations.push(context.call(
+      'return',
+      convert(context, path.get('returnType'))
+    ));
+  }
+
+  if (shouldBox) {
+    const declarations = [];
+    const fn = path.scope.generateUidIdentifier('fn');
+
+    for (const typeParameter of typeParameters) {
+      const {name} = typeParameter.node;
+
+      const args = [t.stringLiteral(name)];
+      if (typeParameter.has('bound') && typeParameter.has('default')) {
+        args.push(
+          convert(context, typeParameter.get('bound')),
+          convert(context, typeParameter.get('default'))
+        );
+      }
+      else if (typeParameter.has('bound')) {
+        args.push(
+          convert(context, typeParameter.get('bound'))
+        );
+      }
+      else if (typeParameter.has('default')) {
+        args.push(
+          t.identifier('undefined'), // make sure we don't confuse bound with default
+          convert(context, typeParameter.get('default'))
+        );
+      }
+
+      declarations.push(
+        t.variableDeclaration('const', [
+          t.variableDeclarator(
+            t.identifier(name),
+            t.callExpression(
+              t.memberExpression(fn, t.identifier('typeParameter')),
+              args
+            )
+          )
+        ])
+      );
+    }
+
+    return context.call(
+      'function',
+      t.arrowFunctionExpression([fn], t.blockStatement([
+        ...declarations,
+        t.returnStatement(t.arrayExpression(invocations))
+      ]))
+    );
+  }
+  else {
+    return context.call(
+      'function',
+      ...invocations
+    );
+  }
+};
+
+
+converters.Class = (context: ConversionContext, path: NodePath): Node => {
+
+  const typeParameters = getTypeParameters(path);
+
+  const name = path.has('id') ? path.node.id.name : 'AnonymousClass';
+
+  let shouldBox = typeParameters.length > 0;
+
+  const invocations = [];
+
+  const superTypeParameters = path.has('superTypeParameters')
+      ? path.get('superTypeParameters.params')
+      : []
+      ;
+
+  const hasSuperTypeParameters = superTypeParameters.length > 0;
+  if (path.has('superClass')) {
+    if (hasSuperTypeParameters) {
+      invocations.push(context.call(
+        'extends',
+        path.node.superClass,
+        ...superTypeParameters.map(item => convert(context, item))
+      ));
+    }
+    else {
+      invocations.push(context.call(
+        'extends',
+        path.node.superClass
+      ));
+    }
+  }
+
+  const body = path.get('body');
+
+  for (const child of body.get('body')) {
+    invocations.push(convert(context, child));
+    if (!shouldBox && annotationReferencesId(child, name)) {
+      shouldBox = true;
+    }
+  }
+
+  if (shouldBox) {
+    const declarations = [];
+    const classId = t.identifier(name);
+
+    for (const typeParameter of typeParameters) {
+      const {name} = typeParameter.node;
+
+      const args = [t.stringLiteral(name)];
+      if (typeParameter.has('bound') && typeParameter.has('default')) {
+        args.push(
+          convert(context, typeParameter.get('bound')),
+          convert(context, typeParameter.get('default'))
+        );
+      }
+      else if (typeParameter.has('bound')) {
+        args.push(
+          convert(context, typeParameter.get('bound'))
+        );
+      }
+      else if (typeParameter.has('default')) {
+        args.push(
+          t.identifier('undefined'), // make sure we don't confuse bound with default
+          convert(context, typeParameter.get('default'))
+        );
+      }
+
+      declarations.push(
+        t.variableDeclaration('const', [
+          t.variableDeclarator(
+            t.identifier(name),
+            t.callExpression(
+              t.memberExpression(classId, t.identifier('typeParameter')),
+              args
+            )
+          )
+        ])
+      );
+    }
+
+    return context.call(
+      'class',
+      t.stringLiteral(name),
+      t.arrowFunctionExpression([classId], t.blockStatement([
+        ...declarations,
+        t.returnStatement(t.arrayExpression(invocations))
+      ]))
+    );
+  }
+  else {
+    return context.call(
+      'class',
+      t.stringLiteral(name),
+      ...invocations
+    );
+  }
+};
 
 converters.ClassProperty = (context: ConversionContext, path: NodePath): Node => {
   const typeAnnotation = path.has('typeAnnotation')
@@ -722,8 +959,11 @@ converters.ClassProperty = (context: ConversionContext, path: NodePath): Node =>
     );
     return context.call('indexer', t.stringLiteral('key'), keyType, typeAnnotation);
   }
-  else {
+  else if (path.get('key').isIdentifier()) {
     return context.call(path.node.static ? 'staticProperty' : 'property', t.stringLiteral(path.node.key.name), typeAnnotation);
+  }
+  else {
+    return context.call(path.node.static ? 'staticProperty' : 'property', t.stringLiteral(path.node.key.value), typeAnnotation);
   }
 };
 
@@ -748,13 +988,10 @@ converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
       );
     }
   });
-  const returnType = context.call(
-    'return',
-    path.has('returnType')
-      ? convert(context, path.get('returnType'))
-      : context.call('any')
-  );
-  const args = [...params, returnType];
+  const args = [...params];
+  if (path.has('returnType')) {
+    args.push(context.call('return', convert(context, path.get('returnType'))));
+  }
   if (path.node.computed) {
     // make an object type indexer.
     const keyType = context.call('union',
@@ -777,6 +1014,10 @@ converters.RestElement = (context: ConversionContext, path: NodePath): Node => {
   else {
     return convert(context, path.get('typeAnnotation'));
   }
+};
+
+converters.RestProperty = (context: ConversionContext, path: NodePath): Node => {
+  return context.call('object');
 };
 
 converters.Identifier = (context: ConversionContext, path: NodePath): Node => {
@@ -811,3 +1052,5 @@ converters.AssignmentPattern = (context: ConversionContext, path: NodePath): Nod
 };
 
 export default convert;
+
+

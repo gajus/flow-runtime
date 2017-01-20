@@ -5,6 +5,8 @@ import type {NodePath} from 'babel-traverse';
 import getTypeParameters from './getTypeParameters';
 import type ConversionContext from './ConversionContext';
 
+import findIdentifiers from './findIdentifiers';
+
 export default function firstPassVisitors (context: ConversionContext): Object {
 
   return {
@@ -84,8 +86,10 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       });
     },
     VariableDeclarator (path: NodePath) {
-      const {name} = path.node.id;
-      context.defineValue(name, path);
+      for (const id of findIdentifiers(path.get('id'))) {
+        const {name} = id.node;
+        context.defineValue(name, path);
+      }
     },
     Function (path: NodePath) {
       if (path.isFunctionDeclaration() && path.has('id')) {
@@ -103,15 +107,16 @@ export default function firstPassVisitors (context: ConversionContext): Object {
             t.returnStatement(body.node)
           ]));
           body = path.get('body');
+          path.node.expression = false;
         }
 
         typeParameters.forEach(item => {
           const {name} = item.node;
           context.defineTypeParameter(name, item);
         });
-        params.forEach(param => {
-          context.defineTypeAlias(param.node.name, param);
-        });
+        for (const id of findIdentifiers(params)) {
+          context.defineTypeAlias(id.node.name, id);
+        }
       }
     },
     Class (path: NodePath) {
@@ -163,7 +168,18 @@ export default function firstPassVisitors (context: ConversionContext): Object {
  * Determine whether the given node path has a type annotation or not.
  */
 function hasTypeAnnotation (path: NodePath): boolean {
-  return path.node && path.node.typeAnnotation ? true : false;
+  if (!path.node) {
+    return false;
+  }
+  else if (path.node.typeAnnotation) {
+    return true;
+  }
+  else if (path.isAssignmentPattern()) {
+    return hasTypeAnnotation(path.get('left'));
+  }
+  else {
+    return false;
+  }
 }
 
 /**

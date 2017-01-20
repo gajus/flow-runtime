@@ -38,8 +38,8 @@ export const annotated = `
 
   @t.annotate(t.class(
     "Child",
-    t.property("y", t.number()),
-    t.extends(Parent)
+    t.extends(Parent),
+    t.property("y", t.number())
   ))
   class Child extends Parent {
     y = 0;
@@ -60,8 +60,8 @@ export const combined = `
 
   @t.annotate(t.class(
     "Child",
-    t.property("y", t.number()),
-    t.extends(Parent)
+    t.extends(Parent),
+    t.property("y", t.number())
   ))
   class Child extends Parent {
     @t.decorate(t.number())

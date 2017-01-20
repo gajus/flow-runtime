@@ -6,6 +6,9 @@ const visitors = {
   ArrayTypeAnnotation: ["elementType"],
   ClassImplements: ["id", "typeParameters"],
   ClassProperty: ["key", "value", "typeAnnotation", "decorators"],
+  ClassMethod: ["key", "typeParameters", "params", "returnType"],
+  ObjectProperty: ["key", "value", "typeAnnotation", "decorators"],
+  ObjectMethod: ["key", "typeParameters", "params", "returnType"],
   DeclareClass: ["id", "typeParameters", "extends", "body"],
   DeclareFunction: ["id"],
   DeclareInterface: ["id", "typeParameters", "extends", "body"],
@@ -34,6 +37,14 @@ const visitors = {
   ObjectTypeProperty: ["key", "value"],
   QualifiedTypeIdentifier: ["id", "qualification"],
   UnionTypeAnnotation: ["types"],
+  ArrowFunctionExpression: ["typeParameters", "params", "returnType"],
+  FunctionExpression: ["typeParameters", "params", "returnType"],
+  FunctionDeclaration: ["typeParameters", "params", "returnType"],
+  Identifier: ["typeAnnotation"],
+  RestElement: ["argument", "typeAnnotation"],
+  ArrayPattern: ["typeAnnotation"],
+  ObjectPattern: ["typeAnnotation"],
+  AssignmentPattern: ["left"]
 };
 
 export default function *typeAnnotationIterator (path: NodePath): Generator<NodePath, void, void> {
