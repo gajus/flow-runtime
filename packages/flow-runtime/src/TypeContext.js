@@ -650,28 +650,30 @@ export default class TypeContext {
     return this.function(head, ...tail);
   }
 
-  function <X, P, R> (head: FunctionBodyCreator<X, P, R> | ValidFunctionBody<X, P, R>, ...tail: Array<ValidFunctionBody<X, P, R>>): ParameterizedFunctionType<X, P, R> | FunctionType<P, R> {
+  function <X, P, R> (head: ? FunctionBodyCreator<X, P, R> | ValidFunctionBody<X, P, R>, ...tail: Array<ValidFunctionBody<X, P, R>>): ParameterizedFunctionType<X, P, R> | FunctionType<P, R> {
     if (typeof head === 'function') {
       const target = new ParameterizedFunctionType(this);
       target.bodyCreator = head;
       return target;
     }
     const target = new FunctionType(this);
-    tail.unshift(head);
-    const {length} = tail;
-    for (let i = 0; i < length; i++) {
-      const item = tail[i];
-      if (item instanceof FunctionTypeParam) {
-        target.params.push(item);
-      }
-      else if (item instanceof FunctionTypeRestParam) {
-        target.rest = item;
-      }
-      else if (item instanceof FunctionTypeReturn) {
-        target.returnType = item;
-      }
-      else {
-        throw new Error('FunctionType cannot contain the given type directly.');
+    if (head != null) {
+      tail.unshift(head);
+      const {length} = tail;
+      for (let i = 0; i < length; i++) {
+        const item = tail[i];
+        if (item instanceof FunctionTypeParam) {
+          target.params.push(item);
+        }
+        else if (item instanceof FunctionTypeRestParam) {
+          target.rest = item;
+        }
+        else if (item instanceof FunctionTypeReturn) {
+          target.returnType = item;
+        }
+        else {
+          throw new Error('FunctionType cannot contain the given type directly.');
+        }
       }
     }
     if (!target.returnType) {
@@ -922,7 +924,7 @@ export default class TypeContext {
    * Emits a warning message, using `console.warn()` by default.
    */
   emitWarningMessage (message: string): void {
-    console.warn(message);
+    console.warn('flow-runtime:', message);
   }
 
   propTypes <T: {}> (type: Type<T>): PropTypeDict<T> {
