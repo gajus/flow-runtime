@@ -12,7 +12,7 @@ import hasTypeAnnotations from './hasTypeAnnotations';
 export default function annotateVisitors (context: ConversionContext): Object {
   return {
     Function (path: NodePath) {
-      if (context.shouldSuppressPath(path) || context.visited.has(path.node) || path.isClassMethod()) {
+      if (context.shouldSuppressPath(path) || context.visited.has(path.node) || path.isClassMethod() || path.isObjectMethod()) {
         path.skip();
         return;
       }

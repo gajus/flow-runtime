@@ -729,7 +729,8 @@ converters.FunctionTypeParam = (context: ConversionContext, path: NodePath): Nod
 // Everything after here deals with converting "real" nodes instead of flow nodes.
 
 
-converters.Function = (context: ConversionContext, path: NodePath): Node => {
+
+function functionToArgs (context: ConversionContext, path: NodePath): Node {
   const params = path.get('params');
 
   const typeParameters = getTypeParameters(path);
@@ -834,23 +835,25 @@ converters.Function = (context: ConversionContext, path: NodePath): Node => {
         ])
       );
     }
-
-    return context.call(
-      'function',
+    return [
       t.arrowFunctionExpression([fn], t.blockStatement([
         ...declarations,
         t.returnStatement(t.arrayExpression(invocations))
       ]))
-    );
+    ];
   }
   else {
-    return context.call(
-      'function',
-      ...invocations
-    );
+    return invocations;
   }
-};
+}
 
+converters.Function = (context: ConversionContext, path: NodePath): Node => {
+  const args = functionToArgs(context, path);
+  return context.call(
+    'function',
+    ...args
+  );
+};
 
 converters.Class = (context: ConversionContext, path: NodePath): Node => {
 
@@ -973,30 +976,7 @@ converters.ClassProperty = (context: ConversionContext, path: NodePath): Node =>
 };
 
 converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
-  const params = path.get('params').map(param => {
-    if (param.isIdentifier()) {
-      return context.call('param',
-        t.stringLiteral(param.node.name),
-        convert(context, param)
-      );
-    }
-    else if (param.isAssignmentPattern() && param.get('left').isIdentifier()) {
-      return context.call('param',
-        t.stringLiteral(param.node.left.name),
-        convert(context, param)
-      );
-    }
-    else {
-      return context.call('param',
-        t.stringLiteral(`_arg${param.key}`),
-        convert(context, param)
-      );
-    }
-  });
-  const args = [...params];
-  if (path.has('returnType')) {
-    args.push(context.call('return', convert(context, path.get('returnType'))));
-  }
+  const args = functionToArgs(context, path);
   if (path.node.computed) {
     // make an object type indexer.
     const keyType = context.call('union',
@@ -1011,6 +991,23 @@ converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
   }
 };
 
+
+
+converters.ObjectMethod = (context: ConversionContext, path: NodePath): Node => {
+  const args = functionToArgs(context, path);
+  if (path.node.computed) {
+    // make an object type indexer.
+    const keyType = context.call('union',
+      context.call('number'),
+      context.call('string'),
+      context.call('symbol'),
+    );
+    return context.call('indexer', t.stringLiteral('key'), keyType, context.call('function', ...args));
+  }
+  else {
+    return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(path.node.key.name), ...args);
+  }
+};
 
 converters.RestElement = (context: ConversionContext, path: NodePath): Node => {
   if (!path.has('typeAnnotation')) {

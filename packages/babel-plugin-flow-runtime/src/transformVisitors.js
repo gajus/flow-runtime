@@ -409,39 +409,35 @@ export default function transformVisitors (context: ConversionContext): Object {
           returnType = returnType.get('typeAnnotation');
         }
 
+
         const extra = getFunctionInnerChecks(context, path, returnType);
 
         if (extra) {
           const [yieldCheck, returnCheck, nextCheck] = extra;
 
-          if (yieldCheck) {
-            const yieldTypeUid = body.scope.generateUidIdentifier('yieldType');
-            body.scope.setData(`yieldTypeUid`, yieldTypeUid);
+          if (path.node.generator) {
             definitions.push(t.variableDeclaration('const', [
               t.variableDeclarator(
-                yieldTypeUid,
-                yieldCheck
+                body.scope.getData(`yieldTypeUid`),
+                yieldCheck || context.call('mixed')
               )
             ]));
-          }
 
-          if (nextCheck) {
-            const nextTypeUid = body.scope.generateUidIdentifier('nextType');
-            body.scope.setData(`nextTypeUid`, nextTypeUid);
-            definitions.push(t.variableDeclaration('const', [
-              t.variableDeclarator(
-                nextTypeUid,
-                nextCheck
-              )
-            ]));
+
+            if (nextCheck) {
+              definitions.push(t.variableDeclaration('const', [
+                t.variableDeclarator(
+                  body.scope.getData(`nextTypeUid`),
+                  nextCheck
+                )
+              ]));
+            }
           }
 
           if (returnCheck) {
-            const returnTypeUid = body.scope.generateUidIdentifier('returnType');
-            body.scope.setData(`returnTypeUid`, returnTypeUid);
             definitions.push(t.variableDeclaration('const', [
               t.variableDeclarator(
-                returnTypeUid,
+                body.scope.getData(`returnTypeUid`),
                 context.call('return', returnCheck)
               )
             ]));
@@ -504,33 +500,40 @@ export default function transformVisitors (context: ConversionContext): Object {
 
       const argument = path.get('argument');
       let replacement;
-      if (path.node.delegate) {
-        replacement = t.yieldExpression(
-          t.callExpression(
-            context.call('wrapIterator', yieldTypeUid),
-            argument.node ? [argument.node] : []
-          ),
-          true
-        );
+      if (yieldTypeUid) {
+        if (path.node.delegate) {
+          replacement = t.yieldExpression(
+            t.callExpression(
+              context.call('wrapIterator', yieldTypeUid),
+              argument.node ? [argument.node] : []
+            ),
+            true
+          );
+        }
+        else {
+          replacement = t.yieldExpression(
+            context.assert(
+              yieldTypeUid,
+              ...(argument.node ? [argument.node] : [])
+            )
+          );
+        }
+        context.visited.add(replacement);
       }
       else {
-        replacement = t.yieldExpression(
-          context.assert(
-            yieldTypeUid,
-            ...(argument.node ? [argument.node] : [])
-          )
-        );
+        replacement = path.node;
       }
 
-      context.visited.add(replacement);
-      if (path.parentPath.isExpressionStatement()) {
-        context.replacePath(path, replacement);
-      }
-      else {
-        context.replacePath(path, context.assert(
-          nextTypeUid,
-          replacement
-        ));
+      if (nextTypeUid) {
+        if (path.parentPath.isExpressionStatement()) {
+          context.replacePath(path, replacement);
+        }
+        else {
+          context.replacePath(path, context.assert(
+            nextTypeUid,
+            replacement
+          ));
+        }
       }
     },
 
@@ -775,6 +778,9 @@ const supportedIterableNames = {
  * Returns either null or an array of check nodes in the format: Y, R, N.
  */
 function getFunctionInnerChecks (context: ConversionContext, path: NodePath, returnType: NodePath): ? [?Node, ?Node, ?Node] {
+  if (!path.node.async && !path.node.generator) {
+    return;
+  }
   if (!returnType.isGenericTypeAnnotation()) {
     return;
   }
@@ -782,16 +788,13 @@ function getFunctionInnerChecks (context: ConversionContext, path: NodePath, ret
   const id = returnType.get('id');
   const name = id.node.name;
   if (returnTypeParameters.length === 0) {
-    if (path.node.async || path.node.generator) {
-      // We're in an async or generator function but we don't have any type parameters.
-      // We have to treat this as mixed.
-      return [
-        null,
-        context.call('mixed'),
-        null,
-      ];
-    }
-    return;
+    // We're in an async or generator function but we don't have any type parameters.
+    // We have to treat this as mixed.
+    return [
+      null,
+      context.call('mixed'),
+      null,
+    ];
   }
 
   if (path.node.generator) {

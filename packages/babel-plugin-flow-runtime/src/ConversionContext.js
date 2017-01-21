@@ -162,7 +162,10 @@ export default class ConversionContext {
       }
       body = block.get('body');
       for (let i = subject.key + 1; i < body.length; i++) {
-        const path = body[i];
+        let path = body[i];
+        if (path.isExportNamedDeclaration() || path.isExportDefaultDeclaration()) {
+          path = path.get('declaration');
+        }
         if (path.isTypeAlias() || path.isInterfaceDeclaration()) {
           if (path.node.id.name === name) {
             return true;

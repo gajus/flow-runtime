@@ -98,9 +98,21 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       }
       const params = path.get('params').filter(hasTypeAnnotation);
       const typeParameters = getTypeParameters(path);
-      if (path.has('returnType') || params.length || typeParameters.length) {
-        let body = path.get('body');
+      let body = path.get('body');
+      if (path.node.generator && path.node.returnType) {
+        const yieldTypeUid = body.scope.generateUidIdentifier('yieldType');
+        body.scope.setData(`yieldTypeUid`, yieldTypeUid);
+        const returnTypeUid = body.scope.generateUidIdentifier('returnType');
+        body.scope.setData(`returnTypeUid`, returnTypeUid);
+        const nextTypeUid = body.scope.generateUidIdentifier('nextType');
+        body.scope.setData(`nextTypeUid`, nextTypeUid);
+      }
+      else if (path.node.async && path.node.returnType) {
+        const returnTypeUid = body.scope.generateUidIdentifier('returnType');
+        body.scope.setData(`returnTypeUid`, returnTypeUid);
+      }
 
+      if (path.has('returnType') || params.length || typeParameters.length) {
         if (!body.isBlockStatement()) {
           // Expand arrow function expressions
           body.replaceWith(t.blockStatement([
