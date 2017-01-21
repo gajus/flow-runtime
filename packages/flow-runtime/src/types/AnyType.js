@@ -15,8 +15,8 @@ export default class AnyType extends Type {
     return true;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return true;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return 1;
   }
 
   toString (): string {

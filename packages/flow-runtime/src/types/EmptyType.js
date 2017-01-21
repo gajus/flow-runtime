@@ -17,8 +17,13 @@ export default class EmptyType extends Type {
     return false; // empty types accepts nothing.
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof EmptyType;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof EmptyType) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

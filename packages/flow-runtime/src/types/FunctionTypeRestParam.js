@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import FunctionTypeParam from './FunctionTypeParam';
 
@@ -21,12 +22,18 @@ export default class FunctionTypeRestParam<T> extends Type {
     return type.accepts(input);
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     if (input instanceof FunctionTypeParam || input instanceof FunctionTypeRestParam) {
-      return this.type.acceptsType(input.type);
+      return compareTypes(this.type, input.type);
     }
     else {
-      return this.type.acceptsType(input);
+      const result = compareTypes(this.type, input);
+      if (result === -1) {
+        return -1;
+      }
+      else {
+        return 1;
+      }
     }
   }
 

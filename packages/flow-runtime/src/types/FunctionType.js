@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import FunctionTypeParam from './FunctionTypeParam';
 import FunctionTypeRestParam from './FunctionTypeRestParam';
@@ -91,28 +92,38 @@ export default class FunctionType<P, R> extends Type {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     if (!(input instanceof FunctionType)) {
-      return false;
+      return -1;
     }
     const returnType = this.returnType;
     const inputReturnType = input.returnType;
-    if (!returnType.acceptsType(inputReturnType)) {
-      return false;
+    let isGreater = false;
+    const returnTypeResult = compareTypes(returnType, inputReturnType);
+    if (returnTypeResult === -1) {
+      return -1;
     }
+    else if (returnTypeResult === 1) {
+      isGreater = true;
+    }
+
     const params = this.params;
     const inputParams = input.params;
     if (inputParams.length < params.length) {
-      return false;
+      return -1;
     }
     for (let i = 0; i < params.length; i++) {
       const param = params[i];
       const inputParam = inputParams[i];
-      if (!param.acceptsType(inputParam)) {
-        return false;
+      const result = compareTypes(param, inputParam);
+      if (result === -1) {
+        return -1;
+      }
+      else if (result === 1) {
+        isGreater = true;
       }
     }
-    return true;
+    return isGreater ? 1 : 0;
   }
 
   acceptsParams (...args: any[]): boolean {

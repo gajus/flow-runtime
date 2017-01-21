@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -43,21 +44,34 @@ export default class TupleType<T> extends Type {
     return true;
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     if (!(input instanceof TupleType)) {
-      return false;
+      return -1;
     }
     const types = this.types;
     const inputTypes = input.types;
     if (inputTypes.length < types.length) {
-      return false;
+      return -1;
     }
+    let isGreater = false;
     for (let i = 0; i < types.length; i++) {
-      if (!types[i].acceptsType(inputTypes[i])) {
-        return false;
+      const result = compareTypes(types[i], inputTypes[i]);
+      if (result === 1) {
+        isGreater = true;
+      }
+      else if (result === -1) {
+        return -1;
       }
     }
-    return true;
+    if (types.length < inputTypes.length) {
+      return 0;
+    }
+    else if (isGreater) {
+      return 1;
+    }
+    else {
+      return 0;
+    }
   }
 
   toString (): string {

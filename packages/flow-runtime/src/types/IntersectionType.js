@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -68,30 +69,40 @@ export default class IntersectionType<T> extends Type {
     return true;
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     const types = this.types;
+    let identicalCount = 0;
     if (input instanceof IntersectionType) {
       const inputTypes = input.types;
       loop: for (let i = 0; i < types.length; i++) {
         const type = types[i];
         for (let j = 0; j < inputTypes.length; j++) {
-          if (type.acceptsType(inputTypes[i])) {
+          const result = compareTypes(type, inputTypes[i]);
+          if (result === 0) {
+            identicalCount++;
+            continue loop;
+          }
+          else if (result === 1) {
             continue loop;
           }
         }
         // if we got this far then nothing accepted this type.
-        return false;
+        return -1;
       }
-      return true;
+      return identicalCount === types.length ? 0 : 1;
     }
     else {
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
-        if (!type.acceptsType(input)) {
-          return false;
+        const result = compareTypes(type, input);
+        if (result === -1) {
+          return -1;
+        }
+        else if (result === 0) {
+          identicalCount++;
         }
       }
-      return true;
+      return identicalCount === types.length ? 0 : 1;
     }
   }
 

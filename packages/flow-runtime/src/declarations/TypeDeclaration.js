@@ -1,6 +1,7 @@
 /* @flow */
 
 import Declaration from './Declaration';
+import compareTypes from '../compareTypes';
 
 import type {
   Type,
@@ -39,8 +40,8 @@ export default class TypeDeclaration<T> extends Declaration {
     return this.typeAlias.accepts(input);
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.typeAlias.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return compareTypes(this.typeAlias, input);
   }
 
   hasProperty (name: string, ...typeInstances: Type<any>[]): boolean {

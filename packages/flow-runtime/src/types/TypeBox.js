@@ -1,10 +1,13 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 import type {TypeRevealer} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameterApplication from './TypeParameterApplication';
+
+const warnedInstances = new WeakSet();
 
 export default class TypeBox<T: any> extends Type {
   typeName: string = 'TypeBox';
@@ -21,7 +24,11 @@ export default class TypeBox<T: any> extends Type {
     const {reveal} = this;
     const type = reveal();
     if (!type) {
-      throw new ReferenceError(`Cannot reveal boxed type.`);
+      if (!warnedInstances.has(this)) {
+        this.context.emitWarningMessage('Failed to reveal boxed type.');
+        warnedInstances.add(this);
+      }
+      return this.context.mixed();
     }
     return type;
   }
@@ -34,8 +41,8 @@ export default class TypeBox<T: any> extends Type {
     return this.type.accepts(input);
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.type.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return compareTypes(this.type, input);
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<T> {

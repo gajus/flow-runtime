@@ -4,6 +4,7 @@ import Type from './Type';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameterApplication from './TypeParameterApplication';
+import compareTypes from '../compareTypes';
 
 const warnedMissing = {};
 
@@ -32,8 +33,8 @@ export default class TypeReference<T: any> extends Type {
     return this.type.accepts(input);
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.type.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return compareTypes(this.type, input);
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<T> {

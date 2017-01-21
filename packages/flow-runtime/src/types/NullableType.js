@@ -1,7 +1,9 @@
 /* @flow */
 
 import Type from './Type';
-
+import compareTypes from '../compareTypes';
+import NullLiteralType from './NullLiteralType';
+import VoidType from './VoidType';
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class NullableType<T> extends Type {
@@ -26,12 +28,21 @@ export default class NullableType<T> extends Type {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
-    if (input instanceof NullableType) {
-      return this.type.acceptsType(input.type);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof NullLiteralType || input instanceof VoidType) {
+      return 1;
+    }
+    else if (input instanceof NullableType) {
+      return compareTypes(this.type, input.type);
     }
     else {
-      return this.type.acceptsType(input);
+      const result = compareTypes(this.type, input);
+      if (result === -1) {
+        return -1;
+      }
+      else {
+        return 1;
+      }
     }
   }
 

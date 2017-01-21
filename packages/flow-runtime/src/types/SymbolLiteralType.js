@@ -1,7 +1,7 @@
 /* @flow */
 
 import Type from './Type';
-import getErrorMessage from "../getErrorMessage";
+import getErrorMessage from '../getErrorMessage';
 import type Validation, {IdentifierPath} from '../Validation';
 
 export default class SymbolLiteralType<T: Symbol> extends Type {
@@ -23,8 +23,13 @@ export default class SymbolLiteralType<T: Symbol> extends Type {
     return input === this.value;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof SymbolLiteralType && input.value === this.value;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof SymbolLiteralType && input.value === this.value) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString () {

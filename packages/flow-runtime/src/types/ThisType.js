@@ -49,17 +49,18 @@ export default class ThisType<T> extends Type {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
-    if (input instanceof ThisType) {
-      if (input.recorded && this.recorded) {
-        return input.recorded === this.recorded;
-      }
-      else {
-        return true;
-      }
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (!(input instanceof ThisType)) {
+      return -1;
+    }
+    else if (input.recorded && this.recorded) {
+      return input.recorded === this.recorded ? 0 : -1;
+    }
+    else if (this.recorded) {
+      return 0;
     }
     else {
-      return true;
+      return 1;
     }
   }
 

@@ -23,8 +23,16 @@ export default class NumberType extends Type {
     return typeof input === 'number';
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof NumberType || input instanceof NumericLiteralType;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof NumberType) {
+      return 0;
+    }
+    else if (input instanceof NumericLiteralType) {
+      return 1;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

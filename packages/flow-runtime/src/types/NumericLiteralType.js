@@ -24,8 +24,13 @@ export default class NumericLiteralType<T: number> extends Type {
     return input === this.value;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof NumericLiteralType && input.value === this.value;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof NumericLiteralType && input.value === this.value) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

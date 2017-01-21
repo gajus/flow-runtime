@@ -13,6 +13,7 @@ import makeTypeError from './errorReporting/makeTypeError';
 import makeWarningMessage from './errorReporting/makeWarningMessage';
 
 import makeUnion from './makeUnion';
+import compareTypes from './compareTypes';
 import {makePropertyDescriptor} from './classDecorators';
 
 import {flowIntoTypeParameter} from './types/TypeParameter';
@@ -199,6 +200,10 @@ export default class TypeContext {
     (inferrer: TypeInferrer);
 
     return inferrer.infer(input);
+  }
+
+  compareTypes (a: Type<any>, b: Type<any>): -1 | 0 | 1 {
+    return compareTypes(a, b);
   }
 
   get (name: string): ? Type<any> {

@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -30,12 +31,12 @@ export default class FunctionTypeParam<T> extends Type {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     if (input instanceof FunctionTypeParam) {
-      return this.type.acceptsType(input.type);
+      return compareTypes(this.type, input.type);
     }
     else {
-      return this.type.acceptsType(input);
+      return compareTypes(this.type, input);
     }
   }
 

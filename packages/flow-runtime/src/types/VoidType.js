@@ -22,8 +22,13 @@ export default class VoidType extends Type {
     return input === undefined;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof VoidType;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof VoidType) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

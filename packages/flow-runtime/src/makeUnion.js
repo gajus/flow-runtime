@@ -1,8 +1,11 @@
 /* @flow */
 
 import UnionType from './types/UnionType';
+import compareTypes from './compareTypes';
+
 import type TypeContext from './TypeContext';
 import type Type from './types/Type';
+
 
 export default function makeUnion <T> (context: TypeContext, types: Type<T>[]): UnionType<T> {
   const length = types.length;
@@ -26,7 +29,7 @@ function mergeUnionTypes (aTypes: Type<any>[], bTypes: Type<any>[]): void {
     const bType = bTypes[i];
     for (let j = 0; j < aTypes.length; j++) {
       const aType = aTypes[j];
-      if (aType.acceptsType(bType)) {
+      if (compareTypes(aType, bType) !== -1) {
         continue loop;
       }
     }

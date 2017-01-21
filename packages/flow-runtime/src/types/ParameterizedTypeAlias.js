@@ -1,5 +1,6 @@
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 import type {TypeCreator} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 import TypeAlias from './TypeAlias';
@@ -33,8 +34,17 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return getPartial(this).acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input === this) {
+      return 0; // should never need this because it's taken care of by compareTypes.
+    }
+    else if (this.hasConstraints) {
+      // if we have constraints the types cannot be the same
+      return -1;
+    }
+    else {
+      return compareTypes(getPartial(this), input);
+    }
   }
 
   hasProperty (name: string, ...typeInstances: Type<any>[]): boolean {

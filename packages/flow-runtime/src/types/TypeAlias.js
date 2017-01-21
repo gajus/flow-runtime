@@ -1,5 +1,6 @@
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 import type {TypeConstraint} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -17,6 +18,10 @@ export default class TypeAlias<T> extends Type {
   addConstraint (...constraints: TypeConstraint[]): TypeAlias<T> {
     addConstraints(this, ...constraints);
     return this;
+  }
+
+  get hasConstraints (): boolean {
+    return this.constraints.length > 0;
   }
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
@@ -44,8 +49,17 @@ export default class TypeAlias<T> extends Type {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.type.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input === this) {
+      return 0; // should never need this because it's taken care of by compareTypes.
+    }
+    else if (this.hasConstraints) {
+      // if we have constraints the types cannot be the same
+      return -1;
+    }
+    else {
+      return compareTypes(this.type, input);
+    }
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, T> {

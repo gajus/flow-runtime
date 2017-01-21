@@ -23,8 +23,16 @@ export default class SymbolType extends Type {
     return typeof input === 'symbol';
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof SymbolType || input instanceof SymbolLiteralType;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof SymbolLiteralType) {
+      return 1;
+    }
+    else if (input instanceof SymbolType) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString () {

@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 import type Validation, {IdentifierPath} from '../Validation';
 
 import TypeParameter from './TypeParameter';
@@ -92,42 +93,40 @@ export default class FlowIntoType<T: any> extends Type {
     return true;
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     const {typeParameter, context} = this;
 
     const {recorded, bound} = typeParameter;
-
     if (bound instanceof FlowIntoType) {
       // We defer to the other type so that values from this
       // one can flow "upwards".
-      return bound.acceptsType(input);
+      return bound.compareWith(input);
     }
     if (recorded) {
-      // we've already recorded a value for this type parameter
-      if (bound && !bound.acceptsType(input)) {
-        return false;
+      if (bound && compareTypes(bound, input) === -1) {
+        return -1;
       }
-      else if (recorded.acceptsType(input)) {
+      const result = compareTypes(recorded, input);
+      if (result === 0) {
         // our existing type already permits this value, there's nothing to do.
-        return true;
+        return 0;
       }
-      else {
-        // we need to make a union
-        typeParameter.recorded = context.union(recorded, input);
-        return true;
-      }
+      // we need to make a union
+      typeParameter.recorded = context.union(recorded, input);
+      return 1;
     }
     else if (bound) {
       if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
-        return true;
+        return 1;
       }
-      else if (!bound.acceptsType(input)) {
-        return false;
+      const result = compareTypes(bound, input);
+      if (result === -1) {
+        return -1;
       }
     }
 
     typeParameter.recorded = input;
-    return true;
+    return 0;
   }
 
   /**

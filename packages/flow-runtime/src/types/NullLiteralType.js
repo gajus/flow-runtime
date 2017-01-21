@@ -20,8 +20,13 @@ export default class NullLiteralType extends Type {
     return input === null;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof NullLiteralType;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof NullLiteralType) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

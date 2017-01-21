@@ -4,6 +4,8 @@ import Type from './Type';
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
+import compareTypes from '../compareTypes';
+
 export default class UnionType<T> extends Type {
   typeName: string = 'UnionType';
   types: Type<T>[] = [];
@@ -33,30 +35,42 @@ export default class UnionType<T> extends Type {
     return false;
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     const types = this.types;
     if (input instanceof UnionType) {
       const inputTypes = input.types;
+      let identicalCount = 0;
       loop: for (let i = 0; i < types.length; i++) {
         const type = types[i];
         for (let j = 0; j < inputTypes.length; j++) {
-          if (type.acceptsType(inputTypes[i])) {
+          const result = compareTypes(type, inputTypes[i]);
+          if (result === 0) {
+            identicalCount++;
+            continue loop;
+          }
+          else if (result === 1) {
             continue loop;
           }
         }
         // if we got this far then nothing accepted this type.
-        return false;
+        return -1;
       }
-      return true;
+
+      if (identicalCount === types.length) {
+        return 0;
+      }
+      else {
+        return 1;
+      }
     }
     else {
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
-        if (type.acceptsType(input)) {
-          return true;
+        if (compareTypes(type, input) >= 0) {
+          return 1;
         }
       }
-      return false;
+      return -1;
     }
   }
 

@@ -21,8 +21,13 @@ export default class BooleanLiteralType <T: boolean> extends Type {
     return input === this.value;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof BooleanLiteralType && input.value === this.value;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof BooleanLiteralType && input.value === this.value) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

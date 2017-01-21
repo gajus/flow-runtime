@@ -23,8 +23,13 @@ export default class StringLiteralType<T: string> extends Type {
     return input === this.value;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof StringLiteralType && input.value === this.value;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof StringLiteralType && input.value === this.value) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

@@ -8,12 +8,12 @@ import type ObjectTypeProperty from './ObjectTypeProperty';
 import TypeParameterApplication from './TypeParameterApplication';
 import {addConstraints, collectConstraintErrors, constraintsAccept} from '../typeConstraints';
 
-export default class RefinmentType<T> extends Type {
-  typeName: string = 'RefinmentType';
+export default class RefinementType<T> extends Type {
+  typeName: string = 'RefinementType';
   type: Type<T>;
   constraints: TypeConstraint[] = [];
 
-  addConstraint (...constraints: TypeConstraint[]): RefinmentType<T> {
+  addConstraint (...constraints: TypeConstraint[]): RefinementType<T> {
     addConstraints(this, ...constraints);
     return this;
   }
@@ -42,8 +42,13 @@ export default class RefinmentType<T> extends Type {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.type.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input === this) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, T> {

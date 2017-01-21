@@ -1,5 +1,6 @@
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 import type {TypeConstraint} from './';
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -55,8 +56,13 @@ export default class PartialType<X, T> extends Type {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.type.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input === this) {
+      return 0;
+    }
+    else {
+      return compareTypes(this.type, input);
+    }
   }
 
   toString (expand?: boolean): string {

@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -16,11 +17,11 @@ export default class ObjectTypeCallProperty<T: Function> extends Type {
     return this.value.accepts(input);
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     if (!(input instanceof ObjectTypeCallProperty)) {
-      return false;
+      return -1;
     }
-    return this.value.acceptsType(input.value);
+    return compareTypes(this.value, input.value);
   }
 
   unwrap (): Type<T> {

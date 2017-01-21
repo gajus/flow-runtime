@@ -19,8 +19,8 @@ export default class TypeConstructor<T> extends Type {
     throw new Error(`Not implemented: accepts().`);
   }
 
-  acceptsType (input: Type<any>): boolean {
-    throw new Error(`Not implemented: acceptsType().`);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    throw new Error(`Not implemented: compareWith().`);
   }
 
   inferTypeParameters <P> (input: any): Type<P>[] {

@@ -1,6 +1,9 @@
 /* @flow */
 
 import Type from './Type';
+import TupleType from './TupleType';
+import compareTypes from '../compareTypes';
+
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -61,8 +64,24 @@ export default class ArrayType <T> extends Type {
     return true;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof ArrayType && this.elementType.acceptsType(input.elementType);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    const {elementType} = this;
+    if (input instanceof TupleType) {
+      const {types} = input;
+      for (let i = 0; i < types.length; i++) {
+        const result = compareTypes(elementType, types[i]);
+        if (result === -1) {
+          return -1;
+        }
+      }
+      return 1;
+    }
+    else if (input instanceof ArrayType) {
+      return compareTypes(elementType, input.elementType);
+    }
+    else {
+      return -1;
+    }
   }
 
   toString (): string {

@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import PartialType from './PartialType';
 import type FunctionTypeParam from './FunctionTypeParam';
@@ -41,8 +42,8 @@ export default class ParameterizedFunctionType <X, P: any, R: any> extends Type 
     return getPartial(this, ...typeInstances).accepts(input);
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return getPartial(this).acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return compareTypes(getPartial(this), input);
   }
 
   acceptsParams (...args: any[]): boolean {

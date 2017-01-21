@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
@@ -34,15 +35,42 @@ export default class GeneratorType<Y, R, N> extends Type {
       ;
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     if (!(input instanceof GeneratorType)) {
-      return this.yieldType.accepts(input);
+      const result = compareTypes(this.yieldType, input);
+      if (result === -1) {
+        return -1;
+      }
+      else {
+        return 1;
+      }
     }
-    return (
-         this.yieldType.acceptsType(input.yieldType)
-      && this.returnType.acceptsType(input.returnType)
-      && this.nextType.acceptsType(input.nextType)
-    );
+    let isGreater = false;
+    let result = compareTypes(this.yieldType, input.yieldType);
+    if (result === -1) {
+      return -1;
+    }
+    else if (result === 1) {
+      isGreater = true;
+    }
+
+    result = compareTypes(this.returnType, input.returnType);
+    if (result === -1) {
+      return -1;
+    }
+    else if (result === 1) {
+      isGreater = true;
+    }
+
+    result = compareTypes(this.nextType, input.nextType);
+    if (result === -1) {
+      return -1;
+    }
+    else if (result === 1) {
+      isGreater = true;
+    }
+
+    return isGreater ? 1 : 0;
   }
 
   acceptsYield (input: any): boolean {

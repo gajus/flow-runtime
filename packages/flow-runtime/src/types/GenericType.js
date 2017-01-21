@@ -24,8 +24,13 @@ export default class GenericType extends TypeConstructor {
     return input instanceof this.impl;
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof GenericType && input.impl === this.impl;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof GenericType && input.impl === this.impl) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   inferTypeParameters <P> (input: any): Type<P>[] {

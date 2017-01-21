@@ -1,6 +1,7 @@
 /* @flow */
 
 import Declaration from './Declaration';
+import compareTypes from '../compareTypes';
 
 import type {Type, TypeConstraint} from '../types';
 
@@ -45,8 +46,8 @@ export default class VarDeclaration<T> extends Declaration {
     }
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.type.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return compareTypes(this.type, input);
   }
 
   unwrap () {

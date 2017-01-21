@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
 
 import ObjectTypeProperty from './ObjectTypeProperty';
 import ObjectTypeIndexer from './ObjectTypeIndexer';
@@ -163,21 +164,39 @@ export default class ObjectType<T: {}> extends Type {
     return result;
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     if (!(input instanceof ObjectType)) {
-      return false;
+      return -1;
     }
     const hasCallProperties = this.callProperties.length > 0;
 
-    if (hasCallProperties && !acceptsTypeCallProperties(this, input)) {
-      return false;
+    let isGreater = false;
+    if (hasCallProperties) {
+      const result = compareTypeCallProperties(this, input);
+      if (result === -1) {
+        return -1;
+      }
+      else if (result === 1) {
+        isGreater = true;
+      }
     }
 
+    let result;
     if (this.indexers.length > 0) {
-      return acceptsTypeWithIndexers(this, input);
+      result = compareTypeWithIndexers(this, input);
     }
     else {
-      return acceptsTypeWithoutIndexers(this, input);
+      result = compareTypeWithoutIndexers(this, input);
+    }
+
+    if (result === -1) {
+      return -1;
+    }
+    else if (isGreater) {
+      return 1;
+    }
+    else {
+      return result;
     }
   }
 
@@ -232,22 +251,33 @@ function acceptsCallProperties (type: ObjectType<any>, input: any): boolean {
 }
 
 
-function acceptsTypeCallProperties (type: ObjectType<any>, input: ObjectType<any>): boolean {
+function compareTypeCallProperties (type: ObjectType<any>, input: ObjectType<any>): -1 | 0 | 1 {
   const {callProperties} = type;
   const inputCallProperties = input.callProperties;
+  let identicalCount = 0;
   loop: for (let i = 0; i < callProperties.length; i++) {
     const callProperty = callProperties[i];
 
     for (let j = 0; j < inputCallProperties.length; j++) {
       const inputCallProperty = inputCallProperties[j];
-      if (callProperty.acceptsType(inputCallProperty)) {
+      const result = compareTypes(callProperty, inputCallProperty);
+      if (result === 0) {
+        identicalCount++;
+        continue loop;
+      }
+      else if (result === 1) {
         continue loop;
       }
     }
     // If we got this far, nothing accepted.
-    return false;
+    return -1;
   }
-  return true;
+  if (identicalCount === callProperties.length) {
+    return 0;
+  }
+  else {
+    return 1;
+  }
 }
 
 function acceptsWithIndexers (type: ObjectType<any>, input: Object): boolean {
@@ -278,21 +308,24 @@ function acceptsWithIndexers (type: ObjectType<any>, input: Object): boolean {
   return true;
 }
 
-function acceptsTypeWithIndexers (type: ObjectType<any>, input: ObjectType<any>): boolean {
+function compareTypeWithIndexers (type: ObjectType<any>, input: ObjectType<any>): -1 | 0 | 1 {
   const {indexers, properties} = type;
   const inputIndexers = input.indexers;
   const inputProperties = input.properties;
+  let isGreater = false;
   loop: for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
     for (let j = 0; j < inputProperties.length; j++) {
       const inputProperty = inputProperties[j];
       if (inputProperty.key === property.key) {
-        if (property.acceptsType(inputProperty)) {
-          continue loop;
+        const result = compareTypes(property, inputProperty);
+        if (result === -1) {
+          return -1;
         }
-        else {
-          return false;
+        else if (result === 1) {
+          isGreater = true;
         }
+        continue loop;
       }
     }
   }
@@ -300,14 +333,19 @@ function acceptsTypeWithIndexers (type: ObjectType<any>, input: ObjectType<any>)
     const indexer = indexers[i];
     for (let j = 0; j < inputIndexers.length; j++) {
       const inputIndexer = inputIndexers[j];
-      if (indexer.acceptsType(inputIndexer)) {
+      const result = compareTypes(indexer, inputIndexer);
+      if (result === 1) {
+        isGreater = true;
+        continue loop;
+      }
+      else if (result === 0) {
         continue loop;
       }
     }
     // if we got this far, nothing accepted
-    return false;
+    return -1;
   }
-  return true;
+  return isGreater ? 1 : 0;
 }
 
 
@@ -342,25 +380,28 @@ function acceptsExact (type: ObjectType<any>, input: Object): boolean {
   return true;
 }
 
-function acceptsTypeWithoutIndexers (type: ObjectType<any>, input: ObjectType<any>): boolean {
+function compareTypeWithoutIndexers (type: ObjectType<any>, input: ObjectType<any>): -1 | 0 | 1 {
   const {properties} = type;
   const inputProperties = input.properties;
+  let isGreater = false;
   loop: for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
     for (let j = 0; j < inputProperties.length; j++) {
       const inputProperty = inputProperties[j];
       if (inputProperty.key === property.key) {
-        if (property.acceptsType(inputProperty)) {
-          continue loop;
+        const result = compareTypes(property, inputProperty);
+        if (result === -1) {
+          return -1;
         }
-        else {
-          return false;
+        else if (result === 1) {
+          isGreater = true;
         }
+        continue loop;
       }
     }
-    return false;
+    return -1;
   }
-  return true;
+  return isGreater ? 1 : 0;
 }
 
 

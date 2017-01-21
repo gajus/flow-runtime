@@ -1,9 +1,10 @@
 /* @flow */
 
 import Type from './Type';
-import type Validation, {IdentifierPath} from '../Validation';
-
+import compareTypes from '../compareTypes';
 import FlowIntoType from './FlowIntoType';
+
+import type Validation, {IdentifierPath} from '../Validation';
 
 const FlowIntoSymbol = Symbol('FlowInto');
 
@@ -72,22 +73,24 @@ export default class TypeParameter<T> extends Type {
     return true;
   }
 
-  acceptsType (input: Type<any>): boolean {
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     const {recorded, bound} = this;
     if (input instanceof TypeParameter) {
       // We don't need to check for `recorded` or `bound` fields
-      // because the input has already been unwrapped.
-      return true;
+      // because the input has already been unwrapped, so
+      // if we got a type parameter it must be totally generic and
+      // we treat it like Any.
+      return 1;
     }
     else if (recorded) {
-      return recorded.acceptsType(input);
+      return compareTypes(recorded, input);
     }
     else if (bound) {
-      return bound.acceptsType(input);
+      return compareTypes(bound, input);
     }
     else {
       // A generic type parameter accepts any input.
-      return true;
+      return 1;
     }
   }
 

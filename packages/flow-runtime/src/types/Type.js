@@ -1,6 +1,7 @@
 /* @flow */
 
 import makeError from '../makeError';
+import compareTypes from '../compareTypes';
 
 import type TypeContext from '../TypeContext';
 
@@ -29,6 +30,15 @@ export default class Type <T> {
   }
 
   acceptsType (input: Type<any>): boolean {
+    if (compareTypes(this, input) === -1) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  compareWith (input: Type<any>): -1 | 0 | 1 {
     throw new Error('Not implemented.');
   }
 

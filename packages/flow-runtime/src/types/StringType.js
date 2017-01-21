@@ -22,8 +22,16 @@ export default class StringType extends Type {
     return typeof input === 'string';
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return input instanceof StringType || input instanceof StringLiteralType;
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof StringLiteralType) {
+      return 1;
+    }
+    else if (input instanceof StringType) {
+      return 0;
+    }
+    else {
+      return -1;
+    }
   }
 
   toString () {

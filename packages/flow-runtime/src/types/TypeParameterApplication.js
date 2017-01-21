@@ -1,6 +1,8 @@
 /* @flow */
 
 import Type from './Type';
+import compareTypes from '../compareTypes';
+
 import type Validation, {IdentifierPath} from '../Validation';
 
 import type {ApplicableType} from './';
@@ -26,8 +28,8 @@ export default class TypeParameterApplication<X, T> extends Type {
     return parent.accepts(input, ...typeInstances);
   }
 
-  acceptsType (input: Type<any>): boolean {
-    return this.parent.acceptsType(input);
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return compareTypes(this.parent, input);
   }
 
   hasProperty (name: string): boolean {
