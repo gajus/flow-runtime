@@ -8,6 +8,7 @@ import {minify} from 'uglify-js';
 export default {
   entry: 'src/index.cjs.js',
   moduleName: 'flow-runtime',
+  sourceMap: true,
   plugins: [
     babel({
       babelrc: false,

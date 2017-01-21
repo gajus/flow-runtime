@@ -6,6 +6,7 @@ import nodeResolve from 'rollup-plugin-node-resolve';
 export default {
   entry: 'src/index.js',
   moduleName: 'flow-runtime',
+  sourceMap: true,
   plugins: [
     babel({
       babelrc: false,
