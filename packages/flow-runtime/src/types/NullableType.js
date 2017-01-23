@@ -6,7 +6,7 @@ import NullLiteralType from './NullLiteralType';
 import VoidType from './VoidType';
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class NullableType<T> extends Type {
+export default class NullableType<T> extends Type<T> {
   typeName: string = 'NullableType';
   type: Type<T>;
 

@@ -14,7 +14,7 @@ export const expected = `
   class User {}
 
   function demo(model) {
-    let _modelType = t.ref("Class", t.ref(User));
+    let _modelType = t.Class(t.ref(User));
     t.param("model", _modelType).assert(model);
   }
 `;
@@ -29,7 +29,7 @@ export const annotated = `
   t.annotate(
     demo,
     t.function(
-      t.param("model", t.ref("Class", t.ref(User)))
+      t.param("model", t.Class(t.ref(User)))
     )
   );
 `;
@@ -40,14 +40,14 @@ export const combined = `
   class User {}
 
   function demo(model) {
-    let _modelType = t.ref("Class", t.ref(User));
+    let _modelType = t.Class(t.ref(User));
     t.param("model", _modelType).assert(model);
   }
 
   t.annotate(
     demo,
     t.function(
-      t.param("model", t.ref("Class", t.ref(User)))
+      t.param("model", t.Class(t.ref(User)))
     )
   );
 `;

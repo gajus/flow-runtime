@@ -14,6 +14,7 @@ export type ConverterDict = {[name: string]: Converter};
 
 const converters: ConverterDict = {};
 
+
 /**
  * Convert a type definition to a typed method call.
  */
@@ -561,7 +562,13 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     }
   }
   else if (!entity) {
-    return context.call('ref', t.stringLiteral(name), ...typeParameters);
+    const flowTypeName = context.getFlowTypeName(name);
+    if (flowTypeName) {
+      return context.call(flowTypeName, ...typeParameters);
+    }
+    else {
+      return context.call('ref', t.stringLiteral(name), ...typeParameters);
+    }
   }
   else if (entity.isClassTypeParameter) {
     let target;

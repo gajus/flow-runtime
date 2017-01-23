@@ -78,6 +78,18 @@ import {
 } from './declarations';
 
 import {
+  $DiffType,
+  $FlowFixMeType,
+  $KeysType,
+  $ObjMapiType,
+  $ObjMapType,
+  $ShapeType,
+  $SubType,
+  $SuperType,
+  ClassType
+} from './flowTypes';
+
+import {
   ParentSymbol,
   NameRegistrySymbol,
   ModuleRegistrySymbol,
@@ -444,6 +456,31 @@ export default class TypeContext {
     (handlerRegistry: TypeConstructorRegistry);
 
     return handlerRegistry.get(impl);
+  }
+
+  literal <T: void | null | boolean | number | string | Symbol> (input: T): Type<T> {
+    if (input === undefined) {
+      return this.void();
+    }
+    else if (input === null) {
+      return this.null();
+    }
+    else if (typeof input === 'boolean') {
+      return this.boolean(input);
+    }
+    else if (typeof input === 'number') {
+      return this.number(input);
+    }
+    else if (typeof input === 'string') {
+      return this.string(input);
+    }
+    // @flowIssue 252
+    else if (typeof input === 'symbol') {
+      return this.symbol(input);
+    }
+    else {
+      return this.typeOf(input);
+    }
   }
 
   null (): NullLiteralType {
@@ -987,5 +1024,59 @@ export default class TypeContext {
     return target;
   }
 
+  $diff <A: {}, B: {}> (aType: Type<A>, bType: Type<B>): $DiffType<A, B> {
+    const target = new $DiffType(this);
+    target.aType = aType;
+    target.bType = bType;
+    return target;
+  }
+
+  $flowFixMe (): $FlowFixMeType {
+    return new $FlowFixMeType(this);
+  }
+
+  $keys <T: {}> (type: Type<T>): $KeysType<T> {
+    const target = new $KeysType(this);
+    target.type = type;
+    return target;
+  }
+
+  $objMap <O: {}, K: $Keys<O>, M: (k: K) => any> (object: Type<O>, mapper: Type<M>): $ObjMapType<O, M> {
+    const target = new $ObjMapType(this);
+    target.object = object;
+    target.mapper = mapper;
+    return target;
+  }
+
+  $objMapi <O: {}, K: $Keys<O>, M: (k: K, v: any) => any> (object: Type<O>, mapper: Type<M>): $ObjMapiType<O, M> {
+    const target = new $ObjMapiType(this);
+    target.object = object;
+    target.mapper = mapper;
+    return target;
+  }
+
+  $shape <T: {}> (type: Type<T>): $ShapeType<T> {
+    const target = new $ShapeType(this);
+    target.type = type;
+    return target;
+  }
+
+  $subtype <T: {}> (type: Type<T>): $SubType<T> {
+    const target = new $SubType(this);
+    target.type = type;
+    return target;
+  }
+
+  $supertype <T: {}> (type: Type<T>): $SuperType<T> {
+    const target = new $SuperType(this);
+    target.type = type;
+    return target;
+  }
+
+  Class <T: {}> (instanceType: Type<T>): ClassType<T> {
+    const target = new ClassType(this);
+    target.instanceType = instanceType;
+    return target;
+  }
 }
 

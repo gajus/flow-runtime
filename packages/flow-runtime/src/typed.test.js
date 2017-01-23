@@ -281,11 +281,11 @@ describe('Typed API', () => {
     const INomable = t.type('Nameable', t.object(
       t.property('nom', t.string())
     ));
-    const INameableClass = t.ref('Class', INameable);
-    const INomableClass = t.ref('Class', INomable);
+    const INameableClass = t.Class(INameable);
+    const INomableClass = t.Class(INomable);
 
-    const IUserClass = t.ref('Class', t.ref(User));
-    const IAdminUserClass = t.ref('Class', t.ref(AdminUser));
+    const IUserClass = t.Class(t.ref(User));
+    const IAdminUserClass = t.Class(t.ref(AdminUser));
     no(IUserClass.accepts(Role));
     ok(IUserClass.accepts(User));
     ok(IUserClass.accepts(AdminUser));
@@ -312,7 +312,7 @@ describe('Typed API', () => {
       t.property('email', t.string('example@example.com'))
     );
 
-    const C = t.ref('$Diff', A, B);
+    const C = t.$diff(A, B);
 
     no(C.accepts({}));
     ok(C.accepts({name: 'Alice'}));
@@ -328,7 +328,7 @@ describe('Typed API', () => {
       t.property('name', t.string()),
       t.property('email', t.string()),
     );
-    const B = t.ref('$Shape', A);
+    const B = t.$shape(A);
 
     ok(B.accepts({}));
     ok(B.accepts({name: 'Alice'}));
@@ -344,7 +344,8 @@ describe('Typed API', () => {
       t.property('name', t.string()),
       t.property('email', t.string()),
     );
-    const B = t.ref('$Keys', A);
+    const B = t.$keys(A);
+
 
     ok(B.accepts('name'));
     ok(B.accepts('email'));
@@ -358,7 +359,7 @@ describe('Typed API', () => {
       name: 'Alice',
       email: 'example@example.com'
     });
-    const B = t.ref('$Keys', A);
+    const B = t.$keys(A);
 
     ok(B.accepts('name'));
     ok(B.accepts('email'));
@@ -382,7 +383,7 @@ describe('Typed API', () => {
         t.return(t.tuple(K, V))
       ];
     });
-    const B = t.ref('$ObjMap', K, V);
+    const B = t.$objMap(K, V);
 
     B.assert({
       name: ['name', 'Hello'],

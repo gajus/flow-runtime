@@ -266,7 +266,7 @@ describe('makeJSONError', () => {
 
     }
 
-    const ThingClass = t.ref("Class", t.ref(Thing));
+    const ThingClass = t.Class(t.ref(Thing));
 
     it('should accept a valid value', () => {
       const validation = t.validate(ThingClass, Thing);
@@ -295,11 +295,11 @@ describe('makeJSONError', () => {
     const V = t.fn(fn => {
       const K = fn.typeParameter('K');
       return [
-        t.param('key', K),
+        t.param('key', t.flowInto(K)),
         t.return(t.tuple(K, t.string()))
       ];
     });
-    const PropTuples = t.ref('$ObjMap', K, V);
+    const PropTuples = t.$objMap(K, V);
 
     it('accept a valid value', () => {
       const validation = t.validate(PropTuples, {
@@ -310,18 +310,18 @@ describe('makeJSONError', () => {
       no(report);
     });
 
-    it('should reject an invalid value', () => {
+    it('should reject an invalid value 1', () => {
       const validation = t.validate(PropTuples, {
         name: [false, 'Hello'],
         email: ['email', 'World']
       });
       const report = makeJSONError(validation);
       expect(report, [
-        'name[0] must be a string, got boolean'
+        'name[0] must be exactly "name", got boolean'
       ]);
     });
 
-    it('should reject an invalid value', () => {
+    it('should reject an invalid value 2', () => {
       const validation = t.validate(PropTuples, {
         name: ['name', 'Hello'],
       });
@@ -331,7 +331,7 @@ describe('makeJSONError', () => {
       ]);
     });
 
-    it('should reject an invalid value', () => {
+    it('should reject an invalid value 3', () => {
       const validation = t.validate(PropTuples, {
         name: ['name', 'Hello'],
         email: ['email', false]
@@ -352,12 +352,12 @@ describe('makeJSONError', () => {
       const K = fn.typeParameter('K');
       const V = fn.typeParameter('V');
       return [
-        t.param('key', K),
-        t.param('value', V),
+        t.param('key', t.flowInto(K)),
+        t.param('value', t.flowInto(V)),
         t.return(t.tuple(K, V))
       ];
     });
-    const PropTuples = t.ref('$ObjMapi', K, V);
+    const PropTuples = t.$objMapi(K, V);
 
     it('accept a valid value', () => {
       const validation = t.validate(PropTuples, {

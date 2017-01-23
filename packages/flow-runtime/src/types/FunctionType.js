@@ -5,6 +5,8 @@ import compareTypes from '../compareTypes';
 
 import FunctionTypeParam from './FunctionTypeParam';
 import FunctionTypeRestParam from './FunctionTypeRestParam';
+import FunctionTypeReturn from './FunctionTypeReturn';
+import EmptyType from './EmptyType';
 
 import getErrorMessage from "../getErrorMessage";
 import type Validation, {IdentifierPath} from '../Validation';
@@ -15,7 +17,7 @@ export default class FunctionType<P, R> extends Type {
   typeName: string = 'FunctionType';
   params: FunctionTypeParam<P>[] = [];
   rest: ? FunctionTypeRestParam<P>;
-  returnType: Type<R>;
+  returnType: FunctionTypeReturn<R>;
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     if (typeof input !== 'function') {
@@ -183,6 +185,33 @@ export default class FunctionType<P, R> extends Type {
   assertReturn <T> (input: any): T {
     this.returnType.assert(input);
     return input;
+  }
+
+  invoke (...args: Type<P>[]): Type<R> | EmptyType {
+    const {params, rest, context} = this;
+    const paramsLength = params.length;
+    const argsLength = args.length;
+    for (let i = 0; i < paramsLength; i++) {
+      const param = params[i];
+      if (i < argsLength) {
+        if (!param.acceptsType(args[i])) {
+          return context.empty();
+        }
+      }
+      else if (!param.accepts(undefined)) {
+        return context.empty();
+      }
+    }
+
+    if (argsLength > paramsLength && rest) {
+      for (let i = paramsLength; i < argsLength; i++) {
+        if (!rest.acceptsType(args[i])) {
+          return context.empty();
+        }
+      }
+    }
+
+    return this.returnType.type;
   }
 
   toString (): string {

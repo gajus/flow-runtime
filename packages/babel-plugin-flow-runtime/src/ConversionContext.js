@@ -9,6 +9,17 @@ import type {Node, NodePath} from 'babel-traverse';
 
 const boxedIdentifiers: WeakSet<Node> = new WeakSet();
 
+const FLOW_TYPENAMES = {
+  $Diff: '$diff',
+  $Keys: '$keys',
+  $ObjMapi: '$objMapi',
+  $ObjMap: '$objMap',
+  $Shape: '$shape',
+  $Subtype: '$subtype',
+  $Supertype: '$supertype',
+  Class: 'Class'
+};
+
 export default class ConversionContext {
 
   libraryName: string = 'flow-runtime';
@@ -306,6 +317,10 @@ export default class ConversionContext {
     }
 
     map.set(declaration.node, value);
+  }
+
+  getFlowTypeName (name: string): ? string {
+    return FLOW_TYPENAMES[name];
   }
 }
 

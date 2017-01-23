@@ -1,11 +1,13 @@
 /* @flow */
 
-import Type from './Type';
+import Type from '../types/Type';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
-export default class AnyType extends Type<any> {
-  typeName: string = 'AnyType';
+// Any subtype of T
+
+export default class $FlowFixMeType extends Type<any> {
+  typeName: string = '$FlowFixMeType';
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
     return false;
@@ -19,13 +21,17 @@ export default class AnyType extends Type<any> {
     return 1;
   }
 
+  unwrap (): Type<any> {
+    return this;
+  }
+
   toString (): string {
-    return 'any';
+    return '$FlowFixMe';
   }
 
   toJSON () {
     return {
-      typeName: this.typeName
+      typeName: this.typeName,
     };
   }
 }

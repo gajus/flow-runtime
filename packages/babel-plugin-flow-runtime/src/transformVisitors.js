@@ -777,7 +777,7 @@ const supportedIterableNames = {
  * This is used for async functions and generators.
  * Returns either null or an array of check nodes in the format: Y, R, N.
  */
-function getFunctionInnerChecks (context: ConversionContext, path: NodePath, returnType: NodePath): ? [?Node, ?Node, ?Node] {
+function getFunctionInnerChecks (context: ConversionContext, path: NodePath, returnType: NodePath): ? Array<?Node> {
   if (!path.node.async && !path.node.generator) {
     return;
   }
