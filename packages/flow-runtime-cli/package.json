@@ -7,13 +7,40 @@
     "url": "https://github.com/codemix/flow-runtime.git",
     "type": "git"
   },
+  "scripts": {
+    "lint": "eslint ./src && flow check",
+    "prepublish": "npm run build",
+    "build": "babel -d ./lib ./src",
+    "test": "mocha",
+    "watch": "mocha --watch"
+  },
   "author": "Charles Pick <charles@codemix.com>",
   "license": "MIT",
   "devDependencies": {
-    "babel-plugin-flow-runtime": "^0.2.1"
+    "babel-cli": "^6.16.0",
+    "babel-core": "^6.17.0",
+    "babel-eslint": "^7.0.0",
+    "babel-plugin-external-helpers": "^6.18.0",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-preset-env": "^1.1.4",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "eslint": "^3.8.1",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-flowtype": "^2.20.0",
+    "eslint-plugin-import": "^2.0.1",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.4.1",
+    "flow-bin": "^0.38.0",
+    "flow-typed": "^2.0.0",
+    "mocha": "^3.1.2"
   },
   "dependencies": {
+    "babel-plugin-flow-runtime": "^0.2.1",
+    "bluebird": "^3.4.7",
+    "double-ended-queue": "^2.1.0-0",
     "flow-config-parser": "^0.0.6",
+    "flow-parser": "^0.38.0",
     "flow-runtime": "^0.2.1",
     "minimist": "^1.2.0"
   }

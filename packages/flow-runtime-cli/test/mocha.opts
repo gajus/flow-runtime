@@ -1,0 +1,2 @@
+--reporter=dot
+src/**/*test.js
