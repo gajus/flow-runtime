@@ -55,6 +55,7 @@ import {
   ModuleDeclaration,
   ModuleExportsDeclaration,
   ClassDeclaration,
+  ParameterizedClassDeclaration,
   ExtendsDeclaration
 } from './declarations';
 
@@ -120,6 +121,7 @@ defineProperty('TypeDeclaration', TypeDeclaration);
 defineProperty('ModuleDeclaration', ModuleDeclaration);
 defineProperty('ModuleExportsDeclaration', ModuleExportsDeclaration);
 defineProperty('ClassDeclaration', ClassDeclaration);
+defineProperty('ParameterizedClassDeclaration', ParameterizedClassDeclaration);
 defineProperty('ExtendsDeclaration', ExtendsDeclaration);
 
 export default globalContext;

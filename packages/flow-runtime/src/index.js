@@ -55,6 +55,7 @@ import TypeDeclaration from './declarations/TypeDeclaration';
 import ModuleDeclaration from './declarations/ModuleDeclaration';
 import ModuleExportsDeclaration from './declarations/ModuleExportsDeclaration';
 import ClassDeclaration from './declarations/ClassDeclaration';
+import ParameterizedClassDeclaration from './declarations/ParameterizedClassDeclaration';
 import ExtendsDeclaration from './declarations/ExtendsDeclaration';
 
 export default globalContext;
@@ -109,6 +110,7 @@ export {
   ModuleDeclaration,
   ModuleExportsDeclaration,
   ClassDeclaration,
+  ParameterizedClassDeclaration,
   ExtendsDeclaration,
 
   TypeParametersSymbol

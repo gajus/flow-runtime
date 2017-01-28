@@ -74,6 +74,7 @@ import {
   ModuleDeclaration,
   ModuleExportsDeclaration,
   ClassDeclaration,
+  ParameterizedClassDeclaration,
   ExtendsDeclaration
 } from './declarations';
 
@@ -365,7 +366,8 @@ export default class TypeContext {
       return type;
     }
     else {
-      invariant(type, 'Type must be supplied to declaration');
+      invariant(typeof name === 'string', 'Name must be a string');
+      invariant(type instanceof Type, 'Type must be supplied to declaration');
       const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
       if (nameRegistry[name]) {
@@ -640,10 +642,13 @@ export default class TypeContext {
   }
 
   class <X, O: Object> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
-    const target = new ClassDeclaration(this);
     if (typeof head === 'function') {
+      const target = new ParameterizedClassDeclaration(this);
+      target.name = name;
+      target.bodyCreator = head;
       return target;
     }
+    const target = new ClassDeclaration(this);
     target.name = name;
     tail.unshift(head);
     const {length} = tail;
@@ -1014,6 +1019,15 @@ export default class TypeContext {
       const error = new TypeError('Value did not match any of the candidates.');
       error.name = 'RuntimeTypeError';
       throw error;
+    };
+  }
+
+  wrapIterator <T> (type: Type<T>): (input: Iterable<T>) => Generator<T, void, void> {
+    const t = this;
+    return function* wrappedIterator (input: Iterable<T>): Generator<T, void, void> {
+      for (const item of input) {
+        yield t.check(type, item);
+      }
     };
   }
 

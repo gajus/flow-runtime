@@ -6,6 +6,7 @@ import TypeDeclaration from './TypeDeclaration';
 import ModuleDeclaration from './ModuleDeclaration';
 import ModuleExportsDeclaration from './ModuleExportsDeclaration';
 import ClassDeclaration from './ClassDeclaration';
+import ParameterizedClassDeclaration from './ParameterizedClassDeclaration';
 import ExtendsDeclaration from './ExtendsDeclaration';
 
 import type {
@@ -38,5 +39,6 @@ export {
   ModuleDeclaration,
   ModuleExportsDeclaration,
   ClassDeclaration,
+  ParameterizedClassDeclaration,
   ExtendsDeclaration
 };

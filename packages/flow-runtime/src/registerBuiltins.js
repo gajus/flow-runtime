@@ -10,6 +10,8 @@ import type Validation, {IdentifierPath} from './Validation';
 
 export default function registerBuiltinTypeConstructors (t: TypeContext): TypeContext {
 
+  return;
+
   t.declareTypeConstructor({
     name: 'Date',
     impl: Date,
