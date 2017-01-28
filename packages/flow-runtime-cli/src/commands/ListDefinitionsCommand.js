@@ -10,27 +10,44 @@ import buildProgram from '../buildProgram';
 
 import type {FlowConfig} from 'flow-config-parser';
 import type {Argv} from '../';
+import type {FlowModule} from '../EntityGraph';
 
+export const name = 'list-definitions';
 
-export const name = 'generate';
-
-export const description = 'Generates a flow-runtime type declaration module for the types used in the given files or folders.';
+export const description = 'Lists all the types found in definition files.';
 
 export async function run (argv: Argv) {
-  const [, ...searchPaths] = argv._;
-
   const config = await loadFlowConfig();
   const definitionFolders = getDefinitionFolders(config);
-
-  const prog = buildProgram(
-    await crawlTypeDependencies(searchPaths),
-    await crawlTypeDefinitions(definitionFolders)
-  );
-
-  const {code} = generate(prog);
-  console.log(format(code));
+  const definitions = await crawlTypeDefinitions(definitionFolders);
+  console.log(dumpModule(definitions));
 };
 
+function dumpModule (module: FlowModule, indent: number = 0): string {
+  const lines = [
+    module.name ? `Module: ${module.name}` : 'Global'
+  ];
+
+  let count = 0;
+
+  for (const name in module.entities) {
+    if (name !== 'module.exports') {
+      count++;
+    }
+    lines.push(`  ${name}`);
+  }
+
+  for (const name in module.modules) {
+    count++;
+    lines.push(dumpModule(module.modules[name]));
+  }
+
+  if (count === 0) {
+    return '';
+  }
+
+  return lines.filter(String).join('\n');
+}
 
 function getDefinitionFolders (config: ? FlowConfig): string[] {
   const dirnames = [path.resolve(__dirname, '..', '..', 'flow-builtins')];

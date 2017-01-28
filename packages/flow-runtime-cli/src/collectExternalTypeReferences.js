@@ -75,13 +75,17 @@ export default function collectExternalTypeReferences (file: Node) {
         const local = specifier.get('local');
         const {name} = local.node;
         if (path.node.importKind === 'type') {
-          const imported = specifier.isImportDefaultSpecifier()
+          const isDefault = specifier.isImportDefaultSpecifier();
+          const isNamespace = !isDefault && specifier.isImportNamespaceSpecifier();
+          const imported = isDefault || isNamespace
                          ? name
                          : specifier.get('imported').node.name
                          ;
           importedTypes[name] = {
             imported,
-            source
+            source,
+            isDefault,
+            isNamespace
           };
         }
       });

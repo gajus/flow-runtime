@@ -50,9 +50,12 @@ function traverseNode (node: Node, key: ? number | string, listKey: ? string, pa
       const value = node[key];
       if (Array.isArray(value)) {
         for (let j = 0; j < value.length; j++) {
-          const result = traverseNode(value[i], j, key, node, visitor);
-          if (result === false) {
-            return false;
+          const item = value[j];
+          if (item) {
+            const result = traverseNode(item, j, key, node, visitor);
+            if (result === false) {
+              return false;
+            }
           }
         }
       }

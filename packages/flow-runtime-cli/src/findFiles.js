@@ -18,7 +18,7 @@ async function collectFiles (fileOrDir: string, collected: string[]): Promise<st
       await collectFiles(path.join(fileOrDir, item), collected);
     }
   }
-  else if (collected.indexOf(fileOrDir) === -1) {
+  else if (collected.indexOf(fileOrDir) === -1 && /\.js(x|m)?$/.test(fileOrDir)) {
     collected.push(fileOrDir);
   }
   return collected;

@@ -23,7 +23,7 @@ export default async function parseFileWithFlow (filename: string): Promise<File
   });
   return flowToBabylon({
     type: 'File',
-    program: t.program(parsed.body),
+    program: parsed,
     filename: path.resolve(filename)
   });
 }
@@ -39,10 +39,25 @@ function flowToBabylon (file: FileNode): FileNode {
     }
     else if (node.type === 'DeclareExportDeclaration') {
       node.type = 'ExportNamedDeclaration';
+      if (node.default) {
+        const id = t.identifier('default');
+        id.typeAnnotation = t.typeAnnotation(node.declaration);
+        node.declaration = t.declareVariable(id);
+      }
       node.declare = true;
     }
-    else if (node.type === 'DeclareVariable') {
-      console.log(node);
+    else if (node.type === 'Identifier' && node.name === '@@iterator' && parent) {
+      const replacement = t.memberExpression(
+        t.identifier('Symbol'),
+        t.identifier('iterator')
+      );
+      if (key === listKey) {
+        parent[key] = replacement;
+        parent.computed = true;
+      }
+      else if (listKey != null) {
+        parent[listKey][key] = replacement;
+      }
     }
   });
   return file;

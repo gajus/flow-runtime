@@ -1,5 +1,7 @@
 /* @flow */
 
+import Deque from 'double-ended-queue';
+
 import type {NodePath} from 'babel-traverse';
 
 type Node = {
@@ -14,13 +16,14 @@ type FlowModuleDict = {
   [name: string]: FlowModule
 };
 
+const nodeEntities: WeakMap<Node, FlowEntity> = new WeakMap();
+
+
 export class FlowModule {
   name: ? string;
   parent: ? FlowModule;
   entities: FlowEntityDict = {};
   modules: FlowModuleDict = {};
-
-  nodeEntities: WeakMap<Node, FlowEntity> = new WeakMap();
 
   get (...keys: string[]): ? FlowEntity {
     const depth = keys.length - 1;
@@ -34,8 +37,31 @@ export class FlowModule {
     return module.entities[keys[depth]];
   }
 
+  register (path: NodePath): FlowEntity {
+    const entity = this.getEntityForPath(path);
+    if (entity.name) {
+      this.entities[entity.name] = entity;
+    }
+    return entity;
+  }
+
+  registerModule (path: NodePath): FlowModule {
+    const id = path.get('id');
+    const name = id.isIdentifier() ? id.node.name : id.node.value;
+    const existing = this.modules[name];
+    if (existing) {
+      return existing;
+    }
+    else {
+      const child = new FlowModule();
+      child.name = name;
+      child.parent = this;
+      this.modules[name] = child;
+      return child;
+    }
+  }
+
   getEntityForPath (path: NodePath): FlowEntity {
-    const {nodeEntities} = this;
     const {node} = path;
     const existing = nodeEntities.get(node);
     if (existing) {
@@ -45,6 +71,9 @@ export class FlowModule {
       const entity = new FlowEntity();
       if (path.has('id')) {
         entity.name = path.get('id').node.name;
+      }
+      else if (path.isDeclareModuleExports()) {
+        entity.name = 'module.exports';
       }
       else {
         entity.name = path.node.name;
@@ -85,6 +114,16 @@ export class FlowModule {
       return child;
     }
   }
+
+  *traverse (...keys: Array<string | string[]>): Generator<FlowEntity, void, void> {
+    const visited = new Set();
+    for (const key of keys) {
+      const item = this.get(...([].concat(key)));
+      if (item) {
+        yield* item.walk(visited);
+      }
+    }
+  }
 }
 
 export class FlowEntity {
@@ -101,5 +140,18 @@ export class FlowEntity {
   addDependent (entity: FlowEntity): FlowEntity {
     entity.dependencies.push(this);
     return this;
+  }
+
+  *walk (alreadyVisited: Set<FlowEntity>): Generator<FlowEntity, void, void> {
+    if (alreadyVisited.has(this)) {
+      return;
+    }
+    alreadyVisited.add(this);
+    for (const dependency of this.dependencies) {
+      if (!alreadyVisited.has(dependency)) {
+        yield* dependency.walk(alreadyVisited);
+      }
+    }
+    yield this;
   }
 }

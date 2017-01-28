@@ -1,12 +1,24 @@
 /* @flow */
+import t from 'flow-runtime';
+t.emitWarningMessage = (message: string) => console.trace('flow-runtime:', message);
+
+import './typedefs';
+
+
 import minimist from 'minimist';
 
 import * as generate from './commands/GenerateCommand';
+import * as listDefinitions from './commands/ListDefinitionsCommand';
 import * as listTypes from './commands/ListTypesCommand';
 
+
+
+t.warn(t.ref("Set", t.number(123)), new Set(['nope']));
+
 const commands = {
-  generate,
-  listTypes
+  [generate.name]: generate,
+  [listDefinitions.name]: listDefinitions,
+  [listTypes.name]: listTypes
 };
 
 export type Argv = {

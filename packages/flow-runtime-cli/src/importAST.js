@@ -5,22 +5,23 @@ import * as t from 'babel-types';
 import {findIdentifiers, getTypeParameters} from 'babel-plugin-flow-runtime';
 
 import type {NodePath, Scope} from 'babel-traverse';
-import type Graph, {Vertex} from './Graph';
+import type {FlowModule, FlowEntity} from './EntityGraph';
 
 type Node = {
   type: string;
 };
 
 
-export default function importAST (graph: Graph, file: Node) {
+export default function importAST (graph: FlowModule, file: Node) {
   const nodeTypeParameters = new WeakMap();
-  const importedTypes = {};
-  const globalTypes = {};
 
-  const moduleStack = [graph.collection];
+  const moduleStack = [graph];
 
+  function currentModule (): FlowModule {
+    return moduleStack[moduleStack.length - 1];
+  }
 
-  function getDefinition (id: NodePath): ? Vertex {
+  function getDefinition (id: NodePath): ? FlowEntity {
     const fromScope = id.scope.getData(`entityDefinition:${id.node.name}`);
     if (fromScope) {
       return fromScope;
@@ -37,18 +38,18 @@ export default function importAST (graph: Graph, file: Node) {
     }
   }
 
-  function registerTypeParameter (id: NodePath, owner: NodePath): Vertex {
+  function registerTypeParameter (id: NodePath, owner: NodePath): FlowEntity {
     let items = nodeTypeParameters.get(owner.node);
     if (!items) {
       items = {};
       nodeTypeParameters.set(owner.node, items);
     }
-    const vertex = graph.getVertex(id);
+    const vertex = currentModule().getEntityForPath(id);
     items[id.node.name] = vertex;
     return vertex;
   }
 
-  function registerDefinition (path: NodePath, scope: Scope = path.scope): Vertex {
+  function registerDefinition (path: NodePath, scope: Scope = path.scope): FlowEntity {
     const shouldDeclare = (
          path.type === 'DeclareVariable'
       || path.type === 'DeclareClass'
@@ -56,17 +57,14 @@ export default function importAST (graph: Graph, file: Node) {
       || path.type === 'DeclareModuleExports'
       || path.type === 'DeclareTypeAlias'
     );
-    const currentModule = moduleStack[moduleStack.length - 1];
+    const current = currentModule();
     const vertex = shouldDeclare
-                 ? currentModule.register(path)
-                 : graph.getVertex(path)
+                 ? current.register(path)
+                 : current.getEntityForPath(path)
                  ;
     if (!path.isDeclareModuleExports()) {
       const id = path.isIdentifier() ? path : path.get('id');
       scope.setData(`entityDefinition:${id.node.name}`, vertex);
-    }
-    if (currentModule.vertex) {
-      vertex.createEdge(currentModule.vertex);
     }
     const typeParameters = getTypeParameters(path);
     if (typeParameters.length > 0) {
@@ -98,21 +96,52 @@ export default function importAST (graph: Graph, file: Node) {
                        ? name
                        : specifier.get('imported').node.name
                        ;
-        vertex.createEdge(graph.ref(source, imported));
+        vertex.addDependency(graph.ref(source, imported));
       });
     },
     ExportNamedDeclaration (path: NodePath) {
       if (path.node.declare) {
+        // this is not a real export, it's a DeclareExportDeclaration
+        // which babylon doesn't support
         registerDefinition(path.get('declaration'));
       }
     },
+    TypeParameter (path: NodePath) {
+      registerTypeParameter(path, path.parentPath.parentPath);
+    },
 
-    'DeclareVariable|DeclareTypeAlias|DeclareFunction|DeclareClass' (path: NodePath) {
+    'DeclareTypeAlias|DeclareFunction|DeclareClass' (path: NodePath) {
       registerDefinition(path);
     },
 
-    TypeParameter (path: NodePath) {
-      registerTypeParameter(path, path.parentPath.parentPath);
+    DeclareVariable (path: NodePath) {
+      if (moduleStack.length > 1 && path.node.id.name === 'exports') {
+        // Legacy feature of flow - module.exports simulated by just declaring
+        // a var called exports in a module.
+        // If we have no `DeclareExportDeclaration`s and no `DeclareModuleExports`,
+        // convert this to a `DeclareModuleExports`
+        const block = path.parentPath;
+        if (block && block.isBlockStatement()) {
+          let candidate = true;
+          for (const sibling of block.get('body')) {
+            if (sibling.node === path.node) {
+              continue;
+            }
+            else if (sibling.isExportNamedDeclaration() || sibling.isDeclareModuleExports()) {
+              candidate = false;
+              break;
+            }
+          }
+          if (candidate) {
+            const replacement = t.declareModuleExports();
+            replacement.typeAnnotation = path.node.id.typeAnnotation;
+            path.replaceWith(replacement);
+            return;
+          }
+        }
+
+      }
+      registerDefinition(path);
     },
 
     DeclareModule: {
@@ -120,8 +149,8 @@ export default function importAST (graph: Graph, file: Node) {
         const id = path.get('id');
         const name = id.isStringLiteral() ? id.node.value : id.node.name;
 
-        const collection = moduleStack[moduleStack.length - 1].registerCollection(path);
-        moduleStack.push(collection);
+        const child = currentModule().registerModule(path);
+        moduleStack.push(child);
       },
       exit (path: NodePath) {
         moduleStack.pop();
@@ -129,9 +158,7 @@ export default function importAST (graph: Graph, file: Node) {
     },
 
     DeclareModuleExports (path: NodePath) {
-      const vertex = registerDefinition(path);
-      const parent = graph.getVertex(path.findParent(item => item.isDeclareModule()));
-      parent.createEdge(vertex);
+      registerDefinition(path);
     },
 
     TypeAlias (path: NodePath) {
@@ -156,7 +183,7 @@ export default function importAST (graph: Graph, file: Node) {
         registerTypeParameter(typeParameter, path);
       }
       if (path.isFunctionDeclaration() && path.has('id')) {
-        registerDefinition(path.get('id'), path.parentPath.scope);
+        registerDefinition(path, path.parentPath.scope);
       }
 
       for (const id of findIdentifiers(path.get('params'))) {
@@ -175,95 +202,64 @@ export default function importAST (graph: Graph, file: Node) {
 
   // Now walk through the graph, connecting edges
   traverse(file, {
-    ImportDeclaration (path: NodePath) {
-      path.get('specifiers').forEach(specifier => {
-        const source = path.get('source').node.value;
-        const local = specifier.get('local');
-        const {name} = local.node;
-        const imported = specifier.isImportDefaultSpecifier()
-                       ? name
-                       : specifier.get('imported').node.name
-                       ;
-        if (path.node.importKind === 'type') {
-          importedTypes[name] = {
-            imported,
-            source
-          };
-        }
-      });
-    },
     InterfaceExtends (path: NodePath) {
       const id = resolvePossiblyQualified(path.get('id'));
       const {name} = id.node;
       const definition = getDefinition(id);
       const subject = path.parentPath;
-      const vertex = graph.getVertex(subject);
+      const vertex = currentModule().getEntityForPath(subject);
       if (definition) {
-        vertex.createEdge(definition);
+        vertex.addDependency(definition);
       }
       else {
-        if (globalTypes[name]) {
-          globalTypes[name]++;
-        }
-        else {
-          globalTypes[name] = 1;
-        }
-        vertex.createEdge(graph.ref(name));
+        vertex.addDependency(graph.ref(name));
       }
     },
     GenericTypeAnnotation (path: NodePath) {
       const id = resolvePossiblyQualified(path.get('id'));
       const {name} = id.node;
       const definition = getDefinition(id);
-      let subject = path.findParent(parent => {
-        return (
-             parent.type === 'DeclareVariable'
-          || parent.type === 'DeclareClass'
-          || parent.type === 'DeclareModule'
-          || parent.type === 'DeclareModuleExports'
-          || parent.type === 'DeclareFunction'
-          || parent.type === 'DeclareTypeAlias'
-          || parent.type === 'InterfaceDeclaration'
-          || parent.type === 'TypeAlias'
-          || parent.type === 'TypeCastExpression'
-          || !parent.isFlow()
-        );
-      });
+      let subject = findContainingPath(path);
       if (!subject) {
         console.warn('could not find a corresponding subject for node: ', path.node);
         return;
       }
-      if (subject.isDeclareModuleExports()) {
-        subject = subject.parentPath.parentPath;
-      }
-      else if (subject.isRestElement()) {
-        subject = subject.parentPath();
-      }
-      else if (subject.isIdentifier() || subject.isArrayPattern() || subject.isObjectPattern()) {
-        let parentPath = subject.parentPath;
-        if (parentPath.isAssignmentPattern()) {
-          parentPath = parentPath.parentPath;
-        }
-        if (parentPath.isFunction() && subject.key !== 'body') {
-          subject = parentPath;
-        }
-      }
-      const vertex = graph.getVertex(subject);
+
+      const vertex = currentModule().getEntityForPath(subject);
       if (definition) {
-        vertex.createEdge(definition);
+        vertex.addDependency(definition);
       }
       else {
-        if (globalTypes[name]) {
-          globalTypes[name]++;
-        }
-        else {
-          globalTypes[name] = 1;
-        }
-        vertex.createEdge(graph.ref(name));
+        vertex.addDependency(graph.ref(name));
       }
     }
   });
 
-  return {importedTypes, globalTypes};
+  return graph;
+}
 
+function findContainingPath (path: NodePath): ? NodePath {
+  let parent = path.parentPath;
+  while (parent) {
+    const isFlowDeclaration = (
+         parent.type === 'DeclareVariable'
+      || parent.type === 'DeclareClass'
+      || parent.type === 'DeclareModule'
+      || parent.type === 'DeclareModuleExports'
+      || parent.type === 'DeclareFunction'
+      || parent.type === 'DeclareTypeAlias'
+      || parent.type === 'InterfaceDeclaration'
+      || parent.type === 'TypeAlias'
+      || parent.type === 'TypeCastExpression'
+    );
+    if (isFlowDeclaration) {
+      return parent;
+    }
+    else if (parent.isStatement()) {
+      return parent;
+    }
+    else {
+      parent = parent.parentPath;
+    }
+  }
 }
