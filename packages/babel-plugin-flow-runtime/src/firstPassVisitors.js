@@ -12,6 +12,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
   return {
     Identifier (path: NodePath) {
       const {parentPath} = path;
+
       if (parentPath.isFlow()) {
         // This identifier might point to a type that has not been resolved yet
         if (parentPath.isTypeAlias() || parentPath.isInterfaceDeclaration()) {

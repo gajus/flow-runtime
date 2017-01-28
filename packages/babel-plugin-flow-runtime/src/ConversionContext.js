@@ -177,10 +177,14 @@ export default class ConversionContext {
         if (path.isExportNamedDeclaration() || path.isExportDefaultDeclaration()) {
           path = path.get('declaration');
         }
-        if (path.isTypeAlias() || path.isInterfaceDeclaration()) {
-          if (path.node.id.name === name) {
-            return true;
-          }
+        const couldClash = path.node.id && (
+             path.type === 'TypeAlias'
+          || path.type === 'InterfaceDeclaration'
+          || path.type === 'FunctionDeclaration'
+          || path.type === 'ClassDeclaration'
+        );
+        if (couldClash && path.node.id.name === name) {
+          return true;
         }
       }
       if (block.isProgram()) {
@@ -217,7 +221,7 @@ export default class ConversionContext {
     if (entity) {
       return entity;
     }
-    if (global[name]) {
+    if (global.hasOwnProperty(name)) {
       entity = new Entity();
       entity.name = name;
       entity.type = 'Value';

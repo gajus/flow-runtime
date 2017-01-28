@@ -10,11 +10,15 @@ import patternMatchVisitors from './patternMatchVisitors';
 import transformVisitors from './transformVisitors';
 import type {NodePath} from 'babel-traverse';
 
+import transform from './transform';
+import findIdentifiers from './findIdentifiers';
+import getTypeParameters from './getTypeParameters';
 
-export default function () {
+export default function babelPluginFlowRuntime () {
   return {
     visitor: {
-      Program (path: NodePath, {opts}: Object) {
+      Program (path: NodePath, state: Object) {
+        const {opts} = state;
         const context = createConversionContext(opts || {});
         if (!collectProgramOptions(context, path.node)) {
           return;
@@ -35,3 +39,11 @@ export default function () {
     }
   };
 }
+
+
+export {
+  transform,
+  findIdentifiers,
+  getTypeParameters
+};
+

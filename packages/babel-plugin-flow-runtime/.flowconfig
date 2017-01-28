@@ -3,6 +3,7 @@
 # Ugh
 .*/node_modules/.*/src.*
 .*/node_modules/binary-extensions/.*
+.*/node_modules/fbjs/.*
 .*/node_modules/url-regex/.*
 .*/node_modules/spdx.*
 .*/node_modules/builtin-modules.*
