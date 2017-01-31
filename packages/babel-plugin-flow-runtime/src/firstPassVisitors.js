@@ -2,6 +2,7 @@
 import * as t from 'babel-types';
 import type {NodePath} from 'babel-traverse';
 
+import attachImport from './attachImport';
 import getTypeParameters from './getTypeParameters';
 import type ConversionContext from './ConversionContext';
 
@@ -10,6 +11,17 @@ import findIdentifiers from './findIdentifiers';
 export default function firstPassVisitors (context: ConversionContext): Object {
 
   return {
+    Program: {
+      exit (path: NodePath) {
+        if (context.shouldImport) {
+          attachImport(context, path);
+        }
+      }
+    },
+    GenericTypeAnnotation (path: NodePath) {
+      const id = path.get('id');
+      path.scope.setData(`seenReference:${id.node.name}`, true);
+    },
     Identifier (path: NodePath) {
       const {parentPath} = path;
 
@@ -21,7 +33,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
           }
         }
         if (context.hasTDZIssue(path.node.name, path)) {
-          context.markBoxed(path.node);
+          context.markTDZIssue(path.node);
         }
         return;
       }
@@ -45,11 +57,11 @@ export default function firstPassVisitors (context: ConversionContext): Object {
     ImportDeclaration (path: NodePath) {
       const source = path.get('source').node.value;
 
-      const isReact = path.node.importKind === 'value'
+      const isReact = path.node.importKind !== 'type'
                     && (source === 'react' || source === 'preact')
                     ;
 
-      const isFlowRuntime = path.node.importKind === 'value'
+      const isFlowRuntime = path.node.importKind !== 'type'
                           && source === 'flow-runtime'
                           ;
 
@@ -57,7 +69,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
         path.parentPath.scope.setData('importsReact', true);
       }
 
-      path.get('specifiers').forEach(specifier => {
+      for (const specifier of path.get('specifiers')) {
         const local = specifier.get('local');
         const {name} = local.node;
         if (path.node.importKind === 'type') {
@@ -84,7 +96,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
             context.libraryId = name;
           }
         }
-      });
+      }
     },
     VariableDeclarator (path: NodePath) {
       for (const id of findIdentifiers(path.get('id'))) {
@@ -136,6 +148,23 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       let className = 'AnonymousClass';
       if (path.isClassDeclaration() && path.has('id')) {
         const {name} = path.node.id;
+        // have we seen a reference to this class already?
+        // if so we should replace it with a `var className = class className {}`
+        // to avoid temporal dead zone issues
+        if (!path.parentPath.isExportDefaultDeclaration() && path.scope.getData(`seenReference:${name}`)) {
+          path.replaceWith(t.variableDeclaration('var', [
+            t.variableDeclarator(
+              t.identifier(name),
+              t.classExpression(
+                path.node.id,
+                path.node.superClass,
+                path.node.body,
+                path.node.decorators || []
+              )
+            )
+          ]));
+          return;
+        }
         className = name;
         context.defineValue(name, path.parentPath);
       }

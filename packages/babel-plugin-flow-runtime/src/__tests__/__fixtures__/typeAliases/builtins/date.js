@@ -6,5 +6,5 @@ export const input = `
 
 export const expected = `
   import t from "flow-runtime";
-  const Demo = t.type("Demo", t.ref(Date));
+  const Demo = t.type("Demo", t.ref("Date"));
 `;

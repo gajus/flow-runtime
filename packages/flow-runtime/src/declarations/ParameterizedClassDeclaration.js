@@ -3,7 +3,7 @@
 import Declaration from './Declaration';
 import PartialType from '../types/PartialType';
 import TypeParameterApplication from '../types/TypeParameterApplication';
-import type {Type, TypeParameter} from '../types';
+import type {Type} from '../types';
 
 import type Validation, {IdentifierPath} from '../Validation';
 
@@ -14,10 +14,6 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
   bodyCreator: ClassBodyCreator<X, O>;
   name: string;
 
-  get typeParameters (): TypeParameter<X>[] {
-    return getPartial(this).typeParameters;
-  }
-
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): boolean {
     return getPartial(this, ...typeInstances).collectErrors(validation, path, input);
   }
@@ -26,9 +22,10 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
     return getPartial(this, ...typeInstances).accepts(input);
   }
 
-  /**
-   * Get the inner type or value.
-   */
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return getPartial(this).compareWith(input);
+  }
+
   unwrap (...typeInstances: Type<any>[]): Type<O> {
     return getPartial(this, ...typeInstances).unwrap();
   }

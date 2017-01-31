@@ -550,12 +550,23 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   if (context.shouldSuppressTypeName(name)) {
     return context.call('any');
   }
-  if (context.isBoxed(id.node)) {
-    subject = context.call('box', t.arrowFunctionExpression([], subject));
+  if (context.inTDZ(id.node)) {
+    subject = context.call('tdz', t.arrowFunctionExpression([], subject));
   }
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 
+  if (!entity) {
+    if (name === 'Array') {
+      return context.call('array', ...typeParameters);
+    }
+    else if (name === 'Function') {
+      return context.call('function');
+    }
+    else if (name === 'Object') {
+      return context.call('object');
+    }
+  }
 
   const isTypeParameter = (
     (entity && entity.isTypeParameter)
@@ -644,9 +655,6 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     }
   }
   else {
-    if (name === 'Array') {
-      return context.call('array', ...typeParameters);
-    }
     return context.call('ref', subject, ...typeParameters);
   }
 };

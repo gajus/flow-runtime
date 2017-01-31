@@ -7,6 +7,7 @@ import {
   TypeParameter,
   TypeBox,
   TypeReference,
+  TypeTDZ,
   ParameterizedTypeAlias,
   TypeAlias,
   TypeConstructor,
@@ -77,6 +78,7 @@ defineProperty('Type', Type);
 defineProperty('TypeBox', TypeBox);
 defineProperty('TypeParameter', TypeParameter);
 defineProperty('TypeReference', TypeReference);
+defineProperty('TypeTDZ', TypeTDZ);
 defineProperty('ParameterizedTypeAlias', ParameterizedTypeAlias);
 defineProperty('TypeAlias', TypeAlias);
 defineProperty('TypeConstructor', TypeConstructor);

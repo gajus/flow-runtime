@@ -16,7 +16,7 @@ export const expected = `
     throw new TypeError('Intentional');
   }
   catch (e) {
-    if (!t.ref(TypeError).accepts(e)) {
+    if (!t.ref("TypeError").accepts(e)) {
       throw e;
     }
     console.log(e);

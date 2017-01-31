@@ -29,6 +29,7 @@ import {
   TypeParameter,
   TypeBox,
   TypeReference,
+  TypeTDZ,
   ParameterizedTypeAlias,
   TypeAlias,
   TypeConstructor,
@@ -359,9 +360,6 @@ export default class TypeContext {
     }
     if (type instanceof ModuleDeclaration) {
       const moduleRegistry: ModuleRegistry = (this: $FlowIssue<252>)[ModuleRegistrySymbol];
-      if (moduleRegistry[name]) {
-        throw new Error(`Cannot redeclare module: ${name}`);
-      }
       moduleRegistry[name] = type;
       return type;
     }
@@ -370,9 +368,6 @@ export default class TypeContext {
       invariant(type instanceof Type, 'Type must be supplied to declaration');
       const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
-      if (nameRegistry[name]) {
-        throw new Error(`Cannot redeclare type: ${name}`);
-      }
       if (type instanceof Declaration) {
         nameRegistry[name] = type;
         return type;
@@ -861,13 +856,13 @@ export default class TypeContext {
     return makeUnion(this, types);
   }
 
-  intersect <T> (...types: Type<T>[]): IntersectionType<T> {
+  intersect <T: {}> (...types: Type<T>[]): IntersectionType<T> {
     const target = new IntersectionType(this);
     target.types = types;
     return target;
   }
 
-  intersection <T> (...types: Type<T>[]): IntersectionType<T> {
+  intersection <T: {}> (...types: Type<T>[]): IntersectionType<T> {
     return this.intersect(...types);
   }
 
@@ -875,6 +870,12 @@ export default class TypeContext {
     const box = new TypeBox(this);
     box.reveal = reveal;
     return box;
+  }
+
+  tdz <T> (reveal: TypeRevealer<T>): TypeTDZ<T> {
+    const tdz = new TypeTDZ(this);
+    tdz.reveal = reveal;
+    return tdz;
   }
 
   ref <T, P> (subject: string | ApplicableType<T> | Function, ...typeInstances: Type<P>[]): Type<T | any> {
@@ -1037,6 +1038,7 @@ export default class TypeContext {
     target.addConstraint(...constraints);
     return target;
   }
+
 
   $diff <A: {}, B: {}> (aType: Type<A>, bType: Type<B>): $DiffType<A, B> {
     const target = new $DiffType(this);

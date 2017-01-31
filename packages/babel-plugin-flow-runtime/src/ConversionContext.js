@@ -7,7 +7,7 @@ import type {EntityType} from './Entity';
 import type {Node, NodePath} from 'babel-traverse';
 
 
-const boxedIdentifiers: WeakSet<Node> = new WeakSet();
+const tdzIdentifiers: WeakSet<Node> = new WeakSet();
 
 const FLOW_TYPENAMES = {
   $Diff: '$diff',
@@ -33,13 +33,6 @@ export default class ConversionContext {
   suppressTypeNames: string[] = ['$FlowFixMe'];
 
   /**
-   * A map of global entity definitions.
-   * This is used to represent references to known global identifiers
-   * such as `Array`, `RegExp` etc.
-   */
-  globalEntities: Map<string, Entity> = new Map();
-
-  /**
    * A set of nodes that have already been visited.
    */
   visited: WeakSet<Node> = new WeakSet();
@@ -50,15 +43,16 @@ export default class ConversionContext {
    * Boxed identifiers are wrapped in `t.box()` to avoid
    * Temporal Dead Zone issues.
    */
-  markBoxed (node: Node) {
-    boxedIdentifiers.add(node);
+  markTDZIssue (node: Node) {
+    tdzIdentifiers.add(node);
   }
 
   /**
-   * Determine whether the given node should be boxed.
+   * Determine whether the given node exists in a
+   * temporal dead zone.
    */
-  isBoxed (node: Node): boolean {
-    return boxedIdentifiers.has(node);
+  inTDZ (node: Node): boolean {
+    return tdzIdentifiers.has(node);
   }
 
   /**
@@ -177,13 +171,14 @@ export default class ConversionContext {
         if (path.isExportNamedDeclaration() || path.isExportDefaultDeclaration()) {
           path = path.get('declaration');
         }
-        const couldClash = path.node.id && (
+        const hasSameName = path.node.id && path.node.id.name === name;
+        const isDeclaration = (
              path.type === 'TypeAlias'
           || path.type === 'InterfaceDeclaration'
           || path.type === 'FunctionDeclaration'
           || path.type === 'ClassDeclaration'
         );
-        if (couldClash && path.node.id.name === name) {
+        if (hasSameName && isDeclaration) {
           return true;
         }
       }
@@ -213,24 +208,7 @@ export default class ConversionContext {
    * Get an entity with the given name in the given path.
    */
   getEntity (name: string, path: NodePath): ? Entity {
-    let entity = path.scope.getData(`Entity:${name}`);
-    if (entity) {
-      return entity;
-    }
-    entity = this.globalEntities.get(name);
-    if (entity) {
-      return entity;
-    }
-    if (global.hasOwnProperty(name)) {
-      entity = new Entity();
-      entity.name = name;
-      entity.type = 'Value';
-      this.globalEntities.set(name, entity);
-      return entity;
-    }
-    else {
-      return null;
-    }
+    return path.scope.getData(`Entity:${name}`);
   }
 
   /**

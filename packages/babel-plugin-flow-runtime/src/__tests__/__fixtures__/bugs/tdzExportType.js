@@ -11,7 +11,7 @@ export const input = `
 export const expected = `
   import t from "flow-runtime";
   function demo() {
-    const _returnType = t.return(t.box(() => Thing));
+    const _returnType = t.return(t.tdz(() => Thing));
     return _returnType.assert("ok");
   }
 
@@ -25,7 +25,7 @@ export const annotated = `
   }
   t.annotate(
     demo,
-    t.function(t.return(t.box(() => Thing)))
+    t.function(t.return(t.tdz(() => Thing)))
   );
 
   export const Thing = t.type("Thing", t.string());
@@ -35,12 +35,12 @@ export const annotated = `
 export const combined = `
   import t from "flow-runtime";
   function demo() {
-    const _returnType = t.return(t.box(() => Thing));
+    const _returnType = t.return(t.tdz(() => Thing));
     return _returnType.assert("ok");
   }
   t.annotate(
     demo,
-    t.function(t.return(t.box(() => Thing)))
+    t.function(t.return(t.tdz(() => Thing)))
   );
 
   export const Thing = t.type("Thing", t.string());

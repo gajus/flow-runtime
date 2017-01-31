@@ -3,6 +3,7 @@
 import Declaration from './Declaration';
 import TypeParameterApplication from '../types/TypeParameterApplication';
 import getErrorMessage from "../getErrorMessage";
+import compareTypes from '../compareTypes';
 
 import type {Type, ObjectType} from '../types';
 
@@ -40,6 +41,27 @@ export default class ClassDeclaration<O: {}> extends Declaration {
       return true;
     }
     return hasSuperErrors;
+  }
+
+  accepts (input: any): boolean {
+    const {body} = this;
+    const superClass = this.superClass && this.superClass.unwrap();
+    if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
+      return false;
+    }
+    else if (superClass && !superClass.accepts(input)) {
+      return false;
+    }
+    else if (!body.accepts(input)) {
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+
+  compareWith (input: Type<any>): -1 | 0 | 1 {
+    return compareTypes(this.body, input);
   }
 
   /**

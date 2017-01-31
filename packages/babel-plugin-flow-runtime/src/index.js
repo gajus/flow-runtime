@@ -25,6 +25,9 @@ export default function babelPluginFlowRuntime () {
         }
         path.traverse(firstPassVisitors(context));
         if (context.shouldImport) {
+          // We need to do this here because the Program visitor
+          // in firstPassVisitors will never receive a node as
+          // we're already travsersing a Program.
           attachImport(context, path);
         }
         path.traverse(patternMatchVisitors(context));

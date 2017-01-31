@@ -5,8 +5,7 @@ export const input = `
 `;
 
 export const expected = `
-  import {
-    Demo
-  } from './simplestExport';
+  import { Demo as _Demo } from './simplestExport';
   import t from "flow-runtime";
+  const Demo = t.tdz(() => _Demo);
 `;

@@ -46,6 +46,7 @@ import TypeConstructor from './types/TypeConstructor';
 import TypeParameter from './types/TypeParameter';
 import TypeParameterApplication from './types/TypeParameterApplication';
 import TypeReference from './types/TypeReference';
+import TypeTDZ from './types/TypeTDZ';
 import UnionType from './types/UnionType';
 import VoidType from './types/VoidType';
 
@@ -101,6 +102,7 @@ export {
   TypeParameter,
   TypeParameterApplication,
   TypeReference,
+  TypeTDZ,
   UnionType,
   VoidType,
 
