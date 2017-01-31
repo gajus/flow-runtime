@@ -2,12 +2,14 @@
 
 import Type from './Type';
 import compareTypes from '../compareTypes';
+import invariant from '../invariant';
 
+import ObjectType from './ObjectType';
+import type {Property} from './ObjectType';
+import type ObjectTypeProperty from './ObjectTypeProperty';
 import type Validation, {IdentifierPath} from '../Validation';
 
-import type {Property} from './ObjectType';
-
-export default class IntersectionType<T> extends Type {
+export default class IntersectionType<T: {}> extends Type {
   typeName: string = 'IntersectionType';
   types: Type<T>[] = [];
 
@@ -106,6 +108,25 @@ export default class IntersectionType<T> extends Type {
     }
   }
 
+  unwrap (): ObjectType<T> {
+    const callProperties = [];
+    const properties = [];
+    const indexers = [];
+    const {types, context} = this;
+    for (let i = 0; i < types.length; i++) {
+      const type = types[i].unwrap();
+      invariant(type instanceof ObjectType, 'Can only intersect object types');
+      callProperties.push(...type.callProperties);
+      indexers.push(...type.indexers);
+      mergeProperties(properties, type.properties);
+    }
+    return (context: any).object(
+      ...callProperties,
+      ...properties,
+      ...indexers
+    );
+  }
+
   toString (): string {
     return this.types.join(' & ');
   }
@@ -116,4 +137,27 @@ export default class IntersectionType<T> extends Type {
       types: this.types
     };
   }
+}
+
+function getPropertyIndex <K: string | number, V> (name: K, properties: ObjectTypeProperty<*, V>[]): number {
+  for (let i = 0; i < properties.length; i++) {
+    if (properties[i].name === name) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function mergeProperties <K: string | number, V> (target: ObjectTypeProperty<K, V>[], source: ObjectTypeProperty<K, V>[]): ObjectTypeProperty<K, V>[] {
+  for (let i = 0; i < source.length; i++) {
+    const typeProp = source[i];
+    const index = getPropertyIndex(typeProp.key, target);
+    if (index === -1) {
+      target.push(typeProp);
+    }
+    else {
+      target[index] = typeProp;
+    }
+  }
+  return target;
 }
