@@ -2,6 +2,7 @@
 
 # Ugh
 .*/node_modules/.*/src.*
+.*/node_modules/fbjs/.*
 .*/node_modules/binary-extensions/.*
 .*/node_modules/url-regex/.*
 .*/node_modules/spdx.*
