@@ -1,4 +1,4 @@
---timeout=10000
+--timeout=20000
 --reporter=dot
 --require babel-polyfill
 --require ./test-polyfill.js
