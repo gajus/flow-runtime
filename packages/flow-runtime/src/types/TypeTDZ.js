@@ -86,7 +86,7 @@ function getRevealed <T: any> (container: TypeTDZ<T>): Type<T> {
     const type = reveal();
     if (!type) {
       if (!warnedInstances.has(container)) {
-        container.context.emitWarningMessage('Failed to reveal type in Temportal Dead Zone.');
+        container.context.emitWarningMessage('Failed to reveal type in Temporal Dead Zone.');
         warnedInstances.add(container);
       }
       return container.context.mixed();
