@@ -14,9 +14,11 @@ const FLOW_TYPENAMES = {
   $Keys: '$keys',
   $ObjMapi: '$objMapi',
   $ObjMap: '$objMap',
+  $PropertyType: '$propertyType',
   $Shape: '$shape',
   $Subtype: '$subtype',
   $Supertype: '$supertype',
+  $TupleMap: '$tupleMap',
   Class: 'Class'
 };
 

@@ -85,9 +85,11 @@ import {
   $KeysType,
   $ObjMapiType,
   $ObjMapType,
+  $PropertyType as _$PropertyType,
   $ShapeType,
   $SubType,
   $SuperType,
+  $TupleMapType,
   ClassType
 } from './flowTypes';
 
@@ -1071,6 +1073,19 @@ export default class TypeContext {
     return target;
   }
 
+  $propertyType <O: {}, P: string | number | Symbol> (object: Type<O>, property: P | Type<P>): _$PropertyType<O, P> {
+    const target = new _$PropertyType(this);
+    target.object = object;
+    if (target instanceof Type) {
+      const unwrapped = target.unwrap();
+      target.property = (unwrapped: any).value;
+    }
+    else {
+      target.property = property;
+    }
+    return target;
+  }
+
   $shape <T: {}> (type: Type<T>): $ShapeType<T> {
     const target = new $ShapeType(this);
     target.type = type;
@@ -1086,6 +1101,13 @@ export default class TypeContext {
   $supertype <T: {}> (type: Type<T>): $SuperType<T> {
     const target = new $SuperType(this);
     target.type = type;
+    return target;
+  }
+
+  $tupleMap <T: [], M: (v: *) => *> (tuple: Type<T>, mapper: Type<M>): $TupleMapType<T, M> {
+    const target = new $TupleMapType(this);
+    target.tuple = tuple;
+    target.mapper = mapper;
     return target;
   }
 

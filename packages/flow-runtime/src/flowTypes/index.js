@@ -5,9 +5,11 @@ import $FlowFixMeType from './$FlowFixMeType';
 import $KeysType from './$KeysType';
 import $ObjMapiType from './$ObjMapiType';
 import $ObjMapType from './$ObjMapType';
+import $PropertyType from './$PropertyType';
 import $ShapeType from './$ShapeType';
 import $SubType from './$SubType';
 import $SuperType from './$SuperType';
+import $TupleMapType from './$TupleMapType';
 import ClassType from './ClassType';
 
 export {
@@ -16,8 +18,10 @@ export {
   $KeysType,
   $ObjMapiType,
   $ObjMapType,
+  $PropertyType,
   $ShapeType,
   $SubType,
   $SuperType,
+  $TupleMapType,
   ClassType
 };

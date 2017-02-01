@@ -93,7 +93,7 @@ export default class $ObjMapiType<O: {}, M: Mapper> extends Type<$ObjMapi<O, M>>
       ));
     }
 
-    return this.context.object(...args);
+    return context.object(...args);
   }
 
   toString (): string {
