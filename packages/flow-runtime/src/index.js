@@ -46,6 +46,7 @@ import TypeConstructor from './types/TypeConstructor';
 import TypeParameter from './types/TypeParameter';
 import TypeParameterApplication from './types/TypeParameterApplication';
 import TypeReference from './types/TypeReference';
+import TypeTDZ from './types/TypeTDZ';
 import UnionType from './types/UnionType';
 import VoidType from './types/VoidType';
 
@@ -55,6 +56,7 @@ import TypeDeclaration from './declarations/TypeDeclaration';
 import ModuleDeclaration from './declarations/ModuleDeclaration';
 import ModuleExportsDeclaration from './declarations/ModuleExportsDeclaration';
 import ClassDeclaration from './declarations/ClassDeclaration';
+import ParameterizedClassDeclaration from './declarations/ParameterizedClassDeclaration';
 import ExtendsDeclaration from './declarations/ExtendsDeclaration';
 
 export default globalContext;
@@ -100,6 +102,7 @@ export {
   TypeParameter,
   TypeParameterApplication,
   TypeReference,
+  TypeTDZ,
   UnionType,
   VoidType,
 
@@ -109,6 +112,7 @@ export {
   ModuleDeclaration,
   ModuleExportsDeclaration,
   ClassDeclaration,
+  ParameterizedClassDeclaration,
   ExtendsDeclaration,
 
   TypeParametersSymbol

@@ -65,7 +65,7 @@ export default class ParameterizedFunctionType <X, P: any, R: any> extends Type 
   /**
    * Get the inner type or value.
    */
-  unwrap (...typeInstances: Type<any>[]): Type<(...params: P[]) => R | mixed> {
+  unwrap (...typeInstances: Type<any>[]): Type<(...params: P[]) => R | any> {
     return getPartial(this, ...typeInstances).unwrap();
   }
 

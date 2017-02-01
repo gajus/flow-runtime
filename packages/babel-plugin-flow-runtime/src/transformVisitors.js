@@ -4,7 +4,6 @@ import * as t from 'babel-types';
 import typeAnnotationIterator from './typeAnnotationIterator';
 import type ConversionContext from './ConversionContext';
 import convert from './convert';
-import attachImport from './attachImport';
 
 import getTypeParameters from './getTypeParameters';
 import {ok as invariant} from 'assert';
@@ -14,11 +13,6 @@ import type {Node, NodePath} from 'babel-traverse';
 export default function transformVisitors (context: ConversionContext): Object {
   const shouldCheck = context.shouldAssert || context.shouldWarn;
   return {
-    Program (path: NodePath) {
-      if (context.shouldImport) {
-        attachImport(context, path);
-      }
-    },
     'Expression|Statement' (path: NodePath) {
       if (context.shouldSuppressPath(path)) {
         path.skip();
@@ -37,6 +31,39 @@ export default function transformVisitors (context: ConversionContext): Object {
         if (context.shouldSuppressPath(path)) {
           path.skip();
           return;
+        }
+        if (path.node.importKind !== 'type') {
+          return;
+        }
+        const declarations = [];
+        for (const specifier of path.get('specifiers')) {
+          const local = specifier.get('local');
+          const {name} = local.node;
+          const replacement = path.scope.generateUidIdentifier(name);
+          local.node.name = replacement.name;
+          declarations.push(t.variableDeclaration('const', [
+            t.variableDeclarator(
+              t.identifier(name),
+              context.call('tdz', t.arrowFunctionExpression(
+                [],
+                replacement
+              ))
+            )
+          ]));
+        }
+        let target = path;
+
+        const container = path.parentPath.get(path.listKey);
+        for (let i = path.key; i < container.length; i++) {
+          const item = container[i];
+          if (item.isImportDeclaration()) {
+            target = item;
+            continue;
+          }
+          break;
+        }
+        for (let i = declarations.length - 1; i >= 0; i--) {
+          target.insertAfter(declarations[i]);
         }
       },
       exit (path: NodePath) {

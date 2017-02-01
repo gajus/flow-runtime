@@ -1,0 +1,25 @@
+{
+  "presets": [
+    [
+      "env",
+      {
+        "targets": {
+          "node": 4
+        },
+        "exclude": [
+          "transform-regenerator"
+        ]
+      }
+    ],
+    "stage-0",
+    "react"
+  ],
+  "plugins": [
+    "transform-decorators-legacy",
+    ["flow-runtime", {
+      "assert": true,
+      "annotate": true
+    }]
+  ],
+  "passPerPreset": true
+}

@@ -11,7 +11,7 @@ export const expected = `
     const V = t.typeParameter("V");
     let _keyType = t.flowInto(K);
     let _valueType = t.flowInto(V);
-    const _returnType = t.return(t.ref(Map, K, V));
+    const _returnType = t.return(t.ref("Map", K, V));
     t.param("key", _keyType).assert(key);
     t.param("value", _valueType).assert(value);
     return _returnType.assert(new Map([[key, value]]));

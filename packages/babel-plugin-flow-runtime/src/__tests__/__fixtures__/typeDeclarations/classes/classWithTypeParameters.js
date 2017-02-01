@@ -11,8 +11,10 @@ export const expected = `
 
   t.declare(t.class("Thing", _Thing => {
     const T = _Thing.typeParameter("T", t.string());
-    return t.object(
-      t.property("name", T)
-    );
+    return [
+      t.object(
+        t.property("name", T)
+      )
+    ];
   }));
 `;

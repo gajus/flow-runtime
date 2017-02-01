@@ -2,7 +2,7 @@
 
 
 export type TypeCreator <T> = (partial: PartialType<T>) => T;
-export type TypeRevealer <T> = () => Type<T>;
+export type TypeRevealer <T> = () => ? Type<T> | Class<T>;
 
 export type FunctionBodyCreator <X, P, R> = (
   partial: PartialType<(...params: P[]) => R>
@@ -74,6 +74,7 @@ import TypeConstructor from './TypeConstructor';
 import TypeParameter from './TypeParameter';
 import TypeParameterApplication from './TypeParameterApplication';
 import TypeReference from './TypeReference';
+import TypeTDZ from './TypeTDZ';
 import UnionType from './UnionType';
 import VoidType from './VoidType';
 
@@ -118,6 +119,7 @@ export {
   TypeParameter,
   TypeParameterApplication,
   TypeReference,
+  TypeTDZ,
   UnionType,
   VoidType
 };

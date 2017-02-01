@@ -7,6 +7,7 @@ import {
   TypeParameter,
   TypeBox,
   TypeReference,
+  TypeTDZ,
   ParameterizedTypeAlias,
   TypeAlias,
   TypeConstructor,
@@ -55,6 +56,7 @@ import {
   ModuleDeclaration,
   ModuleExportsDeclaration,
   ClassDeclaration,
+  ParameterizedClassDeclaration,
   ExtendsDeclaration
 } from './declarations';
 
@@ -76,6 +78,7 @@ defineProperty('Type', Type);
 defineProperty('TypeBox', TypeBox);
 defineProperty('TypeParameter', TypeParameter);
 defineProperty('TypeReference', TypeReference);
+defineProperty('TypeTDZ', TypeTDZ);
 defineProperty('ParameterizedTypeAlias', ParameterizedTypeAlias);
 defineProperty('TypeAlias', TypeAlias);
 defineProperty('TypeConstructor', TypeConstructor);
@@ -120,6 +123,7 @@ defineProperty('TypeDeclaration', TypeDeclaration);
 defineProperty('ModuleDeclaration', ModuleDeclaration);
 defineProperty('ModuleExportsDeclaration', ModuleExportsDeclaration);
 defineProperty('ClassDeclaration', ClassDeclaration);
+defineProperty('ParameterizedClassDeclaration', ParameterizedClassDeclaration);
 defineProperty('ExtendsDeclaration', ExtendsDeclaration);
 
 export default globalContext;

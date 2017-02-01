@@ -15,9 +15,7 @@ export default class TypeBox<T: any> extends Type {
   reveal: TypeRevealer<T>;
 
   get name (): ? string {
-    const {reveal} = this;
-    const type = reveal();
-    return (type: any).name;
+    return (this.type: any).name;
   }
 
   get type (): Type<T> {
@@ -29,6 +27,10 @@ export default class TypeBox<T: any> extends Type {
         warnedInstances.add(this);
       }
       return this.context.mixed();
+    }
+    else if (!(type instanceof Type)) {
+      // we got a boxed reference to something like a class
+      return this.context.ref(type);
     }
     return type;
   }

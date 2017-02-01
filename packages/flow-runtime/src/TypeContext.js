@@ -29,6 +29,7 @@ import {
   TypeParameter,
   TypeBox,
   TypeReference,
+  TypeTDZ,
   ParameterizedTypeAlias,
   TypeAlias,
   TypeConstructor,
@@ -74,6 +75,7 @@ import {
   ModuleDeclaration,
   ModuleExportsDeclaration,
   ClassDeclaration,
+  ParameterizedClassDeclaration,
   ExtendsDeclaration
 } from './declarations';
 
@@ -358,19 +360,14 @@ export default class TypeContext {
     }
     if (type instanceof ModuleDeclaration) {
       const moduleRegistry: ModuleRegistry = (this: $FlowIssue<252>)[ModuleRegistrySymbol];
-      if (moduleRegistry[name]) {
-        throw new Error(`Cannot redeclare module: ${name}`);
-      }
       moduleRegistry[name] = type;
       return type;
     }
     else {
-      invariant(type, 'Type must be supplied to declaration');
+      invariant(typeof name === 'string', 'Name must be a string');
+      invariant(type instanceof Type, 'Type must be supplied to declaration');
       const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
-      if (nameRegistry[name]) {
-        throw new Error(`Cannot redeclare type: ${name}`);
-      }
       if (type instanceof Declaration) {
         nameRegistry[name] = type;
         return type;
@@ -640,10 +637,13 @@ export default class TypeContext {
   }
 
   class <X, O: Object> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
-    const target = new ClassDeclaration(this);
     if (typeof head === 'function') {
+      const target = new ParameterizedClassDeclaration(this);
+      target.name = name;
+      target.bodyCreator = head;
       return target;
     }
+    const target = new ClassDeclaration(this);
     target.name = name;
     tail.unshift(head);
     const {length} = tail;
@@ -856,13 +856,13 @@ export default class TypeContext {
     return makeUnion(this, types);
   }
 
-  intersect <T> (...types: Type<T>[]): IntersectionType<T> {
+  intersect <T: {}> (...types: Type<T>[]): IntersectionType<T> {
     const target = new IntersectionType(this);
     target.types = types;
     return target;
   }
 
-  intersection <T> (...types: Type<T>[]): IntersectionType<T> {
+  intersection <T: {}> (...types: Type<T>[]): IntersectionType<T> {
     return this.intersect(...types);
   }
 
@@ -870,6 +870,12 @@ export default class TypeContext {
     const box = new TypeBox(this);
     box.reveal = reveal;
     return box;
+  }
+
+  tdz <T> (reveal: TypeRevealer<T>): TypeTDZ<T> {
+    const tdz = new TypeTDZ(this);
+    tdz.reveal = reveal;
+    return tdz;
   }
 
   ref <T, P> (subject: string | ApplicableType<T> | Function, ...typeInstances: Type<P>[]): Type<T | any> {
@@ -1017,12 +1023,22 @@ export default class TypeContext {
     };
   }
 
+  wrapIterator <T> (type: Type<T>): (input: Iterable<T>) => Generator<T, void, void> {
+    const t = this;
+    return function* wrappedIterator (input: Iterable<T>): Generator<T, void, void> {
+      for (const item of input) {
+        yield t.check(type, item);
+      }
+    };
+  }
+
   refinement <T> (type: Type<T>, ...constraints: TypeConstraint[]): RefinementType<T> {
     const target = new RefinementType(this);
     target.type = type;
     target.addConstraint(...constraints);
     return target;
   }
+
 
   $diff <A: {}, B: {}> (aType: Type<A>, bType: Type<B>): $DiffType<A, B> {
     const target = new $DiffType(this);

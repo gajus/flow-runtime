@@ -8,7 +8,7 @@ export const input = `
 export const expected = `
   import t from "flow-runtime";
   const B = t.type("B", t.object(
-    t.property("a", t.box(() => A))
+    t.property("a", t.tdz(() => A))
   ));
   const A = t.type("A", t.object(
     t.property("b", B)

@@ -214,7 +214,7 @@ converters.DeclareFunction = (context: ConversionContext, path: NodePath): Node 
 
 converters.DeclareModule = (context: ConversionContext, path: NodePath): Node => {
   const id = path.get('id');
-  const name = id.isStringLiteral() ? id.node.value : id.node.name;
+  const name = id.isIdentifier() ? id.node.name : id.node.value;
   return context.call(
     'declare',
     context.call(
@@ -222,7 +222,15 @@ converters.DeclareModule = (context: ConversionContext, path: NodePath): Node =>
       t.stringLiteral(name),
       t.arrowFunctionExpression(
         [t.identifier(context.libraryId)],
-        t.blockStatement(path.get('body.body').map(item => t.expressionStatement(convert(context, item))))
+        t.blockStatement(path.get('body.body').map(item => {
+          const converted = convert(context, item);
+          if (t.isExpression(converted)) {
+            return t.expressionStatement(convert(context, item));
+          }
+          else {
+            return converted;
+          }
+        }))
       )
     )
   );
@@ -362,9 +370,12 @@ converters.DeclareClass = (context: ConversionContext, path: NodePath): Node => 
             )
           )
         )),
-        t.returnStatement(convert(context, path.get('body')))
+        t.returnStatement(t.arrayExpression([
+          convert(context, path.get('body')),
+          ...extra
+        ]))
       ])
-    ), ...extra));
+    )));
   }
   else {
     return context.call(
@@ -462,6 +473,11 @@ converters.ExistentialTypeParam = (context: ConversionContext, {node}: NodePath)
   return context.call('existential');
 };
 
+// Duplicated for compatibility with flow-parser.
+converters.ExistsTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+  return context.call('existential');
+};
+
 converters.EmptyTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
   return context.call('empty');
 };
@@ -471,6 +487,11 @@ converters.NumberTypeAnnotation = (context: ConversionContext, {node}: NodePath)
 };
 
 converters.NumericLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+  return context.call('number', t.numericLiteral(node.value));
+};
+
+// Duplicated for compatibility with flow-parser.
+converters.NumberLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
   return context.call('number', t.numericLiteral(node.value));
 };
 
@@ -529,12 +550,23 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   if (context.shouldSuppressTypeName(name)) {
     return context.call('any');
   }
-  if (context.isBoxed(id.node)) {
-    subject = context.call('box', t.arrowFunctionExpression([], subject));
+  if (context.inTDZ(id.node)) {
+    subject = context.call('tdz', t.arrowFunctionExpression([], subject));
   }
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 
+  if (!entity) {
+    if (name === 'Array') {
+      return context.call('array', ...typeParameters);
+    }
+    else if (name === 'Function') {
+      return context.call('function');
+    }
+    else if (name === 'Object') {
+      return context.call('object');
+    }
+  }
 
   const isTypeParameter = (
     (entity && entity.isTypeParameter)
@@ -623,9 +655,6 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     }
   }
   else {
-    if (name === 'Array') {
-      return context.call('array', ...typeParameters);
-    }
     return context.call('ref', subject, ...typeParameters);
   }
 };
@@ -655,13 +684,23 @@ converters.ObjectTypeCallProperty = (context: ConversionContext, path: NodePath)
 };
 
 converters.ObjectTypeProperty = (context: ConversionContext, path: NodePath): Node => {
-  const propName = t.stringLiteral(path.node.key.name);
-  const value = convert(context, path.get('value'));
-  if (path.node.optional) {
-    return context.call('property', propName, value, t.booleanLiteral(true));
+  let propName;
+  if (!path.node.computed && path.get('key').isIdentifier()) {
+    propName = t.stringLiteral(path.node.key.name);
   }
   else {
-    return context.call('property', propName, value);
+    propName = path.node.key;
+  }
+  const value = convert(context, path.get('value'));
+  const methodName = path.node.static
+                   ? 'staticProperty'
+                   : 'property'
+                   ;
+  if (path.node.optional) {
+    return context.call(methodName, propName, value, t.booleanLiteral(true));
+  }
+  else {
+    return context.call(methodName, propName, value);
   }
 };
 
@@ -715,7 +754,14 @@ converters.FunctionTypeAnnotation = (context: ConversionContext, path: NodePath)
 
 
 converters.FunctionTypeParam = (context: ConversionContext, path: NodePath): Node => {
-  const {name: {name}, optional} = path.node;
+  let name;
+  if (path.has('name')) {
+    name = path.node.name.name;
+  }
+  else {
+    name = `_arg${path.key}`;
+  }
+  const optional = path.node.optional;
   const args = [
     t.stringLiteral(name),
     convert(context, path.get('typeAnnotation'))
