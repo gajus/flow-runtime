@@ -3,6 +3,7 @@
 import traverse from 'babel-traverse';
 import {findIdentifiers, getTypeParameters} from 'babel-plugin-flow-runtime';
 
+import shouldIgnoreType from './shouldIgnoreType';
 import type {NodePath, Scope} from 'babel-traverse';
 
 type Node = {
@@ -94,7 +95,7 @@ export default function collectExternalTypeReferences (file: Node) {
       const id = path.get('id');
       const {name} = id.node;
       const kind = getDefinitionKind(id);
-      if (!kind) {
+      if (!kind && !shouldIgnoreType(name)) {
         if (globalTypes[name]) {
           globalTypes[name]++;
         }
@@ -107,6 +108,7 @@ export default function collectExternalTypeReferences (file: Node) {
 
   return {importedTypes, globalTypes};
 }
+
 
 
 function getDefinitionKind (id: NodePath): ? 'value' | 'type' | 'importedType' | 'typeParameter' {

@@ -4,7 +4,7 @@ import path from 'path';
 
 import findFiles from './findFiles';
 import parseFileWithFlow from './parseFileWithFlow';
-import {FlowModule} from './EntityGraph';
+import {FlowModule} from './Graph';
 import importAST from './importAST';
 
 

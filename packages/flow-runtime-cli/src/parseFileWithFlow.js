@@ -4,7 +4,7 @@ import {parse} from 'flow-parser';
 import path from 'path';
 import * as t from 'babel-types';
 
-import {fastTraverse} from './nodeIterator';
+import fastTraverse from './fastTraverse';
 
 type FileNode = {
   type: string;
@@ -46,7 +46,7 @@ function flowToBabylon (file: FileNode): FileNode {
       }
       node.declare = true;
     }
-    else if (node.type === 'Identifier' && node.name === '@@iterator' && parent) {
+    else if (key != null && node.type === 'Identifier' && node.name === '@@iterator' && parent) {
       const replacement = t.memberExpression(
         t.identifier('Symbol'),
         t.identifier('iterator')

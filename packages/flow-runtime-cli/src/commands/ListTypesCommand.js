@@ -12,7 +12,7 @@ export async function run (argv: Argv) {
  console.log('Global dependencies:');
  console.log(dumpDependencies(globalDependencies));
  for (const moduleName in moduleDependencies) {
-  console.log(`${moduleName} dependencies:`);
+  console.log(`Types imported from ${moduleName}:`);
   console.log(dumpDependencies(moduleDependencies[moduleName]));
  }
 };

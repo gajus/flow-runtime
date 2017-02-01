@@ -1,8 +1,7 @@
 /* @flow */
 
-import Deque from 'double-ended-queue';
-
 import type {NodePath} from 'babel-traverse';
+import FlowEntity from './FlowEntity';
 
 type Node = {
   type: string;
@@ -18,14 +17,16 @@ type FlowModuleDict = {
 
 const nodeEntities: WeakMap<Node, FlowEntity> = new WeakMap();
 
-
-export class FlowModule {
+export default class FlowModule {
   name: ? string;
   parent: ? FlowModule;
   entities: FlowEntityDict = {};
   modules: FlowModuleDict = {};
 
   get (...keys: string[]): ? FlowEntity {
+    if (keys.length > 1) {
+      console.log('referencing', this.modules[keys[0]].entities);
+    }
     const depth = keys.length - 1;
     let module = this;
     for (let i = 0; i < depth; i++) {
@@ -123,35 +124,5 @@ export class FlowModule {
         yield* item.walk(visited);
       }
     }
-  }
-}
-
-export class FlowEntity {
-  name: ? string;
-  path: ? NodePath;
-  parent: FlowModule;
-  dependencies: FlowEntity[] = [];
-
-  addDependency (entity: FlowEntity): FlowEntity {
-    this.dependencies.push(entity);
-    return this;
-  }
-
-  addDependent (entity: FlowEntity): FlowEntity {
-    entity.dependencies.push(this);
-    return this;
-  }
-
-  *walk (alreadyVisited: Set<FlowEntity>): Generator<FlowEntity, void, void> {
-    if (alreadyVisited.has(this)) {
-      return;
-    }
-    alreadyVisited.add(this);
-    for (const dependency of this.dependencies) {
-      if (!alreadyVisited.has(dependency)) {
-        yield* dependency.walk(alreadyVisited);
-      }
-    }
-    yield this;
   }
 }

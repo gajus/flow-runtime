@@ -3,9 +3,10 @@
 import traverse from 'babel-traverse';
 import * as t from 'babel-types';
 import {findIdentifiers, getTypeParameters} from 'babel-plugin-flow-runtime';
+import shouldIgnoreType from './shouldIgnoreType';
 
 import type {NodePath, Scope} from 'babel-traverse';
-import type {FlowModule, FlowEntity} from './EntityGraph';
+import type {FlowModule, FlowEntity} from './Graph';
 
 type Node = {
   type: string;
@@ -22,7 +23,11 @@ export default function importAST (graph: FlowModule, file: Node) {
   }
 
   function getDefinition (id: NodePath): ? FlowEntity {
-    const fromScope = id.scope.getData(`entityDefinition:${id.node.name}`);
+    const {name} = id.node;
+    if (shouldIgnoreType(name)) {
+      return;
+    }
+    const fromScope = id.scope.getData(`entityDefinition:${name}`);
     if (fromScope) {
       return fromScope;
     }
@@ -56,6 +61,9 @@ export default function importAST (graph: FlowModule, file: Node) {
       || path.type === 'DeclareFunction'
       || path.type === 'DeclareModuleExports'
       || path.type === 'DeclareTypeAlias'
+      || path.parentPath.type === 'ImportDeclaration'
+      || path.parentPath.type === 'ImportDefaultDeclaration'
+      || path.parentPath.type === 'ImportNamespaceDeclaration'
     );
     const current = currentModule();
     const vertex = shouldDeclare
@@ -87,7 +95,7 @@ export default function importAST (graph: FlowModule, file: Node) {
   // First pass, collect value and type definitions
   traverse(file, {
     ImportDeclaration (path: NodePath) {
-      path.get('specifiers').forEach(specifier => {
+      for (const specifier of path.get('specifiers')) {
         const source = path.get('source').node.value;
         const local = specifier.get('local');
         const {name} = local.node;
@@ -97,7 +105,7 @@ export default function importAST (graph: FlowModule, file: Node) {
                        : specifier.get('imported').node.name
                        ;
         vertex.addDependency(graph.ref(source, imported));
-      });
+      }
     },
     ExportNamedDeclaration (path: NodePath) {
       if (path.node.declare) {
@@ -239,6 +247,7 @@ export default function importAST (graph: FlowModule, file: Node) {
 }
 
 function findContainingPath (path: NodePath): ? NodePath {
+  let child = path;
   let parent = path.parentPath;
   while (parent) {
     const isFlowDeclaration = (
@@ -255,10 +264,14 @@ function findContainingPath (path: NodePath): ? NodePath {
     if (isFlowDeclaration) {
       return parent;
     }
+    else if (parent.isImportDefaultSpecifier() || parent.isImportNamespaceSpecifier() || path.isImportSpecifier()) {
+      return child;
+    }
     else if (parent.isStatement()) {
       return parent;
     }
     else {
+      child = parent;
       parent = parent.parentPath;
     }
   }

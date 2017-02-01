@@ -10,9 +10,9 @@ import buildProgram from '../buildProgram';
 
 import type {FlowConfig} from 'flow-config-parser';
 import type {Argv} from '../';
-import type {FlowModule} from '../EntityGraph';
+import type {FlowModule} from '../Graph';
 
-export const name = 'list-definitions';
+export const name = 'list-defs';
 
 export const description = 'Lists all the types found in definition files.';
 
@@ -31,6 +31,10 @@ function dumpModule (module: FlowModule, indent: number = 0): string {
   let count = 0;
 
   for (const name in module.entities) {
+    const entity = module.entities[name];
+    if (!entity.path) {
+      continue;
+    }
     if (name !== 'module.exports') {
       count++;
     }
