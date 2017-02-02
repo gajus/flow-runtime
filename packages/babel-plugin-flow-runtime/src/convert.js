@@ -252,19 +252,7 @@ converters.InterfaceDeclaration = (context: ConversionContext, path: NodePath): 
     body = t.arrowFunctionExpression(
       [t.identifier(name)],
       t.blockStatement([
-        t.variableDeclaration('const', typeParameters.map(typeParameter => t.variableDeclarator(
-            t.identifier(typeParameter.node.name),
-            t.callExpression(
-              t.memberExpression(
-                t.identifier(name),
-                t.identifier('typeParameter')
-              ),
-              typeParameter.node.bound
-                ? [t.stringLiteral(typeParameter.node.name), convert(context, typeParameter.get('bound'))]
-                : [t.stringLiteral(typeParameter.node.name)]
-            )
-          )
-        )),
+        t.variableDeclaration('const', typeParameters.map(typeParameter => declareTypeParameter(context, name, typeParameter))),
         t.returnStatement(body)
       ])
     );
@@ -357,19 +345,7 @@ converters.DeclareClass = (context: ConversionContext, path: NodePath): Node => 
     return context.call('declare', context.call('class', t.stringLiteral(name), t.arrowFunctionExpression(
       [uid],
       t.blockStatement([
-        t.variableDeclaration('const', typeParameters.map(typeParameter => t.variableDeclarator(
-            t.identifier(typeParameter.node.name),
-            t.callExpression(
-              t.memberExpression(
-                uid,
-                t.identifier('typeParameter')
-              ),
-              typeParameter.node.bound
-                ? [t.stringLiteral(typeParameter.node.name), convert(context, typeParameter.get('bound'))]
-                : [t.stringLiteral(typeParameter.node.name)]
-            )
-          )
-        )),
+        t.variableDeclaration('const', typeParameters.map(typeParameter => declareTypeParameter(context, uid.name, typeParameter))),
         t.returnStatement(t.arrayExpression([
           convert(context, path.get('body')),
           ...extra
@@ -398,19 +374,7 @@ converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
     body = t.arrowFunctionExpression(
       [t.identifier(name)],
       t.blockStatement([
-        t.variableDeclaration('const', typeParameters.map(typeParameter => t.variableDeclarator(
-            t.identifier(typeParameter.node.name),
-            t.callExpression(
-              t.memberExpression(
-                t.identifier(name),
-                t.identifier('typeParameter')
-              ),
-              typeParameter.node.bound
-                ? [t.stringLiteral(typeParameter.node.name), convert(context, typeParameter.get('bound'))]
-                : [t.stringLiteral(typeParameter.node.name)]
-            )
-          )
-        )),
+        t.variableDeclaration('const', typeParameters.map(typeParameter => declareTypeParameter(context, name, typeParameter))),
         t.returnStatement(body)
       ])
     );
@@ -727,22 +691,11 @@ converters.FunctionTypeAnnotation = (context: ConversionContext, path: NodePath)
   const typeParameters = getTypeParameters(path);
   if (typeParameters.length > 0) {
     const name = path.scope.generateUid('fn');
+
     return context.call('function', t.arrowFunctionExpression(
       [t.identifier(name)],
       t.blockStatement([
-        t.variableDeclaration('const', typeParameters.map(typeParameter => t.variableDeclarator(
-            t.identifier(typeParameter.node.name),
-            t.callExpression(
-              t.memberExpression(
-                t.identifier(name),
-                t.identifier('typeParameter')
-              ),
-              typeParameter.node.bound
-                ? [t.stringLiteral(typeParameter.node.name), convert(context, typeParameter.get('bound'))]
-                : [t.stringLiteral(typeParameter.node.name)]
-            )
-          )
-        )),
+        t.variableDeclaration('const', typeParameters.map(typeParameter => declareTypeParameter(context, name, typeParameter))),
         t.returnStatement(t.arrayExpression(body))
       ])
     ));
@@ -751,6 +704,34 @@ converters.FunctionTypeAnnotation = (context: ConversionContext, path: NodePath)
     return context.call('function', ...body);
   }
 };
+
+function declareTypeParameter (context: ConversionContext, name: string, typeParameter: NodePath) {
+  const args = [t.stringLiteral(typeParameter.node.name)];
+  if (typeParameter.node.bound) {
+    args.push(convert(context, typeParameter.get('bound')));
+    if (typeParameter.node.default) {
+      args.push(
+        convert(context, typeParameter.get('default'))
+      );
+    }
+  }
+  else if (typeParameter.node.default) {
+    args.push(
+      t.identifier('undefined'),
+      convert(context, typeParameter.get('default'))
+    );
+  }
+  return t.variableDeclarator(
+    t.identifier(typeParameter.node.name),
+    t.callExpression(
+      t.memberExpression(
+        t.identifier(name),
+        t.identifier('typeParameter')
+      ),
+      args
+    )
+  );
+}
 
 
 converters.FunctionTypeParam = (context: ConversionContext, path: NodePath): Node => {

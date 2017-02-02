@@ -565,10 +565,11 @@ export default class TypeContext {
     }
   }
 
-  typeParameter <T> (id: string, bound?: Type<T>): TypeParameter<T> {
+  typeParameter <T> (id: string, bound?: Type<T>, defaultType?: Type<T>): TypeParameter<T> {
     const target = new TypeParameter(this);
     target.id = id;
     target.bound = bound;
+    target.default = defaultType;
     return target;
   }
 
@@ -1076,8 +1077,8 @@ export default class TypeContext {
   $propertyType <O: {}, P: string | number | Symbol> (object: Type<O>, property: P | Type<P>): _$PropertyType<O, P> {
     const target = new _$PropertyType(this);
     target.object = object;
-    if (target instanceof Type) {
-      const unwrapped = target.unwrap();
+    if (property instanceof Type) {
+      const unwrapped = property.unwrap();
       target.property = (unwrapped: any).value;
     }
     else {

@@ -19,6 +19,7 @@ export default class TypeParameter<T> extends Type {
   typeName: string = 'TypeParameter';
   id: string;
   bound: ? Type<T>;
+  default: ? Type<T>;
 
   recorded: ? Type<T>;
 
@@ -27,21 +28,23 @@ export default class TypeParameter<T> extends Type {
 
 
   collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    const {recorded, bound, context} = this;
-    if (bound instanceof FlowIntoType) {
+    const boundOrDefault = this.bound || this.default;
+    const {recorded, context} = this;
+
+    if (boundOrDefault instanceof FlowIntoType) {
       // We defer to the other type parameter so that values from this
       // one can flow "upwards".
-      return bound.accepts(input);
+      return boundOrDefault.accepts(input);
     }
     else if (recorded) {
       // we've already recorded a value for this type parameter
       return recorded.collectErrors(validation, path, input);
     }
-    else if (bound) {
-      if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+    else if (boundOrDefault) {
+      if (boundOrDefault.typeName === 'AnyType' || boundOrDefault.typeName === 'ExistentialType') {
         return false;
       }
-      else if (bound.collectErrors(validation, path, input)) {
+      else if (boundOrDefault.collectErrors(validation, path, input)) {
         return true;
       }
     }
@@ -51,20 +54,21 @@ export default class TypeParameter<T> extends Type {
   }
 
   accepts (input: any): boolean {
-    const {recorded, bound, context} = this;
-    if (bound instanceof FlowIntoType) {
+    const boundOrDefault = this.bound || this.default;
+    const {recorded, context} = this;
+    if (boundOrDefault instanceof FlowIntoType) {
       // We defer to the other type parameter so that values from this
       // one can flow "upwards".
-      return bound.accepts(input);
+      return boundOrDefault.accepts(input);
     }
     else if (recorded) {
       return recorded.accepts(input);
     }
-    else if (bound) {
-      if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
+    else if (boundOrDefault) {
+      if (boundOrDefault.typeName === 'AnyType' || boundOrDefault.typeName === 'ExistentialType') {
         return true;
       }
-      else if (!bound.accepts(input)) {
+      else if (!boundOrDefault.accepts(input)) {
         return false;
       }
     }
@@ -74,7 +78,8 @@ export default class TypeParameter<T> extends Type {
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {
-    const {recorded, bound} = this;
+    const boundOrDefault = this.bound || this.default;
+    const {recorded} = this;
     if (input instanceof TypeParameter) {
       // We don't need to check for `recorded` or `bound` fields
       // because the input has already been unwrapped, so
@@ -85,8 +90,8 @@ export default class TypeParameter<T> extends Type {
     else if (recorded) {
       return compareTypes(recorded, input);
     }
-    else if (bound) {
-      return compareTypes(bound, input);
+    else if (boundOrDefault) {
+      return compareTypes(boundOrDefault, input);
     }
     else {
       // A generic type parameter accepts any input.
@@ -98,12 +103,13 @@ export default class TypeParameter<T> extends Type {
    * Get the inner type or value.
    */
   unwrap (): Type<T> {
-    const {recorded, bound} = this;
+    const boundOrDefault = this.bound || this.default;
+    const {recorded} = this;
     if (recorded) {
       return recorded.unwrap();
     }
-    else if (bound) {
-      return bound.unwrap();
+    else if (boundOrDefault) {
+      return boundOrDefault.unwrap();
     }
     else {
       return this;
@@ -111,9 +117,14 @@ export default class TypeParameter<T> extends Type {
   }
 
   toString (withBinding?: boolean): string {
-    const {id, bound} = this;
-    if (withBinding && bound) {
-      return `${id}: ${bound.toString()}`;
+    const {id, bound, default: defaultType} = this;
+    if (withBinding) {
+      if (defaultType) {
+        return `${id} = ${defaultType.toString()}`;
+      }
+      else if (bound) {
+        return `${id}: ${bound.toString()}`;
+      }
     }
     return id;
   }

@@ -16,10 +16,11 @@ export default class PartialType<X, T> extends Type {
   typeParameters: TypeParameter<X>[] = [];
   constraints: ? TypeConstraint[];
 
-  typeParameter (id: string, bound?: Type<X>): TypeParameter<X> {
+  typeParameter (id: string, bound?: Type<X>, defaultType?: Type<X>): TypeParameter<X> {
     const target = new TypeParameter(this.context);
     target.id = id;
     target.bound = bound;
+    target.default = defaultType;
     this.typeParameters.push(target);
     return target;
   }
