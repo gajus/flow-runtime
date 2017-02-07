@@ -48,7 +48,7 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
       // This is a comment.
       continue;
     }
-    const matchSection = /^\[(.+)](\s*#(.*))?$/.exec(line);
+    const matchSection = /^\[(.+)\](\s*#(.*))?$/.exec(line);
     if (matchSection) {
       sectionName = matchSection[1].trim();
       section = [];
@@ -61,7 +61,7 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
       section.push(regexpify(line));
     }
     else {
-      const matchesKeyValue = /^([A-Za-z0-9_.]+)=(.*)$/.exec(line);
+      const matchesKeyValue = /^([A-Za-z0-9_\.]+)=(.*)$/.exec(line);
       if (matchesKeyValue) {
         const key = matchesKeyValue[1];
         let value = matchesKeyValue[2];
@@ -101,7 +101,7 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
 function regexpify (input: string, projectRoot: string = process.cwd()): RegExp {
   return new RegExp(
     input
-    .replace(/\\([(|)])/g, (a, b) => b)
+    .replace(/\\([\(\|\)])/g, (a, b) => b)
     .replace(/<PROJECT_ROOT>/g, projectRoot)
     .replace(/\//g, '\\/'));
 }

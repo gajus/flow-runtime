@@ -8,8 +8,8 @@ describe('Flow Config Parser', function () {
       [ignore]
       node_modules/babel-cli/.*
       .*/__tests__/.*
-      .*/src/\\(foo\\|bar\\)/.*
-      .*\\.ignore\\.js
+      .*/src/\(foo\|bar\)/.*
+      .*\.ignore\.js
       <PROJECT_ROOT>/__tests__/.*
 
       [include]
@@ -19,7 +19,7 @@ describe('Flow Config Parser', function () {
 
       [options]
       suppress_type=$FlowIssue
-      suppress_comment=.*\\@flowFixMe
+      suppress_comment=.*\@flowFixMe
       module.name_mapper= '^image![a-zA-Z0-9$_]+$' -> 'ImageStub'
       module.name_mapper.extension= 'css' -> '<PROJECT_ROOT>/CSSFlowStub.js.flow'
       munge_underscores=true
