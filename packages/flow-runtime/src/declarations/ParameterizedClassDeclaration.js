@@ -5,7 +5,7 @@ import PartialType from '../types/PartialType';
 import TypeParameterApplication from '../types/TypeParameterApplication';
 import type {Type} from '../types';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import type {ClassBodyCreator} from './';
 
@@ -14,8 +14,8 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
   bodyCreator: ClassBodyCreator<X, O>;
   name: string;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): boolean {
-    return getPartial(this, ...typeInstances).collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): Generator<ErrorTuple, void, void> {
+    yield* getPartial(this, ...typeInstances).errors(validation, path, input);
   }
 
   accepts (input: any, ...typeInstances: Type<any>[]): boolean {

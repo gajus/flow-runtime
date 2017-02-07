@@ -9,7 +9,7 @@ import type FunctionTypeRestParam from './FunctionTypeRestParam';
 import type FunctionTypeReturn from './FunctionTypeReturn';
 import type TypeParameter from './TypeParameter';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export type FunctionBodyCreator <P, R> = (partial: PartialType<(...params: P[]) => R>) => Array<FunctionTypeParam<P> | FunctionTypeRestParam<P> | FunctionTypeReturn<R>>;
 
@@ -34,8 +34,8 @@ export default class ParameterizedFunctionType <X, P: any, R: any> extends Type 
     return getPartial(this).type.returnType;
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): boolean {
-    return getPartial(this, ...typeInstances).collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): Generator<ErrorTuple, void, void> {
+    yield* getPartial(this, ...typeInstances).errors(validation, path, input);
   }
 
   accepts (input: any, ...typeInstances: Type<any>[]): boolean {

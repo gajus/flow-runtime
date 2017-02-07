@@ -3,7 +3,7 @@
 import Type from '../types/Type';
 import compareTypes from '../compareTypes';
 import invariant from '../invariant';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 // The type of the named object property
 
@@ -14,8 +14,8 @@ export default class $PropertyType<O: {}, P: string | number | Symbol> extends T
 
   property: P;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    return this.unwrap().collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    yield* this.unwrap().errors(validation, path, input);
   }
 
   accepts (input: any): boolean {

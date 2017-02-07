@@ -2,7 +2,7 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 import type {TypeCreator} from './';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 import TypeAlias from './TypeAlias';
 import PartialType from './PartialType';
 import type ObjectTypeProperty from './ObjectTypeProperty';
@@ -15,10 +15,8 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
 
   typeCreator: TypeCreator<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): boolean {
-    const partial = getPartial(this, ...typeInstances);
-
-    return partial.collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): Generator<ErrorTuple, void, void> {
+    yield* getPartial(this, ...typeInstances).errors(validation, path, input);
   }
 
   accepts (input: any, ...typeInstances: Type<any>[]): boolean {

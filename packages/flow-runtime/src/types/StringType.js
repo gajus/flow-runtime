@@ -3,18 +3,14 @@
 import Type from './Type';
 import StringLiteralType from './StringLiteralType';
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class StringType extends Type {
   typeName: string = 'StringType';
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    if (typeof input === 'string') {
-      return false;
-    }
-    else {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_STRING'));
-      return true;
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    if (typeof input !== 'string') {
+      yield [path, getErrorMessage('ERR_EXPECT_STRING'), this];
     }
   }
 

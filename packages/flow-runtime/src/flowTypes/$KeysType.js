@@ -6,7 +6,7 @@ import getErrorMessage from '../getErrorMessage';
 import compareTypes from '../compareTypes';
 
 import invariant from '../invariant';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 // The set of keys of T.
 
@@ -15,7 +15,7 @@ export default class $KeysType<T: {}> extends Type<$Keys<T>> {
 
   type: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const type = this.type.unwrap();
     invariant(type instanceof ObjectType, 'Can only $Keys<T> object types.');
 
@@ -24,15 +24,14 @@ export default class $KeysType<T: {}> extends Type<$Keys<T>> {
     for (let i = 0; i < length; i++) {
       const property = properties[i];
       if (input === property.key) {
-        return false;
+        return;
       }
     }
     const keys = new Array(length);
     for (let i = 0; i < length; i++) {
       keys[i] = properties[i].key;
     }
-    validation.addError(path, this, getErrorMessage('ERR_NO_UNION', keys.join(' | ')));
-    return true;
+    yield [path, getErrorMessage('ERR_NO_UNION', keys.join(' | ')), this];
   }
 
   accepts (input: any): boolean {

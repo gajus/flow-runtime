@@ -2,7 +2,7 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 import type {TypeConstraint} from './';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import TypeParameter from './TypeParameter';
 import TypeParameterApplication from './TypeParameterApplication';
@@ -32,16 +32,16 @@ export default class PartialType<X, T> extends Type {
     return target;
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {constraints, type} = this;
     let hasErrors = false;
-    if (type.collectErrors(validation, path, input)) {
+    for (const error of type.errors(validation, path, input)) {
       hasErrors = true;
+      yield error;
     }
-    else if (constraints && collectConstraintErrors(this, validation, path, input)) {
-      hasErrors = true;
+    if (!hasErrors && constraints) {
+      yield* collectConstraintErrors(this, validation, path, input);
     }
-    return hasErrors;
   }
 
   accepts (input: any): boolean {

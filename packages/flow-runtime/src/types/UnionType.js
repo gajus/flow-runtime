@@ -2,7 +2,7 @@
 
 import Type from './Type';
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import compareTypes from '../compareTypes';
 
@@ -10,17 +10,16 @@ export default class UnionType<T> extends Type {
   typeName: string = 'UnionType';
   types: Type<T>[] = [];
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {types} = this;
     const {length} = types;
     for (let i = 0; i < length; i++) {
       const type = types[i];
       if (type.accepts(input)) {
-        return false;
+        return;
       }
     }
-    validation.addError(path, this, getErrorMessage('ERR_NO_UNION', this.toString()));
-    return true;
+    yield [path, getErrorMessage('ERR_NO_UNION', this.toString()), this];
   }
 
   accepts (input: any): boolean {

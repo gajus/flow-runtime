@@ -3,28 +3,23 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class TupleType<T> extends Type {
   typeName: string = 'TupleType';
   types: Type<T>[] = [];
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {types} = this;
     const {length} = types;
     const {context} = this;
     if (!context.checkPredicate('Array', input)) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_ARRAY'), this];
+      return;
     }
-    let hasErrors = false;
     for (let i = 0; i < length; i++) {
-      const type = types[i];
-      if (type.collectErrors(validation, path.concat(i), input[i])) {
-        hasErrors = true;
-      }
+      yield* types[i].errors(validation, path.concat(i), input[i]);
     }
-    return hasErrors;
   }
 
   accepts (input: any): boolean {

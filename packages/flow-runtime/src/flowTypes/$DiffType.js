@@ -7,7 +7,7 @@ import compareTypes from '../compareTypes';
 
 import invariant from '../invariant';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 // If A and B are object types, $Diff<A,B> is the type of objects that have
 // properties defined in A, but not in B.
@@ -19,27 +19,23 @@ export default class $DiffType<A: {}, B: {}> extends Type<$Diff<A, B>> {
   aType: Type<A>;
   bType: Type<B>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     let {aType, bType} = this;
     if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+      return;
     }
     aType = aType.unwrap();
     bType = bType.unwrap();
     invariant(aType instanceof ObjectType && bType instanceof ObjectType, 'Can only $Diff object types.');
-    let hasErrors = false;
     const properties = aType.properties;
     for (let i = 0; i < properties.length; i++) {
       const property = properties[i];
       if (bType.hasProperty(property.key)) {
         continue;
       }
-      if (property.collectErrors(validation, path.concat(property.key), input)) {
-        hasErrors = true;
-      }
+      yield* property.errors(validation, path.concat(property.key), input);
     }
-    return hasErrors;
   }
 
   accepts (input: any): boolean {

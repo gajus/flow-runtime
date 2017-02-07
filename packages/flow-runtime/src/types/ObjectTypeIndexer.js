@@ -4,7 +4,7 @@ import Type from './Type';
 import compareTypes from '../compareTypes';
 import ObjectTypeProperty from './ObjectTypeProperty';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class ObjectTypeIndexer<K: string | number, V> extends Type {
   typeName: string = 'ObjectTypeIndexer';
@@ -12,16 +12,14 @@ export default class ObjectTypeIndexer<K: string | number, V> extends Type {
   key: Type<K>;
   value: Type<V>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, key: any, value: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, key: any, value: any): Generator<ErrorTuple, void, void> {
     // special case number types
     if (this.key.typeName === 'NumberType' || this.key.typeName === 'NumericLiteralType') {
       key = +key;
     }
-    let hasErrors = this.key.collectErrors(validation, path.concat('[[Key]]'), key);
-    if (this.value.collectErrors(validation, path.concat(key), value)) {
-      hasErrors = true;
-    }
-    return hasErrors;
+
+    yield* this.key.errors(validation, path.concat('[[Key]]'), key);
+    yield* this.value.errors(validation, path.concat(key), value);
   }
 
   accepts (value: any): boolean {

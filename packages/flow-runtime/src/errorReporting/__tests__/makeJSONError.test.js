@@ -278,11 +278,7 @@ describe('makeJSONError', () => {
       const validation = t.validate(ThingClass, AnotherThing);
       const report = makeJSONError(validation);
       expect(report, [
-        `
-        Value must be a Class of Thing, got class IInvalid {
-          num: number;
-        }
-        `
+        `Value must be a Class of Thing, got IInvalid`
       ]);
     });
   });

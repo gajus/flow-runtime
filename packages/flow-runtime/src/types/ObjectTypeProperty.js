@@ -4,7 +4,7 @@ import Type from './Type';
 import compareTypes from '../compareTypes';
 import type {TypeConstraint} from './';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 import {addConstraints, collectConstraintErrors, constraintsAccept} from '../typeConstraints';
 
 
@@ -22,19 +22,19 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
     return this;
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {optional, key, value} = this;
     if (optional && input[key] === undefined) {
-      return false;
+      return;
     }
     let hasErrors = false;
-    if (value.collectErrors(validation, path.concat(key), input[key])) {
+    for (const error of value.errors(validation, path.concat(key), input[key])) {
       hasErrors = true;
+      yield error;
     }
-    else if (collectConstraintErrors(this, validation, path.concat(key), input[key])) {
-      hasErrors = true;
+    if (!hasErrors) {
+      yield* collectConstraintErrors(this, validation, path.concat(key), input[key]);
     }
-    return hasErrors;
   }
 
   accepts (input: Object): boolean {
@@ -66,11 +66,15 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
   }
 
   toString (): string {
+    let key = this.key;
+    if (typeof key === 'symbol') {
+      key = `[${key.toString()}]`;
+    }
     if (this.static) {
-      return `static ${this.key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
+      return `static ${key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
     }
     else {
-      return `${this.key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
+      return `${key}${this.optional ? '?' : ''}: ${this.value.toString()};`;
     }
   }
 

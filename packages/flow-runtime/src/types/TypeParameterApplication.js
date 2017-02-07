@@ -3,7 +3,7 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import type {ApplicableType} from './';
 
@@ -18,9 +18,9 @@ export default class TypeParameterApplication<X, T> extends Type {
   parent: ApplicableType<T>;
   typeInstances: Type<X>[] = [];
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {parent, typeInstances} = this;
-    return parent.collectErrors(validation, path, input, ...typeInstances);
+    yield* parent.errors(validation, path, input, ...typeInstances);
   }
 
   accepts (input: any): boolean {

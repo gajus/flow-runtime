@@ -31,9 +31,38 @@ export default class Validation<T> {
 
   errors: ErrorTuple[] = [];
 
+  // Tracks whether we're in validation of cyclic objects.
+  cyclic: WeakMap<Type<any>, WeakSet<any>> = new WeakMap();
+
   constructor (context: TypeContext, input: T) {
     this.context = context;
     this.input = input;
+  }
+
+  inCycle (type: Type<any>, input: any): boolean {
+    const tracked = this.cyclic.get(type);
+    if (!tracked) {
+      return false;
+    }
+    else {
+      return tracked.has(input);
+    }
+  }
+
+  startCycle (type: Type<any>, input: any) {
+    let tracked = this.cyclic.get(type);
+    if (!tracked) {
+      tracked = new WeakSet();
+      this.cyclic.set(type, tracked);
+    }
+    tracked.add(input);
+  }
+
+  endCycle (type: Type<any>, input: any) {
+    const tracked = this.cyclic.get(type);
+    if (tracked) {
+      tracked.delete(input);
+    }
   }
 
   hasErrors (path: ? IdentifierPath): boolean {
@@ -51,7 +80,7 @@ export default class Validation<T> {
   }
 
   addError (path: IdentifierPath, expectedType: Type<any>, message: string): this {
-    this.errors.push([path, message, expectedType]);
+    insertError(this.errors, [path, message, expectedType]);
     return this;
   }
 
@@ -101,10 +130,10 @@ export function stringifyPath (path: IdentifierPath): string {
       parts[i] = `[${String(part)}]`;
     }
     else if (i > 0) {
-      parts[i] = `.${part}`;
+      parts[i] = `.${String(part)}`;
     }
     else {
-      parts[i] = part;
+      parts[i] = String(part);
     }
   }
   return parts.join('');
@@ -144,3 +173,45 @@ export function matchPath (path: IdentifierPath, candidate: IdentifierPath): boo
   return true;
 }
 
+function insertError (errors: ErrorTuple[], input: ErrorTuple) {
+  const [inputPath] = input;
+  let candidate = -1;
+  for (let i = 0; i < errors.length; i++) {
+    const [errorPath] = errors[i];
+    const result = comparePaths(errorPath, inputPath);
+    if (result === -1) {
+      break;
+    }
+    else {
+      candidate = i;
+    }
+  }
+  if (candidate === -1) {
+    errors.push(input);
+  }
+  else {
+    errors.splice(candidate, 0, input);
+  }
+}
+
+function comparePaths (pathA: IdentifierPath, pathB: IdentifierPath) {
+  for (let i = 0; i < pathA.length; i++) {
+    if (i === pathB.length) {
+      return 1;
+    }
+    const itemA = pathA[i];
+    const itemB = pathB[i];
+    if (itemA > itemB) {
+      return 1;
+    }
+    else if (itemA < itemB) {
+      return -1;
+    }
+  }
+  if (pathB.length > pathA.length) {
+    return -1;
+  }
+  else {
+    return 0;
+  }
+}

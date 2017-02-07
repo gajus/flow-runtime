@@ -4,7 +4,7 @@ import Type from './Type';
 import compareTypes from '../compareTypes';
 import FlowIntoType from './FlowIntoType';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 const FlowIntoSymbol = Symbol('FlowInto');
 
@@ -27,30 +27,38 @@ export default class TypeParameter<T> extends Type {
   [FlowIntoSymbol]: ? FlowIntoType = null;
 
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const boundOrDefault = this.bound || this.default;
     const {recorded, context} = this;
 
     if (boundOrDefault instanceof FlowIntoType) {
       // We defer to the other type parameter so that values from this
       // one can flow "upwards".
-      return boundOrDefault.accepts(input);
+      yield* boundOrDefault.errors(validation, path, input);
+      return;
     }
     else if (recorded) {
       // we've already recorded a value for this type parameter
-      return recorded.collectErrors(validation, path, input);
+      yield* recorded.errors(validation, path, input);
+      return;
     }
     else if (boundOrDefault) {
       if (boundOrDefault.typeName === 'AnyType' || boundOrDefault.typeName === 'ExistentialType') {
-        return false;
+        return;
       }
-      else if (boundOrDefault.collectErrors(validation, path, input)) {
-        return true;
+      else {
+        let hasErrors = false;
+        for (const error of boundOrDefault.errors(validation, path, input)) {
+          hasErrors = true;
+          yield error;
+        }
+        if (hasErrors) {
+          return;
+        }
       }
     }
 
     this.recorded = context.typeOf(input);
-    return false;
   }
 
   accepts (input: any): boolean {

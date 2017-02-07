@@ -21,7 +21,7 @@ import {flowIntoTypeParameter} from './types/TypeParameter';
 import annotateValue from './annotateValue';
 
 import type {PropTypeDict} from './makeReactPropTypes';
-import type {IdentifierPath} from './Validation';
+import type {IdentifierPath, ErrorTuple} from './Validation';
 
 
 import {
@@ -125,7 +125,7 @@ export type TypeConstructorConfig = {
   name: string;
   impl?: Function;
   typeName: string;
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, instanceType: Type<any>): boolean;
+  errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void>;
   accepts (input: any, ...typeInstances: Type<any>[]): boolean;
   inferTypeParameters (input: any): Type<any>[];
 };
@@ -419,7 +419,7 @@ export default class TypeContext {
     }
   }
 
-  declareTypeConstructor ({name, impl, typeName, collectErrors, accepts, inferTypeParameters}: TypeConstructorConfig): TypeConstructor<any> {
+  declareTypeConstructor ({name, impl, typeName, errors, accepts, inferTypeParameters}: TypeConstructorConfig): TypeConstructor<any> {
     const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
     if (nameRegistry[name]) {
@@ -430,7 +430,7 @@ export default class TypeContext {
     target.name = name;
     target.typeName = typeName;
     target.impl = impl;
-    target.collectErrors = collectErrors;
+    target.errors = errors;
     target.accepts = accepts;
     target.inferTypeParameters = inferTypeParameters;
 
@@ -940,7 +940,7 @@ export default class TypeContext {
       validation.path.push(type.name);
     }
     validation.prefix = prefix;
-    type.collectErrors(validation, [], input);
+    validation.errors = Array.from(type.errors(validation, [], input));
     return validation;
   }
 

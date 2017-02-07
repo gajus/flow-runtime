@@ -7,35 +7,37 @@ import getErrorMessage from '../getErrorMessage';
 import compareTypes from '../compareTypes';
 
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class ClassType<T> extends Type {
   typeName: string = 'ClassType';
 
   instanceType: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {instanceType, context} = this;
     if (typeof input !== 'function') {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
     }
     const expectedType = instanceType.unwrap();
     if (expectedType instanceof GenericType && typeof expectedType.impl === 'function') {
       if (input === expectedType.impl) {
-        return false;
+        return;
       }
       else if (expectedType.impl.prototype.isPrototypeOf(input.prototype)) {
-        return false;
+        return;
       }
       else {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()));
-        return true;
+        yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
+        return;
       }
     }
     const annotation = context.getAnnotation(input);
     if (annotation) {
-      return expectedType.acceptsType(annotation);
+      if (!expectedType.acceptsType(annotation)) {
+        yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
+      }
+      return;
     }
     let matches;
     // we're dealing with a type
@@ -57,14 +59,10 @@ export default class ClassType<T> extends Type {
         matches = input === Array;
         break;
       default:
-        return false;
+        return;
     }
-    if (matches) {
-      return false;
-    }
-    else {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()));
-      return true;
+    if (!matches) {
+      yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
     }
   }
 

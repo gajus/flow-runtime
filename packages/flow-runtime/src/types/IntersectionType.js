@@ -7,25 +7,19 @@ import invariant from '../invariant';
 import ObjectType from './ObjectType';
 import type {Property} from './ObjectType';
 import type ObjectTypeProperty from './ObjectTypeProperty';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class IntersectionType<T: {}> extends Type {
   typeName: string = 'IntersectionType';
   types: Type<T>[] = [];
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {types} = this;
     const {length} = types;
-    let hasErrors = false;
     for (let i = 0; i < length; i++) {
-      const type = types[i];
-      if (type.collectErrors(validation, path, input)) {
-        hasErrors = true;
-      }
+      yield* types[i].errors(validation, path, input);
     }
-    return hasErrors;
   }
-
 
   /**
    * Get a property with the given name, or undefined if it does not exist.

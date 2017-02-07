@@ -9,7 +9,7 @@ import type {Type, ObjectType} from '../types';
 
 import type {Property} from '../types/ObjectType';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {IdentifierPath, ErrorTuple} from '../Validation';
 
 export default class ClassDeclaration<O: {}> extends Declaration {
   typeName: string = 'ClassDeclaration';
@@ -18,29 +18,25 @@ export default class ClassDeclaration<O: {}> extends Declaration {
   superClass: ? Type<{}>;
   body: ObjectType<O>;
 
-
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {body} = this;
     const superClass = this.superClass && this.superClass.unwrap();
     if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', this.name));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', this.name), this];
+      return;
     }
-    let hasSuperErrors = false;
-    if (superClass && superClass.collectErrors(validation, path, input)) {
-      // Clear any errors for properties we override in this class.
-      let didClear = false;
-      for (const property of body.properties) {
-        if (validation.clearError(path.concat(property.key))) {
-          didClear = true;
+    if (superClass) {
+      for (const [errorPath, errorMessage, expectedType] of superClass.errors(validation, path, input)) {
+        const propertyName = errorPath[path.length];
+        if (body.getProperty(propertyName)) {
+          continue;
+        }
+        else {
+          yield [errorPath, errorMessage, expectedType];
         }
       }
-      hasSuperErrors = didClear ? validation.hasErrors(path) : true;
     }
-    if (body.collectErrors(validation, path, input)) {
-      return true;
-    }
-    return hasSuperErrors;
+    yield* body.errors(validation, path, input);
   }
 
   accepts (input: any): boolean {
@@ -103,7 +99,12 @@ export default class ClassDeclaration<O: {}> extends Declaration {
 
   toString (withDeclaration?: boolean) {
     const {name, superClass, body} = this;
-    const superClassName = superClass && ((typeof superClass.name === 'string' && superClass.name) || superClass.toString());
-    return `${withDeclaration ? 'declare ' : ''}class ${name}${superClassName ? ` extends ${superClassName}` : ''} ${body.toString()}`;
+    if (withDeclaration) {
+      const superClassName = superClass && ((typeof superClass.name === 'string' && superClass.name) || superClass.toString());
+      return `declare class ${name}${superClassName ? ` extends ${superClassName}` : ''} ${body.toString()}`;
+    }
+    else {
+      return name;
+    }
   }
 }

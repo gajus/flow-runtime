@@ -5,16 +5,16 @@ import compareTypes from '../compareTypes';
 
 import FunctionTypeParam from './FunctionTypeParam';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class FunctionTypeRestParam<T> extends Type {
   typeName: string = 'FunctionTypeRestParam';
   name: string;
   type: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {type} = this;
-    return type.collectErrors(validation, path, input);
+    yield* type.errors(validation, path, input);
   }
 
   accepts (input: any): boolean {

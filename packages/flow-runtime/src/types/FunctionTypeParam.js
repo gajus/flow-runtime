@@ -3,7 +3,7 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class FunctionTypeParam<T> extends Type {
   typeName: string = 'FunctionTypeParam';
@@ -11,13 +11,13 @@ export default class FunctionTypeParam<T> extends Type {
   optional: boolean;
   type: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {optional, type} = this;
     if (optional && input === undefined) {
-      return false;
+      return;
     }
     else {
-      return type.collectErrors(validation, path, input);
+      yield* type.errors(validation, path, input);
     }
   }
 

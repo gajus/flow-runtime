@@ -5,7 +5,8 @@ import compareTypes from '../compareTypes';
 
 import type TypeContext from '../TypeContext';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import Validation from '../Validation';
+import type {ErrorTuple, IdentifierPath} from '../Validation';
 
 
 /**
@@ -21,12 +22,15 @@ export default class Type <T> {
     this.context = context;
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    return false;
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
   }
 
   accepts (input: any): boolean {
-    throw new Error('Not implemented.');
+    const validation = new Validation(this.context, input);
+    for (const error of this.errors(validation, [], input)) { // eslint-disable-line no-unused-vars
+      return false;
+    }
+    return true;
   }
 
   acceptsType (input: Type<any>): boolean {

@@ -3,19 +3,15 @@
 import Type from './Type';
 import SymbolLiteralType from './SymbolLiteralType';
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class SymbolType extends Type {
   typeName: string = 'SymbolType';
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     // @flowIssue 252
-    if (typeof input === 'symbol') {
-      return false;
-    }
-    else {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_SYMBOL'));
-      return true;
+    if (typeof input !== 'symbol') {
+      yield [path, getErrorMessage('ERR_EXPECT_SYMBOL'), this];
     }
   }
 

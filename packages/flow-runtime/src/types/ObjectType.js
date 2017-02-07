@@ -13,7 +13,7 @@ export type Property<K: string | number, V>
  ;
 
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import {
   inValidationCycle,
@@ -94,41 +94,40 @@ export default class ObjectType<T: {}> extends Type {
 
 
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     if (input === null) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+      return;
     }
 
     const hasCallProperties = this.callProperties.length > 0;
 
     if (hasCallProperties) {
       if (!acceptsCallProperties(this, input)) {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_CALLABLE'));
+        yield [path, getErrorMessage('ERR_EXPECT_CALLABLE'), this];
       }
     }
     else if (typeof input !== 'object') {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+      return;
     }
-    if (inValidationCycle(this, input)) {
-      return false;
-    }
-    startValidationCycle(this, input);
 
-    let result;
+    if (validation.inCycle(this, input)) {
+      return;
+    }
+    validation.startCycle(this, input);
+
 
     if (this.indexers.length > 0) {
-      result = collectErrorsWithIndexers(this, validation, path, input);
+      yield* collectErrorsWithIndexers(this, validation, path, input);
     }
     else if (this.exact) {
-      result = collectErrorsExact(this, validation, path, input);
+      yield* collectErrorsExact(this, validation, path, input);
     }
     else {
-      result = collectErrorsWithoutIndexers(this, validation, path, input);
+      yield* collectErrorsWithoutIndexers(this, validation, path, input);
     }
-    endValidationCycle(this, input);
-    return result;
+    validation.endCycle(this, input);
   }
 
   accepts (input: any): boolean {
@@ -405,15 +404,12 @@ function compareTypeWithoutIndexers (type: ObjectType<any>, input: ObjectType<an
 }
 
 
-function collectErrorsWithIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): boolean {
+function *collectErrorsWithIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): Generator<ErrorTuple, void, void> {
   const {properties, indexers} = type;
   const seen = [];
-  let hasErrors = false;
   for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
-    if (property.collectErrors(validation, path, input)) {
-      hasErrors = true;
-    }
+    yield* property.errors(validation, path, input);
     seen.push(property.key);
   }
   loop: for (const key in input) {
@@ -429,45 +425,34 @@ function collectErrorsWithIndexers (type: ObjectType<any>, validation: Validatio
     }
 
     // if we got this far the key / value was not accepted by any indexers.
-    validation.addError(path.concat(key), type, getErrorMessage('ERR_NO_INDEXER'));
-    hasErrors = true;
+    yield [path.concat(key), getErrorMessage('ERR_NO_INDEXER'), type];
   }
-  return hasErrors;
 }
 
 
-function collectErrorsWithoutIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): boolean {
+function *collectErrorsWithoutIndexers (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): Generator<ErrorTuple, void, void> {
   const {properties} = type;
-  let hasErrors = false;
   for (let i = 0; i < properties.length; i++) {
     const property = properties[i];
-    if (property.collectErrors(validation, path, input)) {
-      hasErrors = true;
-    }
+    yield* property.errors(validation, path, input);
   }
-  return hasErrors;
 }
 
 
-function collectErrorsExact (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): boolean {
+function *collectErrorsExact (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): Generator<ErrorTuple, void, void> {
   const {properties} = type;
   const {length} = properties;
-  let hasErrors = false;
   loop: for (const key in input) { // eslint-disable-line guard-for-in
     for (let i = 0; i < length; i++) {
       const property = properties[i];
       if (property.key === key) {
-        if (property.collectErrors(validation, path, input)) {
-          hasErrors = true;
-        }
+        yield* property.errors(validation, path, input);
         continue loop;
       }
     }
     // if we got this far the property does not exist in the object.
-    validation.addError(path, type, getErrorMessage('ERR_UNKNOWN_KEY', key));
-    hasErrors = true;
+    yield [path, getErrorMessage('ERR_UNKNOWN_KEY', key), type];
   }
-  return hasErrors;
 }
 
 function indent (input: string): string {

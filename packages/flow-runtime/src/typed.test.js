@@ -369,7 +369,7 @@ describe('Typed API', () => {
   });
 
 
-  it.skip('should $ObjMap<K, V>', () => {
+  it('should $ObjMapi<K, V>', () => {
     const K = t.object(
       t.property('name', t.string()),
       t.property('email', t.string()),
@@ -378,24 +378,29 @@ describe('Typed API', () => {
       const K = fn.typeParameter('K');
       const V = fn.typeParameter('V');
       return [
-        t.param('key', K),
-        t.param('value', V),
+        t.param('key', t.flowInto(K)),
+        t.param('value', t.flowInto(V)),
         t.return(t.tuple(K, V))
       ];
     });
-    const B = t.$objMap(K, V);
+    const B = t.$objMapi(K, V);
 
     B.assert({
       name: ['name', 'Hello'],
       email: ['email', 'World']
     });
-    ok(B.accepts({}));
-    ok(B.accepts({name: 'Alice'}));
-    ok(B.accepts({name: 'Alice', email: 'alice@example.com'}));
-    no(B.accepts({nope: false}));
-    no(B.accepts({name: false, email: 'alice@example.com'}));
-    no(B.accepts({name: 'Alice', email: 'alice@example.com', extra: true}));
-
+    no(B.accepts({
+      name: ['name', 'Hello'],
+      email: ['email', false]
+    }));
+    no(B.accepts({
+      name: ['name', 'Hello'],
+      email: ['foo', 'World']
+    }));
+    no(B.accepts({
+      name: ['name', 'Hello'],
+      nope: ['email', 'World']
+    }));
   });
 
   it('should build an object', () => {

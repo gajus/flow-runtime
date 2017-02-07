@@ -2,7 +2,7 @@
 
 import Type from './Type';
 import compareTypes from '../compareTypes';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import TypeParameter from './TypeParameter';
 
@@ -17,7 +17,7 @@ export default class FlowIntoType<T: any> extends Type {
 
   typeParameter: TypeParameter<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {typeParameter, context} = this;
 
     const {recorded, bound} = typeParameter;
@@ -25,34 +25,48 @@ export default class FlowIntoType<T: any> extends Type {
     if (bound instanceof FlowIntoType) {
       // We defer to the other type so that values from this
       // one can flow "upwards".
-      return bound.collectErrors(validation, path, input);
+      yield* bound.errors(validation, path, input);
+      return;
     }
     if (recorded) {
       // we've already recorded a value for this type parameter
-      if (bound && bound.collectErrors(validation, path, input)) {
-        return true;
+      if (bound) {
+        let hasError = false;
+        for (const error of bound.errors(validation, path, input)) {
+          yield error;
+          hasError = true;
+        }
+        if (hasError) {
+          return;
+        }
       }
       else if (recorded.accepts(input)) {
         // our existing type already permits this value, there's nothing to do.
-        return false;
+        return;
       }
       else {
         // we need to make a union
         typeParameter.recorded = context.union(recorded, context.typeOf(input));
-        return false;
+        return;
       }
     }
     else if (bound) {
       if (bound.typeName === 'AnyType' || bound.typeName === 'ExistentialType') {
-        return false;
+        return;
       }
-      else if (bound.collectErrors(validation, path, input)) {
-        return true;
+      else {
+        let hasError = false;
+        for (const error of bound.errors(validation, path, input)) {
+          yield error;
+          hasError = true;
+        }
+        if (hasError) {
+          return;
+        }
       }
     }
 
     typeParameter.recorded = context.typeOf(input);
-    return false;
   }
 
   accepts (input: any): boolean {

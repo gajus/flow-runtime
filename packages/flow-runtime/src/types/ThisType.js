@@ -1,7 +1,7 @@
 /* @flow */
 
 import Type from './Type';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 import getErrorMessage from "../getErrorMessage";
 
 
@@ -16,20 +16,16 @@ export default class ThisType<T> extends Type {
 
   recorded: ? T;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {recorded} = this;
     if (input === recorded) {
-      return false;
+      return;
     }
     else if (typeof recorded === 'function' && input instanceof recorded) {
-      return false;
+      return;
     }
     else if (recorded != null) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_THIS'));
-      return true;
-    }
-    else {
-      return false;
+      yield [path, getErrorMessage('ERR_EXPECT_THIS'), this];
     }
   }
 

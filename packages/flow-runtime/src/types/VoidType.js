@@ -3,18 +3,14 @@
 import Type from './Type';
 
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class VoidType extends Type {
   typeName: string = 'VoidType';
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    if (input === undefined) {
-      return false;
-    }
-    else {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_VOID'));
-      return true;
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    if (input !== undefined) {
+      yield [path, getErrorMessage('ERR_EXPECT_VOID'), this];
     }
   }
 

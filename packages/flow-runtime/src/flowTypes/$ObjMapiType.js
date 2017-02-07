@@ -11,7 +11,7 @@ import ObjectTypeProperty from '../types/ObjectTypeProperty';
 import FunctionType from '../types/FunctionType';
 
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 type Mapper = <V: any, R: any> (v: V) => R;
 
@@ -23,17 +23,16 @@ export default class $ObjMapiType<O: {}, M: Mapper> extends Type<$ObjMapi<O, M>>
   object: Type<O>;
   mapper: Type<M>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     let {object, mapper, context} = this;
     const target = object.unwrap();
     invariant(target instanceof ObjectType, 'Target must be an object type.');
 
     if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+      return;
     }
 
-    let hasErrors = false;
     for (const prop: ObjectTypeProperty<*, *> of target.properties) {
       const applied = mapper.unwrap();
       invariant(applied instanceof FunctionType, 'Mapper must be a function type.');
@@ -41,12 +40,8 @@ export default class $ObjMapiType<O: {}, M: Mapper> extends Type<$ObjMapi<O, M>>
       const returnType = applied.invoke(context.literal(prop.key), prop.value);
 
       const value = input[prop.key];
-      if (returnType.collectErrors(validation, path.concat(prop.key), value)) {
-        hasErrors = true;
-      }
+      yield* returnType.errors(validation, path.concat(prop.key), value);
     }
-
-    return hasErrors;
   }
 
   accepts (input: any): boolean {

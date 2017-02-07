@@ -5,7 +5,7 @@ import TupleType from './TupleType';
 import compareTypes from '../compareTypes';
 
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import {
   inValidationCycle,
@@ -20,27 +20,23 @@ export default class ArrayType <T> extends Type {
   typeName: string = 'ArrayType';
   elementType: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {context} = this;
     if (!context.checkPredicate('Array', input)) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_ARRAY'), this];
+      return;
     }
-    if (inValidationCycle(this, input)) {
-      return false;
+    if (validation.inCycle(this, input)) {
+      return;
     }
-    startValidationCycle(this, input);
+    validation.startCycle(this, input);
     const {elementType} = this;
     const {length} = input;
 
-    let hasErrors = false;
     for (let i = 0; i < length; i++) {
-      if (elementType.collectErrors(validation, path.concat(i), input[i])) {
-        hasErrors = true;
-      }
+      yield* elementType.errors(validation, path.concat(i), input[i]);
     }
-    endValidationCycle(this, input);
-    return hasErrors;
+    validation.endCycle(this, input);
   }
 
   accepts (input: any): boolean {

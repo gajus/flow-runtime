@@ -3,17 +3,15 @@
 import Type from './Type';
 
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class NullLiteralType extends Type {
   typeName: string = 'NullLiteralType';
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    if (input === null) {
-      return false;
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    if (input !== null) {
+      yield [path, getErrorMessage('ERR_EXPECT_NULL'), this];
     }
-    validation.addError(path, this, getErrorMessage('ERR_EXPECT_NULL'));
-    return true;
   }
 
   accepts (input: any): boolean {

@@ -2,15 +2,15 @@
 
 import Type from '../types/Type';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 // Any subtype of T
 
 export default class $FlowFixMeType extends Type<any> {
   typeName: string = '$FlowFixMeType';
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    return false;
+  *errors (validation: Validation<any>, input: any, path: IdentifierPath = []): Generator<ErrorTuple, void, void> {
+
   }
 
   accepts (input: any): boolean {

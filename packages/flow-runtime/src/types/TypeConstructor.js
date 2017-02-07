@@ -1,7 +1,7 @@
 /* @flow */
 
 import Type from './Type';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 import type {Constructor} from './';
 
 import TypeParameterApplication from './TypeParameterApplication';
@@ -11,8 +11,8 @@ export default class TypeConstructor<T> extends Type {
   name: string;
   impl: ? Constructor<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    throw new Error(`Not implemented: collectErrors().`);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    throw new Error(`Not implemented: errors().`);
   }
 
   accepts <P> (input: any, ...typeInstances: Type<P>[]): boolean {

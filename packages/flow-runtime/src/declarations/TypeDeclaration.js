@@ -12,7 +12,7 @@ import type {
   ObjectTypeProperty
 } from '../types';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class TypeDeclaration<T> extends Declaration {
   typeName: string = 'TypeDeclaration';
@@ -28,8 +28,8 @@ export default class TypeDeclaration<T> extends Declaration {
     return this;
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    return this.typeAlias.collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    yield* this.typeAlias.errors(validation, path, input);
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, T> {

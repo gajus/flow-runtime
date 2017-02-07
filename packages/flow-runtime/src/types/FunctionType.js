@@ -9,7 +9,7 @@ import FunctionTypeReturn from './FunctionTypeReturn';
 import EmptyType from './EmptyType';
 
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import {TypeSymbol} from '../symbols';
 
@@ -19,32 +19,39 @@ export default class FunctionType<P, R> extends Type {
   rest: ? FunctionTypeRestParam<P>;
   returnType: FunctionTypeReturn<R>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     if (typeof input !== 'function') {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_FUNCTION'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_FUNCTION'), this];
+      return;
     }
     const annotation = input[TypeSymbol];
     const {returnType, params} = this;
     if (annotation) {
-      let hasErrors = false;
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
         const annotationParam = annotation.params[i];
         if (!annotationParam && !param.optional) {
-          validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARGUMENT', param.name, param.type.toString()));
-          hasErrors = true;
+          yield [
+            path,
+            getErrorMessage('ERR_EXPECT_ARGUMENT', param.name, param.type.toString()),
+            this
+          ];
         }
         else if (!param.acceptsType(annotationParam)) {
-          validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARGUMENT', param.name, param.type.toString()));
-          hasErrors = true;
+          yield [
+            path,
+            getErrorMessage('ERR_EXPECT_ARGUMENT', param.name, param.type.toString()),
+            this
+          ];
         }
       }
       if (!returnType.acceptsType(annotation.returnType)) {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_RETURN', returnType.toString()));
-        hasErrors = true;
+        yield [
+          path,
+          getErrorMessage('ERR_EXPECT_RETURN', returnType.toString()),
+          this
+        ];
       }
-      return hasErrors;
     }
     else {
       const {context} = this;
@@ -55,7 +62,6 @@ export default class FunctionType<P, R> extends Type {
         param.acceptsType(context.any());
       }
       returnType.acceptsType(context.any());
-      return false;
     }
   }
 

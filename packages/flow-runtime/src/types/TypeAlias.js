@@ -2,7 +2,7 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 import type {TypeConstraint} from './';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import type ObjectTypeProperty from './ObjectTypeProperty';
 
@@ -24,16 +24,16 @@ export default class TypeAlias<T> extends Type {
     return this.constraints.length > 0;
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {type} = this;
     let hasErrors = false;
-    if (type.collectErrors(validation, path, input)) {
+    for (const error of type.errors(validation, path, input)) {
       hasErrors = true;
+      yield error;
     }
-    else if (collectConstraintErrors(this, validation, path, input)) {
-      hasErrors = true;
+    if (!hasErrors) {
+      yield* collectConstraintErrors(this, validation, path, input);
     }
-    return hasErrors;
   }
 
   accepts (input: any): boolean {

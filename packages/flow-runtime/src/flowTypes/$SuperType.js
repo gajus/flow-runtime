@@ -3,7 +3,7 @@
 import Type from '../types/Type';
 import compareTypes from '../compareTypes';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 // Any, but at least T.
 
@@ -12,8 +12,8 @@ export default class $SuperType<T> extends Type<$Supertype<T>> {
 
   type: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    return this.type.collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    yield* this.type.errors(validation, path, input);
   }
 
   accepts (input: any): boolean {

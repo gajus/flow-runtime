@@ -6,7 +6,7 @@ import getErrorMessage from '../getErrorMessage';
 import compareTypes from '../compareTypes';
 
 import invariant from '../invariant';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 // An object of type $Shape<T> does not have to have all of the properties
 // that type T defines. But the types of the properties that it does have
@@ -17,27 +17,24 @@ export default class $ShapeType<T> extends Type<$Shape<T>> {
 
   type: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     let {type} = this;
+
     if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_OBJECT'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+      return;
     }
+
     type = type.unwrap();
     invariant(typeof type.getProperty === 'function', 'Can only $Shape<T> object types.');
 
-    let hasErrors = false;
     for (const key in input) { // eslint-disable-line guard-for-in
       const property = type.getProperty(key);
       if (!property) {
         continue;
       }
-      if (property.collectErrors(validation, path, input)) {
-        hasErrors = true;
-      }
+      yield* property.errors(validation, path, input);
     }
-
-    return hasErrors;
   }
 
   accepts (input: any): boolean {

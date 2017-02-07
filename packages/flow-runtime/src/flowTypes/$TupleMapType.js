@@ -10,7 +10,7 @@ import invariant from '../invariant';
 import FunctionType from '../types/FunctionType';
 
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 type Mapper = <V: any, R: any> (v: V) => R;
 
@@ -22,17 +22,16 @@ export default class $TupleMapType<T: [], M: Mapper> extends Type<$TupleMap<T, M
   tuple: Type<T>;
   mapper: Type<M>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     let {tuple, mapper, context} = this;
     const target = tuple.unwrap();
     invariant(target instanceof TupleType, 'Target must be a tuple type.');
 
     if (!context.checkPredicate('Array', input)) {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_ARRAY'));
-      return true;
+      yield [path, getErrorMessage('ERR_EXPECT_ARRAY'), this];
+      return;
     }
 
-    let hasErrors = false;
     for (let i = 0; i < target.types.length; i++) {
       const type = target.types[i];
       const applied = mapper.unwrap();
@@ -40,12 +39,8 @@ export default class $TupleMapType<T: [], M: Mapper> extends Type<$TupleMap<T, M
 
       const expected = applied.invoke(type);
       const value = input[i];
-      if (expected.collectErrors(validation, path.concat(i), value)) {
-        hasErrors = true;
-      }
+      yield* expected.errors(validation, path.concat(i), value);
     }
-
-    return hasErrors;
   }
 
   accepts (input: any): boolean {

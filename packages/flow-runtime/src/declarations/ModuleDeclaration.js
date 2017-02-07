@@ -7,7 +7,7 @@ import type ModuleExportsDeclaration from './ModuleExportsDeclaration';
 
 import type TypeContext from '../TypeContext';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export type DeclarationDict = {
   [name: string]: Type<any>;
@@ -73,10 +73,9 @@ export default class ModuleDeclaration extends Declaration {
     }
   }
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     // Can't validate a module directly.
     // @todo should this throw?
-    return false;
   }
 
   import (moduleName: string): ? ModuleDeclaration {

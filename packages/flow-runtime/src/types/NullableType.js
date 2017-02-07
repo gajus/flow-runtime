@@ -4,18 +4,15 @@ import Type from './Type';
 import compareTypes from '../compareTypes';
 import NullLiteralType from './NullLiteralType';
 import VoidType from './VoidType';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class NullableType<T> extends Type<T> {
   typeName: string = 'NullableType';
   type: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    if (input == null) {
-      return false;
-    }
-    else {
-      return this.type.collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    if (input != null) {
+      yield* this.type.errors(validation, path, input);
     }
   }
 

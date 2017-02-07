@@ -6,7 +6,7 @@ import invariant from './invariant';
 import {Type} from './types';
 
 import type TypeContext from './TypeContext';
-import type Validation, {IdentifierPath} from './Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from './Validation';
 
 export default function registerBuiltinTypeConstructors (t: TypeContext): TypeContext {
 
@@ -14,17 +14,12 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: 'Date',
     impl: Date,
     typeName: 'DateType',
-    collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+    *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
       if (!(input instanceof Date)) {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', Date));
-        return true;
+        yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Date'), this];
       }
       else if (isNaN(input.getTime())) {
-        validation.addError(path, this, getErrorMessage('ERR_INVALID_DATE'));
-        return true;
-      }
-      else {
-        return false;
+        yield [path, getErrorMessage('ERR_INVALID_DATE'), this];
       }
     },
     accepts (input): boolean {
@@ -39,13 +34,11 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: 'Promise',
     impl: Promise,
     typeName: 'PromiseType',
-    collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, futureType: Type<any>): boolean {
+    *errors (validation: Validation<any>, path: IdentifierPath, input: any, futureType: Type<any>): Generator<ErrorTuple, void, void> {
       const {context} = this;
       if (!context.checkPredicate('Promise', input)) {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_PROMISE', futureType));
-        return true;
+        yield [path, getErrorMessage('ERR_EXPECT_PROMISE', futureType), this];
       }
-      return false;
     },
     accepts (input): boolean {
       const {context} = this;
@@ -60,24 +53,20 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: 'Map',
     impl: Map,
     typeName: 'MapType',
-    collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, keyType: Type<any>, valueType?: Type<any>): boolean {
+    *errors (validation: Validation<any>, path: IdentifierPath, input: any, keyType: Type<any>, valueType?: Type<any>): Generator<ErrorTuple, void, void> {
       invariant(valueType, 'Must specify two type parameters.');
       const {context} = this;
       if (!context.checkPredicate('Map', input)) {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Map'));
-        return true;
+        yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Map'), this];
+        return;
       }
-      let hasErrors = false;
       for (const [key, value] of input) {
         if (!keyType.accepts(key)) {
-          validation.addError(path, this, getErrorMessage('ERR_EXPECT_KEY_TYPE', keyType));
-          hasErrors = true;
+          yield [path, getErrorMessage('ERR_EXPECT_KEY_TYPE', keyType), this];
         }
-        if (valueType.collectErrors(validation, path.concat(key), value)) {
-          hasErrors = true;
-        }
+
+        yield* valueType.errors(validation, path.concat(key), value);
       }
-      return hasErrors;
     },
     accepts (input, keyType: Type<any>, valueType: Type<any>): boolean {
       const {context} = this;
@@ -143,19 +132,16 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: 'Set',
     impl: Set,
     typeName: 'SetType',
-    collectErrors (validation: Validation<any>, path: IdentifierPath, input: any, valueType: Type<any>): boolean {
+    *errors (validation: Validation<any>, path: IdentifierPath, input: any, valueType?: Type<any>): Generator<ErrorTuple, void, void> {
+      invariant(valueType, 'Must specify two type parameters.');
       const {context} = this;
-      if (!context.checkPredicate('Set', input)) {
-        validation.addError(path, this, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Set'));
-        return true;
+      if (!context.checkPredicate('Map', input)) {
+        yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Set'), this];
+        return;
       }
-      let hasErrors = false;
       for (const value of input) {
-        if (valueType.collectErrors(validation, path, value)) {
-          hasErrors = true;
-        }
+        yield* valueType.errors(validation, path, value);
       }
-      return hasErrors;
     },
     accepts (input, valueType) {
       const {context} = this;

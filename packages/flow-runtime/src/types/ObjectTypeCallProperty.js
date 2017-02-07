@@ -3,14 +3,14 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class ObjectTypeCallProperty<T: Function> extends Type {
   typeName: string = 'ObjectTypeCallProperty';
   value: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    return this.value.collectErrors(validation, path, input);
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    yield* this.value.errors(validation, path, input);
   }
 
   accepts (input: any): boolean {

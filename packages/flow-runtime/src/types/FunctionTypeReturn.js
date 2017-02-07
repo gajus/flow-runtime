@@ -3,16 +3,16 @@
 import Type from './Type';
 import compareTypes from '../compareTypes';
 
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 
 export default class FunctionTypeReturn<T> extends Type {
   typeName: string = 'FunctionTypeReturn';
   type: Type<T>;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {type} = this;
-    return type.collectErrors(validation, path.concat('[[Return Type]]'), input);
+    yield* type.errors(validation, path.concat('[[Return Type]]'), input);
   }
 
   accepts (input: any): boolean {

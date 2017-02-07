@@ -2,20 +2,16 @@
 
 import Type from './Type';
 import getErrorMessage from '../getErrorMessage';
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class SymbolLiteralType<T: Symbol> extends Type {
   typeName: string = 'SymbolLiteralType';
   value: T;
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {value} = this;
-    if (input === value) {
-      return false;
-    }
-    else {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_EXACT_VALUE', this.toString()));
-      return true;
+    if (input !== value) {
+      yield [path, getErrorMessage('ERR_EXPECT_EXACT_VALUE', this.toString()), this];
     }
   }
 
@@ -33,7 +29,7 @@ export default class SymbolLiteralType<T: Symbol> extends Type {
   }
 
   toString () {
-    return `typeof ${this.value.toString()}`;
+    return `typeof ${String(this.value)}`;
   }
 
   toJSON () {

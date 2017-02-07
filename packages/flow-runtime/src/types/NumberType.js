@@ -4,18 +4,14 @@ import Type from './Type';
 import NumericLiteralType from './NumericLiteralType';
 
 import getErrorMessage from "../getErrorMessage";
-import type Validation, {IdentifierPath} from '../Validation';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class NumberType extends Type {
   typeName: string = 'NumberType';
 
-  collectErrors (validation: Validation<any>, path: IdentifierPath, input: any): boolean {
-    if (typeof input === 'number') {
-      return false;
-    }
-    else {
-      validation.addError(path, this, getErrorMessage('ERR_EXPECT_NUMBER'));
-      return false;
+  *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+    if (typeof input !== 'number') {
+      yield [path, getErrorMessage('ERR_EXPECT_NUMBER'), this];
     }
   }
 
