@@ -6,7 +6,7 @@
   "description": "A flow compatible type system for JS.",
   "main": "dist/flow-runtime.js",
   "module": "dist/flow-runtime.es2015.js",
-  "browser": "dist/flow-runtime.min.js",
+  "browser": "dist/flow-runtime.umd.js",
   "scripts": {
     "lint": "eslint ./src && flow check",
     "prepublish": "npm run build",
