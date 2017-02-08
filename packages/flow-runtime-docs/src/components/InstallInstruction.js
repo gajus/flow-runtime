@@ -35,13 +35,13 @@ export default class InstallInstruction extends Component<void, Props, void> {
     return output.join('\n');
   }
 
-  handleClickNpm = (e: Event) => {
+  handleClickNpm = (e: SyntheticMouseEvent) => {
     e.preventDefault();
     this.showYarn = false;
   };
 
 
-  handleClickYarn = (e: Event) => {
+  handleClickYarn = (e: SyntheticMouseEvent) => {
     e.preventDefault();
     this.showYarn = true;
   };

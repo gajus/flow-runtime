@@ -7,7 +7,8 @@ import InstallInstruction from '../InstallInstruction';
 
 const babelConfig = `
 {
-  "plugins": [["flow-runtime"]]
+  "presets": ["stage-2", "react"],
+  "plugins": [["flow-runtime"], "transform-decorators-legacy"]
 }
 `.trim();
 
@@ -24,7 +25,12 @@ export default class GettingStartedPage extends Component {
 
           <h4>Installation</h4>
           <InstallInstruction packageNames={['flow-runtime']}
-                              devPackageNames={['babel-plugin-flow-runtime']}
+                              devPackageNames={[
+                                'babel-plugin-flow-runtime',
+                                'babel-preset-stage-2',
+                                'babel-preset-react',
+                                'babel-plugin-transform-decorators-legacy'
+                              ]}
           />
           <p className="text-muted">Note: <code>babel-plugin-flow-runtime</code> is not required, but is recommended if you're already using Babel.</p>
           <br /><hr /><br />

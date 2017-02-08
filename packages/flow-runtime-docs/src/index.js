@@ -1,6 +1,7 @@
 /* @flow */
 
 import 'regenerator-runtime/runtime';
+import './typedefs';
 
 import t from 'flow-runtime';
 import * as mobx from 'mobx';

@@ -13,7 +13,7 @@ type Props = {
 export default class FakeConsole extends Component<void, Props, void> {
 
 
-  hideLog = (e: Event) => {
+  hideLog = (e: SyntheticMouseEvent) => {
     e.preventDefault();
     this.props.compiler.log = [];
   };

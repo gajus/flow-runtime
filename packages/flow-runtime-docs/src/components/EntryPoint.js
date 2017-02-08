@@ -12,6 +12,7 @@ import BabelPluginFlowRuntimePage from './packages/BabelPluginFlowRuntimePage';
 import FlowRuntimePage from './packages/FlowRuntimePage';
 import FlowConfigParserPage from './packages/FlowConfigParserPage';
 import FlowRuntimeMobxPage from './packages/FlowRuntimeMobxPage';
+import FlowRuntimeCLIPage from './packages/FlowRuntimeCLIPage';
 import FlowRuntimeValidatorsPage from './packages/FlowRuntimeValidatorsPage';
 
 import GettingStartedPage from './docs/GettingStartedPage';
@@ -58,6 +59,7 @@ export default function EntryPoint () {
         <Route path="flow-runtime" component={FlowRuntimePage} />
         <Route path="flow-runtime-validators" component={FlowRuntimeValidatorsPage} />
         <Route path="flow-runtime-mobx" component={FlowRuntimeMobxPage} />
+        <Route path="flow-runtime-cli" component={FlowRuntimeCLIPage} />
         <Route path="babel-plugin-flow-runtime" component={BabelPluginFlowRuntimePage} />
       </Route>
     </Router>

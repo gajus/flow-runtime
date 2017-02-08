@@ -513,9 +513,9 @@ babel-plugin-check-es2015-constants@^6.3.13:
   dependencies:
     babel-runtime "^6.0.0"
 
-babel-plugin-flow-runtime@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/babel-plugin-flow-runtime/-/babel-plugin-flow-runtime-0.1.1.tgz#0716dfc58d349e93ad45820745e69cb84b03abe3"
+babel-plugin-flow-runtime@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/babel-plugin-flow-runtime/-/babel-plugin-flow-runtime-0.2.1.tgz#f729014ac24051ffbba0583f87fb4dbff9bbe5e9"
   dependencies:
     babel-generator "^6.21.0"
     babel-traverse "^6.20.0"
@@ -2543,17 +2543,25 @@ flow-config-parser@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/flow-config-parser/-/flow-config-parser-0.0.6.tgz#9a4de4019552dbb170858947121cf5fb3dbcf8c1"
 
-flow-runtime-mobx@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/flow-runtime-mobx/-/flow-runtime-mobx-0.1.0.tgz#941947943e676fec5b0a340e7129b450430292fa"
+flow-runtime-cli:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/flow-runtime-cli/-/flow-runtime-cli-0.2.1.tgz#e02b3a954d322fcbb00b54f62ea31b59bf22f91b"
+  dependencies:
+    flow-config-parser "^0.0.6"
+    flow-runtime "^0.2.1"
+    minimist "^1.2.0"
+
+flow-runtime-mobx@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/flow-runtime-mobx/-/flow-runtime-mobx-0.2.1.tgz#36aee1341b498b75ed2e44dbc010240e9f578a15"
 
 flow-runtime-validators:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/flow-runtime-validators/-/flow-runtime-validators-0.0.1.tgz#7ce69a8fd8c8a5198696839110756afc63a859ea"
 
-flow-runtime@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/flow-runtime/-/flow-runtime-0.1.0.tgz#2fa692f7c7cfc49bc3d7ffefb536261b6a5a1a53"
+flow-runtime@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/flow-runtime/-/flow-runtime-0.2.1.tgz#f9a9695b9f9c8b50a8c7f96f25af8565876bf3d7"
 
 flow-typed@^2.0.0:
   version "2.0.0"
@@ -5383,6 +5391,14 @@ source-list-map@^0.1.4, source-list-map@~0.1.0, source-list-map@~0.1.7:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/source-list-map/-/source-list-map-0.1.7.tgz#d4b5ce2a46535c72c7e8527c71a77d250618172e"
 
+source-map-loader:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/source-map-loader/-/source-map-loader-0.1.6.tgz#c09903da6d73b9e53b7ed8ee5245597051e98e91"
+  dependencies:
+    async "^0.9.0"
+    loader-utils "~0.2.2"
+    source-map "~0.1.33"
+
 source-map-support@^0.4.2:
   version "0.4.8"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.4.8.tgz#4871918d8a3af07289182e974e32844327b2e98b"
@@ -5398,6 +5414,12 @@ source-map@^0.4.2, source-map@^0.4.4, source-map@~0.4.1, source-map@0.4.x:
 source-map@^0.5.0, source-map@^0.5.3, source-map@^0.5.6, source-map@~0.5.0, source-map@~0.5.1, source-map@~0.5.3:
   version "0.5.6"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.6.tgz#75ce38f52bf0733c5a7f0c118d81334a2bb5f412"
+
+source-map@~0.1.33:
+  version "0.1.43"
+  resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.1.43.tgz#c24bc146ca517c1471f5dacbe2571b2b7f9e3346"
+  dependencies:
+    amdefine ">=0.0.4"
 
 source-map@~0.2.0:
   version "0.2.0"

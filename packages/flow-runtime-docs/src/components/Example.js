@@ -31,11 +31,6 @@ export default class Example extends Component<void, Props, void> {
     this.compiler.run();
   };
 
-  hideLog = (e: Event) => {
-    e.preventDefault();
-    this.compiler.log = [];
-  };
-
   constructor (props: Props) {
     super(props);
     this.compiler = new Compiler(props.code);

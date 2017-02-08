@@ -36,17 +36,12 @@ export default class TryPage extends Component<void, Props, void> {
     this.compiler.updateCode(code);
   };
 
-  handleSelectExample = (e: Event) => {
+  handleSelectExample = (e: SyntheticEvent) => {
     this.compiler.updateCode((e.target: any).value);
   };
 
   runCode = () => {
     this.compiler.run();
-  };
-
-  hideLog = (e: Event) => {
-    e.preventDefault();
-    this.compiler.log = [];
   };
 
   handleClickAssertions = () => {

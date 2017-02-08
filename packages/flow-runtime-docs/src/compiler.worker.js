@@ -1,9 +1,10 @@
 /* @flow */
 
 import 'regenerator-runtime/runtime';
+import './typedefs';
 
 import {parse} from 'babylon';
-import transform from 'babel-plugin-flow-runtime/lib/transform';
+import {transform} from 'babel-plugin-flow-runtime';
 import * as Babel from 'babel-standalone';
 
 declare var self: DedicatedWorkerGlobalScope;
