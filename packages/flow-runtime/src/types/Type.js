@@ -43,7 +43,7 @@ export default class Type <T> {
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {
-    throw new Error('Not implemented.');
+    return -1;
   }
 
   assert (input: T): T {
@@ -65,7 +65,7 @@ export default class Type <T> {
   }
 
   toString () {
-    throw new Error('Not implemented.');
+    return '$Type';
   }
 
   toJSON () {

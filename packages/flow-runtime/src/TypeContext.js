@@ -433,7 +433,7 @@ export default class TypeContext {
     const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
     if (nameRegistry[name]) {
-      throw new Error(`Cannot redeclare type: ${name}`);
+      this.emitWarningMessage(`Redeclaring type: ${name}, this may be unintended.`);
     }
 
     const target = new TypeConstructor(this);
@@ -452,7 +452,7 @@ export default class TypeContext {
       (handlerRegistry: TypeConstructorRegistry);
 
       if (handlerRegistry.has(impl)) {
-        throw new Error(`A type handler already exists for the given implementation.`);
+        this.emitWarningMessage(`A type handler already exists for the given implementation of ${name}.`);
       }
       handlerRegistry.set(impl, target);
     }

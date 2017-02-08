@@ -6,6 +6,8 @@ import type {Constructor} from './';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
+const warnedInstances = new WeakSet();
+
 export default class TypeConstructor<T> extends Type {
   typeName: string = 'TypeConstructor';
   name: string;
@@ -15,15 +17,25 @@ export default class TypeConstructor<T> extends Type {
   }
 
   accepts <P> (input: any, ...typeInstances: Type<P>[]): boolean {
-    throw new Error(`Not implemented: accepts().`);
+    const {context, name} = this;
+    if (!warnedInstances.has(this)) {
+      context.emitWarningMessage(`TypeConstructor ${name} does not implement accepts().`);
+      warnedInstances.add(this);
+    }
+    return false;
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {
-    throw new Error(`Not implemented: compareWith().`);
+    const {context, name} = this;
+    if (!warnedInstances.has(this)) {
+      context.emitWarningMessage(`TypeConstructor ${name} does not implement compareWith().`);
+      warnedInstances.add(this);
+    }
+    return -1;
   }
 
   inferTypeParameters <P> (input: any): Type<P>[] {
-    throw new Error(`No inferrer for ${this.name}.`);
+    return [];
   }
 
   apply <P> (...typeInstances: Type<P>[]): TypeParameterApplication<P, T> {
