@@ -2,7 +2,7 @@
   "name": "flow-config-parser",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.0.6",
+  "version": "0.3.0",
   "description": "A parser for flow's configuration files.",
   "main": "flow-config-parser.js",
   "scripts": {
