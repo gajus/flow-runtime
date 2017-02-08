@@ -20,10 +20,14 @@ const person: User = {
 
 const babelConfig = `
 {
-  "plugins": [["flow-runtime", {
-    "assert": true,
-    "annotate": true
-  }]]
+  "presets": ["stage-2", "react"],
+  "plugins": [
+    "transform-decorators-legacy",
+    ["flow-runtime", {
+      "assert": true,
+      "annotate": true
+    }]
+  ]
 }
 `.trim();
 
