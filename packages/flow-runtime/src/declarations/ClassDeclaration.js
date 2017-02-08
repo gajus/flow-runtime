@@ -15,7 +15,7 @@ export default class ClassDeclaration<O: {}> extends Declaration {
   typeName: string = 'ClassDeclaration';
 
   name: string;
-  superClass: ? Type<{}>;
+  superClass: ? Type<any>;
   body: ObjectType<O>;
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {

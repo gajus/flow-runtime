@@ -8,12 +8,18 @@ const cyclicValidation = new WeakMap();
 const cyclicToString = new WeakSet();
 
 export function inValidationCycle (type: Type<any>, input: any): boolean {
-  const tracked = cyclicValidation.get(type);
-  if (!tracked) {
-    return false;
+  try {
+    const tracked = cyclicValidation.get(type);
+    if (!tracked) {
+      return false;
+    }
+    else {
+      return weakSetHas(tracked, input);
+    }
   }
-  else {
-    return tracked.has(input);
+  catch (e) {
+    // some exotic values cannot be checked
+    return true;
   }
 }
 
@@ -23,13 +29,13 @@ export function startValidationCycle (type: Type<any>, input: any) {
     tracked = new WeakSet();
     cyclicValidation.set(type, tracked);
   }
-  tracked.add(input);
+  weakSetAdd(tracked, input);
 }
 
 export function endValidationCycle (type: Type<any>, input: any) {
   const tracked = cyclicValidation.get(type);
   if (tracked) {
-    tracked.delete(input);
+    weakSetDelete(tracked, input);
   }
 }
 
@@ -43,4 +49,30 @@ export function startToStringCycle (type: Type<any>) {
 
 export function endToStringCycle (type: Type<any>) {
   cyclicToString.delete(type);
+}
+
+
+export function weakSetHas <V: any> (weakset: WeakSet<V>, value: V): boolean {
+  try {
+    return weakset.has(value);
+  }
+  catch (e) {
+    return true;
+  }
+}
+
+
+export function weakSetAdd <V: any> (weakset: WeakSet<V>, value: V) {
+  try {
+    weakset.add(value);
+  }
+  catch (e) {}
+}
+
+
+export function weakSetDelete <V: any> (weakset: WeakSet<V>, value: V) {
+  try {
+    weakset.delete(value);
+  }
+  catch (e) {}
 }

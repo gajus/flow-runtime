@@ -1,6 +1,8 @@
 /* @flow */
 import makeJSONError from './errorReporting/makeJSONError';
 
+import {weakSetHas, weakSetAdd, weakSetDelete} from './cyclic';
+
 import type TypeContext from './TypeContext';
 import type Type from './types/Type';
 
@@ -18,6 +20,7 @@ export type ValidationJSON<T> = {
 };
 
 const validIdentifierOrAccessor = /^[$A-Z_][0-9A-Z_$[\].]*$/i;
+
 
 export default class Validation<T> {
 
@@ -45,7 +48,7 @@ export default class Validation<T> {
       return false;
     }
     else {
-      return tracked.has(input);
+      return weakSetHas(tracked, input);
     }
   }
 
@@ -55,13 +58,13 @@ export default class Validation<T> {
       tracked = new WeakSet();
       this.cyclic.set(type, tracked);
     }
-    tracked.add(input);
+    weakSetAdd(tracked, input);
   }
 
   endCycle (type: Type<any>, input: any) {
     const tracked = this.cyclic.get(type);
     if (tracked) {
-      tracked.delete(input);
+      weakSetDelete(tracked, input);
     }
   }
 
@@ -80,7 +83,7 @@ export default class Validation<T> {
   }
 
   addError (path: IdentifierPath, expectedType: Type<any>, message: string): this {
-    insertError(this.errors, [path, message, expectedType]);
+    this.errors.push([path, message, expectedType]);
     return this;
   }
 
@@ -173,45 +176,3 @@ export function matchPath (path: IdentifierPath, candidate: IdentifierPath): boo
   return true;
 }
 
-function insertError (errors: ErrorTuple[], input: ErrorTuple) {
-  const [inputPath] = input;
-  let candidate = -1;
-  for (let i = 0; i < errors.length; i++) {
-    const [errorPath] = errors[i];
-    const result = comparePaths(errorPath, inputPath);
-    if (result === -1) {
-      break;
-    }
-    else {
-      candidate = i;
-    }
-  }
-  if (candidate === -1) {
-    errors.push(input);
-  }
-  else {
-    errors.splice(candidate, 0, input);
-  }
-}
-
-function comparePaths (pathA: IdentifierPath, pathB: IdentifierPath) {
-  for (let i = 0; i < pathA.length; i++) {
-    if (i === pathB.length) {
-      return 1;
-    }
-    const itemA = pathA[i];
-    const itemB = pathB[i];
-    if (itemA > itemB) {
-      return 1;
-    }
-    else if (itemA < itemB) {
-      return -1;
-    }
-  }
-  if (pathB.length > pathA.length) {
-    return -1;
-  }
-  else {
-    return 0;
-  }
-}

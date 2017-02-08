@@ -74,7 +74,18 @@ export default class UnionType<T> extends Type {
   }
 
   toString (): string {
-    return this.types.join(' | ');
+    const {types} = this;
+    const normalized = new Array(types.length);
+    for (let i = 0; i < types.length; i++) {
+      const type = types[i];
+      if (type.typeName === 'FunctionType' || type.typeName === 'ParameterizedFunctionType') {
+        normalized[i] = `(${type.toString()})`;
+      }
+      else {
+        normalized[i] = type.toString();
+      }
+    }
+    return normalized.join(' | ');
   }
 
   toJSON () {

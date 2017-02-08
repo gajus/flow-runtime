@@ -12,7 +12,6 @@ export default class TypeConstructor<T> extends Type {
   impl: ? Constructor<T>;
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
-    throw new Error(`Not implemented: errors().`);
   }
 
   accepts <P> (input: any, ...typeInstances: Type<P>[]): boolean {

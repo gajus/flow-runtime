@@ -222,21 +222,31 @@ export default class TypeContext {
     return compareTypes(a, b);
   }
 
-  get (name: string): ? Type<any> {
+  get (name: string, ...propertyNames: string[]): ? Type<any> {
     // @flowIssue 252
     const item = this[NameRegistrySymbol][name];
     if (item != null) {
-      if (typeof item === 'function') {
-        return new item(this);
+      let current = typeof item === 'function'
+                  ? new item(this)
+                  : item
+                  ;
+      for (let i = 0; i < propertyNames.length; i++) {
+        const propertyName = propertyNames[i];
+        if (typeof current.getProperty !== 'function') {
+          return;
+        }
+        current = current.getProperty(propertyName);
+        if (!current) {
+          return;
+        }
+        current = current.unwrap();
       }
-      else {
-        return item;
-      }
+      return current;
     }
     // @flowIssue 252
     const parent = this[ParentSymbol];
     if (parent) {
-      return parent.get(name);
+      return parent.get(name, ...propertyNames);
     }
   }
 
@@ -639,7 +649,7 @@ export default class TypeContext {
     return target;
   }
 
-  class <X, O: Object> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
+  class <X, O: {}> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
     if (typeof head === 'function') {
       const target = new ParameterizedClassDeclaration(this);
       target.name = name;
@@ -668,7 +678,7 @@ export default class TypeContext {
       }
       else if (item != null && typeof item === 'object' && !(item instanceof Type)) {
         for (const propertyName in item) { // eslint-disable-line
-          properties.push(this.property(propertyName, item[propertyName]));
+          properties.push(this.property(propertyName, (item: any)[propertyName]));
         }
       }
       else {

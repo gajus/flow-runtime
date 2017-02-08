@@ -34,7 +34,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: 'Promise',
     impl: Promise,
     typeName: 'PromiseType',
-    *errors (validation: Validation<any>, path: IdentifierPath, input: any, futureType: Type<any>): Generator<ErrorTuple, void, void> {
+    *errors (validation: Validation<any>, path: IdentifierPath, input: any, futureType?: Type<any>): Generator<ErrorTuple, void, void> {
+      invariant(futureType, 'Must specify type parameter for Promise.');
       const {context} = this;
       if (!context.checkPredicate('Promise', input)) {
         yield [path, getErrorMessage('ERR_EXPECT_PROMISE', futureType), this];
@@ -53,8 +54,9 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     name: 'Map',
     impl: Map,
     typeName: 'MapType',
-    *errors (validation: Validation<any>, path: IdentifierPath, input: any, keyType: Type<any>, valueType?: Type<any>): Generator<ErrorTuple, void, void> {
-      invariant(valueType, 'Must specify two type parameters.');
+    *errors (validation: Validation<any>, path: IdentifierPath, input: any, keyType?: Type<any>, valueType?: Type<any>): Generator<ErrorTuple, void, void> {
+      invariant(keyType, 'Must specify two type parameters for Map.');
+      invariant(valueType, 'Must specify two type parameters for Map.');
       const {context} = this;
       if (!context.checkPredicate('Map', input)) {
         yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Map'), this];
@@ -133,9 +135,9 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     impl: Set,
     typeName: 'SetType',
     *errors (validation: Validation<any>, path: IdentifierPath, input: any, valueType?: Type<any>): Generator<ErrorTuple, void, void> {
-      invariant(valueType, 'Must specify two type parameters.');
+      invariant(valueType, 'Must specify type parameter for Set.');
       const {context} = this;
-      if (!context.checkPredicate('Map', input)) {
+      if (!context.checkPredicate('Set', input)) {
         yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Set'), this];
         return;
       }

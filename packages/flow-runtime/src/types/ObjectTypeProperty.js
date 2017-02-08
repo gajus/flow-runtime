@@ -67,6 +67,7 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
 
   toString (): string {
     let key = this.key;
+    // @flowIssue 252
     if (typeof key === 'symbol') {
       key = `[${key.toString()}]`;
     }
