@@ -200,16 +200,9 @@ declare class Event {
   preventDefault(): void;
   stopImmediatePropagation(): void;
   stopPropagation(): void;
-  AT_TARGET: number;
-  BUBBLING_PHASE: number;
-  CAPTURING_PHASE: number;
-
-  // deprecated
-  initEvent(
-    type: string,
-    bubbles: boolean,
-    cancelable: boolean
-  ): void;
+  static AT_TARGET: number;
+  static BUBBLING_PHASE: number;
+  static CAPTURING_PHASE: number;
 }
 
 type CustomEvent$Init = Event$Init & {
@@ -219,14 +212,6 @@ type CustomEvent$Init = Event$Init & {
 declare class CustomEvent extends Event {
   constructor(type: string, eventInitDict?: CustomEvent$Init): void;
   detail: any;
-
-  // deprecated
-  initCustomEvent(
-    type: string,
-    bubbles: boolean,
-    cancelable: boolean,
-    detail: any
-  ): CustomEvent;
 }
 
 declare class UIEvent extends Event {

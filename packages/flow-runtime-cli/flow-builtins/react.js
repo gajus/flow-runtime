@@ -311,7 +311,7 @@ declare class SyntheticUIEvent extends SyntheticEvent {
 }
 
 declare class SyntheticFocusEvent extends SyntheticUIEvent {
-    relatedTarget: EventTarget;
+    relatedTarget: ? EventTarget;
 }
 
 declare class SyntheticKeyboardEvent extends SyntheticUIEvent {
@@ -340,7 +340,7 @@ declare class SyntheticMouseEvent extends SyntheticUIEvent {
     metaKey: boolean;
     pageX: number;
     pageY: number;
-    relatedTarget: EventTarget;
+    relatedTarget: ? EventTarget;
     screenX: number;
     screenY: number;
     shiftKey: boolean;
