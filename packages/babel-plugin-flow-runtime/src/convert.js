@@ -120,43 +120,98 @@ function parentIsClassConstructorWithSuper (subject: NodePath): boolean {
   }
 }
 
-function qualifiedToMemberExpression (subject: Node): Node {
-  if (subject.type === 'QualifiedTypeIdentifier') {
-    return t.memberExpression(
-      qualifiedToMemberExpression(subject.qualification),
-      subject.id
-    );
+function qualifiedToMemberExpression (context: ConversionContext, path: NodePath): Node {
+  let current = path;
+  const stack = [];
+  while (current.type === 'QualifiedTypeIdentifier') {
+    stack.unshift(current.node.id);
+    current = current.get('qualification');
+  }
+
+  const first = current.node;
+  const second = stack[0];
+
+  // is this a type or a value?
+  const entity = context.getEntity(first.name, path);
+  let isType = false;
+  let isDirectlyReferenceable = false;
+  if (entity) {
+    if (entity.isValue) {
+      isDirectlyReferenceable = true;
+    }
+    else {
+      isType = true;
+      if (entity.isGlobal) {
+        isDirectlyReferenceable = false;
+      }
+      else {
+        isDirectlyReferenceable = true;
+      }
+    }
   }
   else {
-    return subject;
+    isType = true;
+  }
+
+  if (!isDirectlyReferenceable) {
+
+    const args = [
+      t.stringLiteral(first.name),
+      t.stringLiteral(second.name),
+    ];
+    for (let i = 1; i < stack.length; i++) {
+      args.push(t.stringLiteral(stack[i]));
+    }
+
+    return context.call('get', ...args);
+  }
+  else if (isType) {
+    const args = [
+      first,
+      t.stringLiteral(second.name),
+    ];
+    for (let i = 1; i < stack.length; i++) {
+      args.push(t.stringLiteral(stack[i]));
+    }
+
+    return context.call('get', ...args);
+  }
+  else {
+
+    let inner = t.memberExpression(
+      first,
+      second
+    );
+
+    for (let i = 1; i < stack.length; i++) {
+      inner = t.memberExpression(inner, stack[i]);
+    }
+    return inner;
   }
 }
 
-function annotationToValue (subject: Node): Node {
+function annotationToValue (context: ConversionContext, subject: NodePath): Node {
   switch (subject.type) {
     case 'NullableTypeAnnotation':
     case 'TypeAnnotation':
-      return annotationToValue(subject.typeAnnotation);
+      return annotationToValue(context, subject.get('typeAnnotation'));
     case 'GenericTypeAnnotation':
-      return annotationToValue(subject.id);
+      return annotationToValue(context, subject.get('id'));
     case 'QualifiedTypeIdentifier':
-      return t.memberExpression(
-        annotationToValue(subject.qualification),
-        subject.id
-      );
+      return qualifiedToMemberExpression(context, subject);
     case 'NullLiteralTypeAnnotation':
       return t.nullLiteral();
     case 'VoidTypeAnnotation':
       return t.identifier('undefined');
     case 'BooleanLiteralTypeAnnotation':
-      return t.booleanLiteral(subject.value);
+      return t.booleanLiteral(subject.node.value);
     case 'NumericLiteralTypeAnnotation':
-      return t.numericLiteral(subject.value);
+      return t.numericLiteral(subject.node.value);
     case 'StringLiteralTypeAnnotation':
-      return t.stringLiteral(subject.value);
+      return t.stringLiteral(subject.node.value);
 
     default:
-      return subject;
+      return subject.node;
   }
 }
 
@@ -296,7 +351,7 @@ converters.InterfaceExtends = (context: ConversionContext, path: NodePath): Node
   let name;
   let subject;
   if (id.isQualifiedTypeIdentifier()) {
-    subject = qualifiedToMemberExpression(id.node);
+    subject = qualifiedToMemberExpression(context, id);
     const outer = getMemberExpressionObject(subject);
     name = outer.name;
   }
@@ -401,7 +456,14 @@ converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
 };
 
 converters.TypeofTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
-  return context.call('typeOf', annotationToValue(path.get('argument').node));
+  const value = annotationToValue(context, path.get('argument'));
+  if (value.type === 'CallExpression') {
+    // this is a reference to a type
+    return value;
+  }
+  else {
+    return context.call('typeOf', value);
+  }
 };
 
 converters.TypeParameter = (context: ConversionContext, path: NodePath): Node => {
@@ -503,7 +565,7 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   let name;
   let subject;
   if (id.isQualifiedTypeIdentifier()) {
-    subject = qualifiedToMemberExpression(id.node);
+    subject = qualifiedToMemberExpression(context, id);
     const outer = getMemberExpressionObject(subject);
     name = outer.name;
   }
@@ -635,9 +697,57 @@ converters.TupleTypeAnnotation = (context: ConversionContext, path: NodePath): N
 
 
 converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): Node => {
+
+  const [properties] = path.get('properties').reduce(
+    ([properties, seen, seenStatic], property) => {
+      const key = property.get('key');
+      if (property.node.computed) {
+        properties.push(property);
+      }
+      else if (property.node.static) {
+        const existing = seenStatic.get(key.node.name);
+        if (existing) {
+          if (existing.node.value.type === 'UnionTypeAnnotation') {
+            existing.node.value.types.push(property.node.value);
+          }
+          else {
+            existing.node.value = t.unionTypeAnnotation([
+              existing.node.value,
+              property.node.value
+            ]);
+          }
+        }
+        else {
+          seenStatic.set(key.node.name, property);
+          properties.push(property);
+        }
+      }
+      else {
+        const existing = seen.get(key.node.name);
+        if (existing) {
+          if (existing.node.value.type === 'UnionTypeAnnotation') {
+            existing.node.value.types.push(property.node.value);
+          }
+          else {
+            existing.node.value = t.unionTypeAnnotation([
+              existing.node.value,
+              property.node.value
+            ]);
+          }
+        }
+        else {
+          seen.set(key.node.name, property);
+          properties.push(property);
+        }
+      }
+      return [properties, seen, seenStatic];
+    },
+    [[], new Map(), new Map()]
+  );
+
   const body = [
     ...path.get('callProperties'),
-    ...path.get('properties'),
+    ...properties,
     ...path.get('indexers')
   ];
   return context.call(path.node.exact ? 'exactObject' : 'object', ...body.map(item => convert(context, item)));
