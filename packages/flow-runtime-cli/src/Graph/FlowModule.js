@@ -24,9 +24,6 @@ export default class FlowModule {
   modules: FlowModuleDict = {};
 
   get (...keys: string[]): ? FlowEntity {
-    if (keys.length > 1) {
-      console.log('referencing', this.modules[keys[0]].entities);
-    }
     const depth = keys.length - 1;
     let module = this;
     for (let i = 0; i < depth; i++) {

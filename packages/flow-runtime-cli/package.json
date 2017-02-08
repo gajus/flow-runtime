@@ -3,6 +3,9 @@
   "version": "0.2.1",
   "description": "A command line tool for working with flow and flow-runtime.",
   "main": "index.js",
+  "bin": {
+    "flow-runtime": "./flow-runtime-cli.js"
+  },
   "repository": {
     "url": "https://github.com/codemix/flow-runtime.git",
     "type": "git"

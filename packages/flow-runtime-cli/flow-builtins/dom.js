@@ -174,17 +174,13 @@ declare class EventTarget {
 
   dispatchEvent(evt: Event): boolean;
 
-  // Deprecated
-
-  cancelBubble: boolean;
-  initEvent(eventTypeArg: string, canBubbleArg: boolean, cancelableArg: boolean): void;
 }
 
 type Event$Init = {
   bubbles?: boolean,
   cancelable?: boolean,
   composed?: boolean,
-  scoped?: boolean
+  scoped?: ? boolean
 }
 
 declare class Event {
@@ -196,8 +192,8 @@ declare class Event {
   defaultPrevented: boolean;
   eventPhase: number;
   isTrusted: boolean;
-  scoped: boolean;
-  srcElement: Element;
+  scoped: ? boolean;
+  srcElement: ? Element | {}; // @fixme too broad
   target: EventTarget;
   timeStamp: number;
   type: string;
@@ -2714,7 +2710,7 @@ declare class HTMLScriptElement extends HTMLElement {
 declare class HTMLStyleElement extends HTMLElement {
   disabled: boolean;
   media: string;
-  scoped: boolean;
+  scoped: ? boolean;
   sheet: ?StyleSheet;
   type: string;
 }
