@@ -15,7 +15,7 @@ export default function createConversionContext (options: Options): ConversionCo
 
   const context = new ConversionContext();
 
-  context.shouldAssert = options.assert === 'undefined'
+  context.shouldAssert = options.assert === undefined
                        ? process.env.NODE_ENV === 'development'
                        : Boolean(options.assert)
                        ;
@@ -29,7 +29,7 @@ export default function createConversionContext (options: Options): ConversionCo
     }
   }
 
-  context.shouldAnnotate = options.annotate === 'undefined'
+  context.shouldAnnotate = options.annotate === undefined
                          ? true
                          : Boolean(options.annotate)
                          ;
