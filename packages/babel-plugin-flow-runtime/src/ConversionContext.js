@@ -171,6 +171,9 @@ export default class ConversionContext {
       for (let i = subject.key + 1; i < body.length; i++) {
         let path = body[i];
         if (path.isExportNamedDeclaration() || path.isExportDefaultDeclaration()) {
+          if (!path.has('declaration')) {
+            continue;
+          }
           path = path.get('declaration');
         }
         const hasSameName = path.node.id && path.node.id.name === name;
