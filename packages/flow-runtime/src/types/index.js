@@ -1,5 +1,7 @@
 /* @flow */
 
+import type TypeContext from '../TypeContext';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export type TypeCreator <T> = (partial: PartialType<T>) => T;
 export type TypeRevealer <T> = () => ? Type<T> | Class<T>;
@@ -15,14 +17,12 @@ export type ValidFunctionBody<X, P, R>
  | FunctionTypeReturn<R>
  ;
 
-export type ObjectPropertyDict<T: {}> = {
-  [name: $Keys<T>]: Type<any>;
-};
+export type ObjectPropertyDict<T> = $ObjMap<T, <V>(v: Type<V>) => V>;
 
 export type ValidObjectBody<O: {}>
  = ObjectTypeCallProperty<any>
- | ObjectTypeProperty<$Keys<O>, $ObjMap<O, <K>(k: Type<K>) => K>>
- | ObjectTypeIndexer<string | number, any>
+ | ObjectTypeProperty<$Keys<O>, $ObjMap<O, <V>(v: Type<V>) => V>>
+ | ObjectTypeIndexer<*, *>
  ;
 
 export type TypeConstraint = (input: any) => ? string;

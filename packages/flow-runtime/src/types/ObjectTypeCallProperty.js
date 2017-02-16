@@ -2,19 +2,58 @@
 
 import Type from './Type';
 import compareTypes from '../compareTypes';
+import getErrorMessage from "../getErrorMessage";
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 export default class ObjectTypeCallProperty<T: Function> extends Type {
   typeName: string = 'ObjectTypeCallProperty';
   value: Type<T>;
+  // @flowIgnore
+  'static': boolean = false;
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
-    yield* this.value.errors(validation, path, input);
+    // @flowIgnore
+    const {value, static: isStatic} = this;
+    let target;
+    let targetPath;
+    if (isStatic) {
+      if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
+        yield [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+        return;
+      }
+      targetPath = path.concat('constructor');
+      if (typeof input.constructor !== 'function') {
+        yield [targetPath, getErrorMessage('ERR_EXPECT_FUNCTION'), this];
+        return;
+      }
+      target = input.constructor;
+    }
+    else {
+      target = input;
+      targetPath = path;
+    }
+    console.log('checking', value, target);
+    yield* value.errors(validation, targetPath, target);
   }
 
   accepts (input: any): boolean {
-    return this.value.accepts(input);
+    // @flowIgnore
+    const {value, static: isStatic} = this;
+    let target;
+    if (isStatic) {
+      if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
+        return false;
+      }
+      if (typeof input.constructor !== 'function') {
+        return false;
+      }
+      target = input.constructor;
+    }
+    else {
+      target = input;
+    }
+    return value.accepts(target);
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {

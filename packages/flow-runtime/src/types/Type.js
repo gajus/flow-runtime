@@ -8,7 +8,6 @@ import type TypeContext from '../TypeContext';
 import Validation from '../Validation';
 import type {ErrorTuple, IdentifierPath} from '../Validation';
 
-
 /**
  * # Type
  *
@@ -46,7 +45,7 @@ export default class Type <T> {
     return -1;
   }
 
-  assert (input: T): T {
+  assert <V: T> (input: V): V {
     const error = makeError(this, input);
     if (error) {
       if (typeof Error.captureStackTrace === 'function') {
@@ -58,7 +57,7 @@ export default class Type <T> {
   }
 
   /**
-   * Get the inner type or value.
+   * Get the inner type.
    */
   unwrap (): Type<T> {
     return this;

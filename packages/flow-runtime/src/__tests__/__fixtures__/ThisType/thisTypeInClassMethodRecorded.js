@@ -23,6 +23,7 @@ export function fail (t: TypeContext) {
   class A {
     x (): this {
       const _returnType = t.return(t.this(this));
+      // @flowIgnore expected error
       return _returnType.assert(new A());
     }
   }

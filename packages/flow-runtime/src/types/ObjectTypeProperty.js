@@ -2,10 +2,11 @@
 
 import Type from './Type';
 import compareTypes from '../compareTypes';
-import type {TypeConstraint} from './';
-
-import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
+import getErrorMessage from "../getErrorMessage";
 import {addConstraints, collectConstraintErrors, constraintsAccept} from '../typeConstraints';
+
+import type {TypeConstraint} from './';
+import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 
 export default class ObjectTypeProperty<K: string | number, V> extends Type {
@@ -14,7 +15,7 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
   value: Type<V>;
   optional: boolean;
   // @flowIgnore
-  'static': boolean;
+  'static': boolean = false;
   constraints: TypeConstraint[] = [];
 
   addConstraint (...constraints: TypeConstraint[]): ObjectTypeProperty<K, V> {
@@ -23,29 +24,67 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
   }
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
-    const {optional, key, value} = this;
-    if (optional && input[key] === undefined) {
+    // @flowIgnore
+    const {optional, key, value, static: isStatic} = this;
+    let target;
+    let targetPath;
+    if (isStatic) {
+      if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
+        yield [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+        return;
+      }
+      targetPath = path.concat('constructor');
+      if (typeof input.constructor !== 'function') {
+        if (!optional) {
+          yield [targetPath, getErrorMessage('ERR_EXPECT_FUNCTION'), this];
+        }
+        return;
+      }
+      targetPath.push(key);
+      target = input.constructor[key];
+    }
+    else {
+      target = input[key];
+      targetPath = path.concat(key);
+    }
+    if (optional && target === undefined) {
       return;
     }
     let hasErrors = false;
-    for (const error of value.errors(validation, path.concat(key), input[key])) {
+    for (const error of value.errors(validation, targetPath, target)) {
       hasErrors = true;
       yield error;
     }
     if (!hasErrors) {
-      yield* collectConstraintErrors(this, validation, path.concat(key), input[key]);
+      yield* collectConstraintErrors(this, validation, targetPath, target);
     }
   }
 
   accepts (input: Object): boolean {
-    if (this.optional && input[this.key] === undefined) {
+    // @flowIgnore
+    const {optional, key, value, static: isStatic} = this;
+    let target;
+    if (isStatic) {
+      if (input === null || (typeof input !== 'object' && typeof input !== 'function')) {
+        return false;
+      }
+      if (typeof input.constructor !== 'function') {
+        return optional ? true : false;
+      }
+      target = input.constructor[key];
+    }
+    else {
+      target = input[key];
+    }
+
+    if (optional && target === undefined) {
       return true;
     }
-    else if (!this.value.accepts(input[this.key])) {
+    else if (!value.accepts(target)) {
       return false;
     }
     else {
-      return constraintsAccept(this, input[this.key]);
+      return constraintsAccept(this, target);
     }
   }
 

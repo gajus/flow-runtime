@@ -154,6 +154,7 @@ export type CheckMode
   | 'warn'
   ;
 
+
 /**
  * Keeps track of invalid references in order to prevent
  * multiple warnings.
@@ -496,7 +497,7 @@ export default class TypeContext {
     return primitiveTypes.null;
   }
 
-  nullable <T> (type: Type<T>): NullableType<T> {
+  nullable <T> (type: Type<T>): NullableType<? T> {
     const target = new NullableType(this);
     target.type = type;
     return target;
@@ -813,7 +814,7 @@ export default class TypeContext {
     return target;
   }
 
-  property <K: string | number, V> (key: K, value: Type<V> | ObjectPropertyDict<Object>, optional: boolean = false): ObjectTypeProperty<K, V> {
+  property <K: string | number, V> (key: K, value: Type<V> | ObjectPropertyDict<{}>, optional: boolean = false): ObjectTypeProperty<K, V> {
     const target = new ObjectTypeProperty(this);
     target.key = key;
     if (value instanceof Type) {
@@ -841,7 +842,13 @@ export default class TypeContext {
     return target;
   }
 
-  staticProperty <K: string | number, V> (key: K, value: Type<V> | ObjectPropertyDict<Object>, optional: boolean = false): ObjectTypeProperty<K, V> {
+  staticCallProperty <T: Function> (value: Type<T>): ObjectTypeCallProperty<T> {
+    const prop = this.callProperty(value);
+    (prop: $FlowIssue).static = true;
+    return prop;
+  }
+
+  staticProperty <K: string | number, V> (key: K, value: Type<V> | ObjectPropertyDict<{}>, optional: boolean = false): ObjectTypeProperty<K, V> {
     const prop = this.property(key, value, optional);
     (prop: $FlowIssue).static = true;
     return prop;
