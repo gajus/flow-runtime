@@ -634,7 +634,9 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
       }
 
-      if (!shouldCheck || (!hasTypeParameters && !hasSuperTypeParameters)) {
+      const hasImplements = path.has('implements');
+
+      if (!shouldCheck || (!hasTypeParameters && !hasSuperTypeParameters && !hasImplements)) {
         // Nothing to do here.
         return;
       }
@@ -647,14 +649,14 @@ export default function transformVisitors (context: ConversionContext): Object {
 
       const thisTypeParameters = t.memberExpression(
         t.thisExpression(),
-        t.identifier(typeParametersSymbolUid),
+        t.identifier(typeParametersSymbolUid || '___NONE___'),
         true
       );
 
+      const constructorBlock = constructor.get('body');
 
 
       if (path.has('superClass')) {
-        const constructorBlock = constructor.get('body');
 
         const trailer = [];
         if (hasTypeParameters) {
@@ -691,38 +693,63 @@ export default function transformVisitors (context: ConversionContext): Object {
             )
           ));
         }
+
+        if (hasImplements) {
+          trailer.push(...path.get('implements').map(item => t.expressionStatement(t.callExpression(
+            t.memberExpression(
+              convert(context, item),
+              t.identifier('assert')
+            ),
+            [t.thisExpression()]
+          ))));
+        }
         getSuperStatement(constructorBlock).insertAfter(trailer);
       }
       else {
-        constructor.get('body').unshiftContainer('body', t.expressionStatement(
-          t.assignmentExpression(
-            '=',
-            thisTypeParameters,
-            t.objectExpression(typeParameters.map(typeParameter => {
-              return t.objectProperty(
-                t.identifier(typeParameter.node.name),
-                convert(context, typeParameter)
-              );
-            }))
-          )
-        ));
+        if (hasImplements) {
+          constructorBlock.unshiftContainer('body', path.get('implements').map(item => t.expressionStatement(t.callExpression(
+            t.memberExpression(
+              convert(context, item),
+              t.identifier('assert')
+            ),
+            [t.thisExpression()]
+          ))));
+        }
+        if (hasTypeParameters) {
+          constructorBlock.unshiftContainer('body', t.expressionStatement(
+            t.assignmentExpression(
+              '=',
+              thisTypeParameters,
+              t.objectExpression(typeParameters.map(typeParameter => {
+                return t.objectProperty(
+                  t.identifier(typeParameter.node.name),
+                  convert(context, typeParameter)
+                );
+              }))
+            )
+          ));
+        }
       }
-      const staticMethods = body.get('body').filter(
-        item => item.isClassMethod() && item.node.static
-      );
 
-      for (const method of staticMethods) {
-        method.get('body').unshiftContainer('body', t.variableDeclaration('const', [
-          t.variableDeclarator(
-            typeParametersUid,
-            t.objectExpression(typeParameters.map(typeParameter => {
-              return t.objectProperty(
-                t.identifier(typeParameter.node.name),
-                convert(context, typeParameter)
-              );
-            }))
-          )
-        ]));
+
+      if (hasTypeParameters) {
+        const staticMethods = body.get('body').filter(
+          item => item.isClassMethod() && item.node.static
+        );
+
+        for (const method of staticMethods) {
+          method.get('body').unshiftContainer('body', t.variableDeclaration('const', [
+            t.variableDeclarator(
+              typeParametersUid,
+              t.objectExpression(typeParameters.map(typeParameter => {
+                return t.objectProperty(
+                  t.identifier(typeParameter.node.name),
+                  convert(context, typeParameter)
+                );
+              }))
+            )
+          ]));
+        }
       }
     }},
 

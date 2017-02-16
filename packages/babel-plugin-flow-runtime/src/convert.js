@@ -1038,6 +1038,9 @@ converters.Class = (context: ConversionContext, path: NodePath): Node => {
   const body = path.get('body');
 
   for (const child of body.get('body')) {
+    if (child.node.kind === 'constructor' && child.node.params.length === 0) {
+      continue;
+    }
     invocations.push(convert(context, child));
     if (!shouldBox && annotationReferencesId(child, name)) {
       shouldBox = true;
@@ -1139,7 +1142,130 @@ converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
   }
 };
 
+converters.ClassImplements = (context: ConversionContext, path: NodePath): Node => {
+  const id = path.get('id');
+  let name;
+  let subject;
+  if (id.isQualifiedTypeIdentifier()) {
+    subject = qualifiedToMemberExpression(context, id);
+    const outer = getMemberExpressionObject(subject);
+    name = outer.name;
+  }
+  else {
+    name = id.node.name;
+    subject = t.identifier(name);
+  }
+  if (context.shouldSuppressTypeName(name)) {
+    return context.call('any');
+  }
+  if (context.inTDZ(id.node)) {
+    subject = context.call('tdz', t.arrowFunctionExpression([], subject));
+  }
+  const typeParameters = getTypeParameters(path).map(item => convert(context, item));
+  const entity = context.getEntity(name, path);
 
+  if (!entity) {
+    if (name === 'Array') {
+      return context.call('array', ...typeParameters);
+    }
+    else if (name === 'Function') {
+      return context.call('function');
+    }
+    else if (name === 'Object') {
+      return context.call('object');
+    }
+  }
+
+  const isTypeParameter = (
+    (entity && entity.isTypeParameter)
+    || (context.isAnnotating && entity && entity.isClassTypeParameter)
+    || annotationParentHasTypeParameter(path, name)
+  );
+
+
+  if (isTypeParameter && typeParameterCanFlow(path)) {
+    subject = context.call('flowInto', subject);
+  }
+
+  const isDirectlyReferenceable
+        = isTypeParameter
+        || (entity && entity.isTypeAlias)
+        ;
+
+
+  if (isDirectlyReferenceable) {
+    if (typeParameters.length > 0) {
+      return context.call('ref', subject, ...typeParameters);
+    }
+    else {
+      return subject;
+    }
+  }
+  else if (!entity) {
+    const flowTypeName = context.getFlowTypeName(name);
+    if (flowTypeName) {
+      return context.call(flowTypeName, ...typeParameters);
+    }
+    else {
+      return context.call('ref', t.stringLiteral(name), ...typeParameters);
+    }
+  }
+  else if (entity.isClassTypeParameter) {
+    let target;
+    const typeParametersUid = context.getClassData(path, 'typeParametersUid');
+    const typeParametersSymbolUid = context.getClassData(path, 'typeParametersSymbolUid');
+    if (typeParametersUid && parentIsStaticMethod(path)) {
+      target = t.memberExpression(
+        t.identifier(typeParametersUid),
+        subject
+      );
+    }
+    else if (typeParametersUid && parentIsClassConstructorWithSuper(path)) {
+      target = t.memberExpression(
+        t.identifier(typeParametersUid),
+        subject
+      );
+    }
+    else if (typeParametersSymbolUid) {
+      target = t.memberExpression(
+        t.memberExpression(
+          t.thisExpression(),
+          t.identifier(typeParametersSymbolUid),
+          true
+        ),
+        subject
+      );
+    }
+    else {
+      target = t.memberExpression(
+        t.memberExpression(
+          t.thisExpression(),
+          t.memberExpression(
+            t.thisExpression(),
+            context.symbol('TypeParameters'),
+            true
+          ),
+          true
+        ),
+        subject
+      );
+    }
+
+    if (typeParameterCanFlow(path)) {
+      target = context.call('flowInto', target);
+    }
+
+    if (typeParameters.length > 0) {
+      return context.call('ref', target, ...typeParameters);
+    }
+    else {
+      return target;
+    }
+  }
+  else {
+    return context.call('ref', subject, ...typeParameters);
+  }
+};
 
 converters.ObjectMethod = (context: ConversionContext, path: NodePath): Node => {
   const args = functionToArgs(context, path);

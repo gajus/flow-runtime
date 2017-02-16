@@ -186,6 +186,9 @@ export default function firstPassVisitors (context: ConversionContext): Object {
           path.parentPath.scope.generateUid(`_typeParameters`)
         );
       }
+      else if (path.has('implements') && (context.shouldAssert || context.shouldWarn)) {
+        ensureConstructor(path);
+      }
 
       if (typeParameters.length > 0) {
         context.setClassData(

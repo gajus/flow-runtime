@@ -60,6 +60,9 @@ function stripFlowTypes (program: Node): Node {
         node = node.expression;
       } while (node.type === 'TypeCastExpression');
       path.replaceWith(node);
+    },
+    Class(path) {
+      path.node.implements = null;
     }
   });
   return program;
