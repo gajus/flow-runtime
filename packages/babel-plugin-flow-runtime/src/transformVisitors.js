@@ -695,25 +695,21 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
 
         if (hasImplements) {
-          trailer.push(...path.get('implements').map(item => t.expressionStatement(t.callExpression(
-            t.memberExpression(
+          trailer.push(...path.get('implements').map(item => t.expressionStatement(
+            context.assert(
               convert(context, item),
-              t.identifier('assert')
-            ),
-            [t.thisExpression()]
-          ))));
+              t.thisExpression()
+            )
+          )));
         }
         getSuperStatement(constructorBlock).insertAfter(trailer);
       }
       else {
         if (hasImplements) {
-          constructorBlock.unshiftContainer('body', path.get('implements').map(item => t.expressionStatement(t.callExpression(
-            t.memberExpression(
+          constructorBlock.unshiftContainer('body', path.get('implements').map(item => t.expressionStatement(context.assert(
               convert(context, item),
-              t.identifier('assert')
-            ),
-            [t.thisExpression()]
-          ))));
+              t.thisExpression()
+            ))));
         }
         if (hasTypeParameters) {
           constructorBlock.unshiftContainer('body', t.expressionStatement(
