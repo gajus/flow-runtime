@@ -4590,6 +4590,9 @@
 	    for (var _iterator5 = body.get('body')[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
 	      var child = _step5.value;
 	
+	      if (child.node.kind === 'constructor' && child.node.params.length === 0) {
+	        continue;
+	      }
 	      invocations.push(convert(context, child));
 	      if (!shouldBox && annotationReferencesId(child, name)) {
 	        shouldBox = true;
@@ -4678,6 +4681,88 @@
 	    return context.call('indexer', t.stringLiteral('key'), keyType, context.call.apply(context, ['function'].concat(_toConsumableArray(args))));
 	  } else {
 	    return context.call.apply(context, [path.node.static ? 'staticMethod' : 'method', t.stringLiteral(path.node.key.name)].concat(_toConsumableArray(args)));
+	  }
+	};
+	
+	converters.ClassImplements = function (context, path) {
+	  var id = path.get('id');
+	  var name = void 0;
+	  var subject = void 0;
+	  if (id.isQualifiedTypeIdentifier()) {
+	    subject = qualifiedToMemberExpression(context, id);
+	    var outer = getMemberExpressionObject(subject);
+	    name = outer.name;
+	  } else {
+	    name = id.node.name;
+	    subject = t.identifier(name);
+	  }
+	  if (context.shouldSuppressTypeName(name)) {
+	    return context.call('any');
+	  }
+	  if (context.inTDZ(id.node)) {
+	    subject = context.call('tdz', t.arrowFunctionExpression([], subject));
+	  }
+	  var typeParameters = (0, _getTypeParameters2.default)(path).map(function (item) {
+	    return convert(context, item);
+	  });
+	  var entity = context.getEntity(name, path);
+	
+	  if (!entity) {
+	    if (name === 'Array') {
+	      return context.call.apply(context, ['array'].concat(_toConsumableArray(typeParameters)));
+	    } else if (name === 'Function') {
+	      return context.call('function');
+	    } else if (name === 'Object') {
+	      return context.call('object');
+	    }
+	  }
+	
+	  var isTypeParameter = entity && entity.isTypeParameter || context.isAnnotating && entity && entity.isClassTypeParameter || annotationParentHasTypeParameter(path, name);
+	
+	  if (isTypeParameter && typeParameterCanFlow(path)) {
+	    subject = context.call('flowInto', subject);
+	  }
+	
+	  var isDirectlyReferenceable = isTypeParameter || entity && entity.isTypeAlias;
+	
+	  if (isDirectlyReferenceable) {
+	    if (typeParameters.length > 0) {
+	      return context.call.apply(context, ['ref', subject].concat(_toConsumableArray(typeParameters)));
+	    } else {
+	      return subject;
+	    }
+	  } else if (!entity) {
+	    var flowTypeName = context.getFlowTypeName(name);
+	    if (flowTypeName) {
+	      return context.call.apply(context, [flowTypeName].concat(_toConsumableArray(typeParameters)));
+	    } else {
+	      return context.call.apply(context, ['ref', t.stringLiteral(name)].concat(_toConsumableArray(typeParameters)));
+	    }
+	  } else if (entity.isClassTypeParameter) {
+	    var target = void 0;
+	    var typeParametersUid = context.getClassData(path, 'typeParametersUid');
+	    var typeParametersSymbolUid = context.getClassData(path, 'typeParametersSymbolUid');
+	    if (typeParametersUid && parentIsStaticMethod(path)) {
+	      target = t.memberExpression(t.identifier(typeParametersUid), subject);
+	    } else if (typeParametersUid && parentIsClassConstructorWithSuper(path)) {
+	      target = t.memberExpression(t.identifier(typeParametersUid), subject);
+	    } else if (typeParametersSymbolUid) {
+	      target = t.memberExpression(t.memberExpression(t.thisExpression(), t.identifier(typeParametersSymbolUid), true), subject);
+	    } else {
+	      target = t.memberExpression(t.memberExpression(t.thisExpression(), t.memberExpression(t.thisExpression(), context.symbol('TypeParameters'), true), true), subject);
+	    }
+	
+	    if (typeParameterCanFlow(path)) {
+	      target = context.call('flowInto', target);
+	    }
+	
+	    if (typeParameters.length > 0) {
+	      return context.call.apply(context, ['ref', target].concat(_toConsumableArray(typeParameters)));
+	    } else {
+	      return target;
+	    }
+	  } else {
+	    return context.call.apply(context, ['ref', subject].concat(_toConsumableArray(typeParameters)));
 	  }
 	};
 	
@@ -7882,6 +7967,8 @@
 	      if (typeParameters.length > 0 || path.has('superTypeParameters')) {
 	        ensureConstructor(path);
 	        context.setClassData(path, 'typeParametersUid', path.parentPath.scope.generateUid('_typeParameters'));
+	      } else if (path.has('implements') && (context.shouldAssert || context.shouldWarn)) {
+	        ensureConstructor(path);
 	      }
 	
 	      if (typeParameters.length > 0) {
@@ -8970,7 +9057,9 @@
 	          }
 	        }
 	
-	        if (!shouldCheck || !hasTypeParameters && !hasSuperTypeParameters) {
+	        var hasImplements = path.has('implements');
+	
+	        if (!shouldCheck || !hasTypeParameters && !hasSuperTypeParameters && !hasImplements) {
 	          // Nothing to do here.
 	          return;
 	        }
@@ -8983,10 +9072,11 @@
 	
 	        var typeParametersUid = t.identifier(context.getClassData(path, 'typeParametersUid'));
 	
-	        var thisTypeParameters = t.memberExpression(t.thisExpression(), t.identifier(typeParametersSymbolUid), true);
+	        var thisTypeParameters = t.memberExpression(t.thisExpression(), t.identifier(typeParametersSymbolUid || '___NONE___'), true);
+	
+	        var constructorBlock = constructor.get('body');
 	
 	        if (path.has('superClass')) {
-	          var constructorBlock = constructor.get('body');
 	
 	          var trailer = [];
 	          if (hasTypeParameters) {
@@ -9002,39 +9092,55 @@
 	              return (0, _convert2.default)(context, item);
 	            }))))));
 	          }
+	
+	          if (hasImplements) {
+	            trailer.push.apply(trailer, _toConsumableArray(path.get('implements').map(function (item) {
+	              return t.expressionStatement(context.assert((0, _convert2.default)(context, item), t.thisExpression()));
+	            })));
+	          }
 	          getSuperStatement(constructorBlock).insertAfter(trailer);
 	        } else {
-	          constructor.get('body').unshiftContainer('body', t.expressionStatement(t.assignmentExpression('=', thisTypeParameters, t.objectExpression(typeParameters.map(function (typeParameter) {
-	            return t.objectProperty(t.identifier(typeParameter.node.name), (0, _convert2.default)(context, typeParameter));
-	          })))));
-	        }
-	        var staticMethods = body.get('body').filter(function (item) {
-	          return item.isClassMethod() && item.node.static;
-	        });
-	
-	        var _iteratorNormalCompletion4 = true;
-	        var _didIteratorError4 = false;
-	        var _iteratorError4 = undefined;
-	
-	        try {
-	          for (var _iterator4 = staticMethods[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	            var method = _step4.value;
-	
-	            method.get('body').unshiftContainer('body', t.variableDeclaration('const', [t.variableDeclarator(typeParametersUid, t.objectExpression(typeParameters.map(function (typeParameter) {
-	              return t.objectProperty(t.identifier(typeParameter.node.name), (0, _convert2.default)(context, typeParameter));
-	            })))]));
+	          if (hasImplements) {
+	            constructorBlock.unshiftContainer('body', path.get('implements').map(function (item) {
+	              return t.expressionStatement(context.assert((0, _convert2.default)(context, item), t.thisExpression()));
+	            }));
 	          }
-	        } catch (err) {
-	          _didIteratorError4 = true;
-	          _iteratorError4 = err;
-	        } finally {
+	          if (hasTypeParameters) {
+	            constructorBlock.unshiftContainer('body', t.expressionStatement(t.assignmentExpression('=', thisTypeParameters, t.objectExpression(typeParameters.map(function (typeParameter) {
+	              return t.objectProperty(t.identifier(typeParameter.node.name), (0, _convert2.default)(context, typeParameter));
+	            })))));
+	          }
+	        }
+	
+	        if (hasTypeParameters) {
+	          var staticMethods = body.get('body').filter(function (item) {
+	            return item.isClassMethod() && item.node.static;
+	          });
+	
+	          var _iteratorNormalCompletion4 = true;
+	          var _didIteratorError4 = false;
+	          var _iteratorError4 = undefined;
+	
 	          try {
-	            if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	              _iterator4.return();
+	            for (var _iterator4 = staticMethods[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	              var method = _step4.value;
+	
+	              method.get('body').unshiftContainer('body', t.variableDeclaration('const', [t.variableDeclarator(typeParametersUid, t.objectExpression(typeParameters.map(function (typeParameter) {
+	                return t.objectProperty(t.identifier(typeParameter.node.name), (0, _convert2.default)(context, typeParameter));
+	              })))]));
 	            }
+	          } catch (err) {
+	            _didIteratorError4 = true;
+	            _iteratorError4 = err;
 	          } finally {
-	            if (_didIteratorError4) {
-	              throw _iteratorError4;
+	            try {
+	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	                _iterator4.return();
+	              }
+	            } finally {
+	              if (_didIteratorError4) {
+	                throw _iteratorError4;
+	              }
 	            }
 	          }
 	        }
