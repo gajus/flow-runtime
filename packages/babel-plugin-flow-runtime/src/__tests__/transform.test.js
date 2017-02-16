@@ -97,5 +97,6 @@ function normalize (input: string): string {
     .replace(/\}\s+([A-Za-z])/g, '\n}\n$1')
     .split(';')
     .join(';\n')
+    .trim()
     ;
 }

@@ -15,6 +15,7 @@ export default class ObjectTypeCallProperty<T: Function> extends Type {
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     // @flowIgnore
     const {value, static: isStatic} = this;
+
     let target;
     let targetPath;
     if (isStatic) {
@@ -33,7 +34,6 @@ export default class ObjectTypeCallProperty<T: Function> extends Type {
       target = input;
       targetPath = path;
     }
-    console.log('checking', value, target);
     yield* value.errors(validation, targetPath, target);
   }
 

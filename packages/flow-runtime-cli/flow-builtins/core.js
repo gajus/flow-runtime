@@ -491,10 +491,10 @@ declare class Error {
     columnNumber?: number;
 
     // note: v8 only (node/chrome)
-    static captureStackTrace(target: Object, constructor?: Function): void;
+    static captureStackTrace?: (target: Object, constructor?: Function) => void;
 
-    static stackTraceLimit: number;
-    static prepareStackTrace: (err: Error, stack: CallSite[]) => mixed;
+    static stackTraceLimit?: number;
+    static prepareStackTrace?: (err: Error, stack: CallSite[]) => mixed;
 }
 
 declare class EvalError extends Error {

@@ -236,9 +236,6 @@ export default class ObjectType<T: {}> extends Type {
 }
 
 function acceptsCallProperties (type: ObjectType<any>, input: any): boolean {
-  if (typeof input !== 'function') {
-    return false;
-  }
   const {callProperties} = type;
   for (let i = 0; i < callProperties.length; i++) {
     const callProperty = callProperties[i];

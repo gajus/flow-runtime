@@ -754,7 +754,11 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
 };
 
 converters.ObjectTypeCallProperty = (context: ConversionContext, path: NodePath): Node => {
-  return context.call('callProperty', convert(context, path.get('value')));
+  const methodName = path.node.static
+                   ? 'staticCallProperty'
+                   : 'callProperty'
+                   ;
+  return context.call(methodName, convert(context, path.get('value')));
 };
 
 converters.ObjectTypeProperty = (context: ConversionContext, path: NodePath): Node => {
