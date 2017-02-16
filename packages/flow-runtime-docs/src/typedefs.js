@@ -40,7 +40,7 @@ t.declare(
   t.class(
     "Boolean",
     t.object(
-      t.callProperty(
+      t.staticCallProperty(
         t.function(t.param("value", t.any()), t.return(t.boolean()))
       ),
       t.property("valueOf", t.function(t.return(t.boolean()))),
@@ -336,7 +336,7 @@ t.declare(
 
     return [
       t.object(
-        t.callProperty(
+        t.staticCallProperty(
           t.function(
             t.rest("values", t.array(t.any())),
             t.return(t.array(t.any()))
@@ -704,7 +704,7 @@ t.declare(
   t.class(
     "Symbol",
     t.object(
-      t.callProperty(
+      t.staticCallProperty(
         t.function(t.param("value", t.any(), true), t.return(t.ref("Symbol")))
       ),
       t.staticProperty(
@@ -739,7 +739,7 @@ t.declare(
   t.class(
     "Number",
     t.object(
-      t.callProperty(
+      t.staticCallProperty(
         t.function(t.param("value", t.any()), t.return(t.number()))
       ),
       t.staticProperty("EPSILON", t.number()),
@@ -1134,7 +1134,7 @@ t.declare(
   t.class(
     "RegExp",
     t.object(
-      t.callProperty(
+      t.staticCallProperty(
         t.function(
           t.param("pattern", t.union(t.string(), t.ref("RegExp"))),
           t.param("flags", RegExp$flags, true),
@@ -1174,7 +1174,7 @@ t.declare(
   t.class(
     "String",
     t.object(
-      t.callProperty(
+      t.staticCallProperty(
         t.function(t.param("value", t.any()), t.return(t.string()))
       ),
       t.property(
@@ -1379,22 +1379,22 @@ t.declare(
   t.class(
     "Object",
     t.object(
-      t.callProperty(
+      t.staticCallProperty(
         t.function(
           t.param("o", t.nullable(t.void())),
           t.return(t.object(t.indexer("key", t.any(), t.any())))
         )
       ),
-      t.callProperty(
+      t.staticCallProperty(
         t.function(t.param("o", t.boolean()), t.return(t.ref("Boolean")))
       ),
-      t.callProperty(
+      t.staticCallProperty(
         t.function(t.param("o", t.number()), t.return(t.ref("Number")))
       ),
-      t.callProperty(
+      t.staticCallProperty(
         t.function(t.param("o", t.string()), t.return(t.ref("String")))
       ),
-      t.callProperty(
+      t.staticCallProperty(
         t.function(_fn13 => {
           const T = _fn13.typeParameter("T", t.object());
 
@@ -1571,7 +1571,7 @@ t.declare(
   t.class(
     "Error",
     t.object(
-      t.callProperty(
+      t.staticCallProperty(
         t.function(
           t.param("message", t.string(), true),
           t.return(t.ref("Error"))
@@ -1592,16 +1592,18 @@ t.declare(
           t.param("target", t.object()),
           t.param("constructor", t.function(), true),
           t.return(t.void())
-        )
+        ),
+        true
       ),
-      t.staticProperty("stackTraceLimit", t.number()),
+      t.staticProperty("stackTraceLimit", t.number(), true),
       t.staticProperty(
         "prepareStackTrace",
         t.function(
           t.param("err", t.ref("Error")),
           t.param("stack", t.array(t.ref("CallSite"))),
           t.return(t.mixed())
-        )
+        ),
+        true
       )
     )
   )
@@ -2722,7 +2724,7 @@ t.declare(
   t.class(
     "Date",
     t.object(
-      t.callProperty(t.function(t.return(t.string()))),
+      t.staticCallProperty(t.function(t.return(t.string()))),
       t.property(
         "constructor",
         t.function(
@@ -7395,7 +7397,7 @@ t.declare(
       t.staticProperty("FILTER_ACCEPT", t.number(1)),
       t.staticProperty("FILTER_REJECT", t.number(2)),
       t.staticProperty("FILTER_SKIP", t.number(3)),
-      t.property("acceptNode", t.tdz(() => NodeFilterCallback))
+      t.property("acceptNode", t.tdz(() => NodeFilterCallback)) // eslint-disable-line
     )
   )
 );

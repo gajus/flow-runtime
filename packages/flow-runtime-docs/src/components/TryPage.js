@@ -14,6 +14,7 @@ import fixtures from 'babel-plugin-flow-runtime/fixtures.json';
 type Props = {};
 
 const defaultExample = `
+
 type Thing = {
   id: string | number;
   name: string;

@@ -69,7 +69,12 @@ export default class ObjectTypeCallProperty<T: Function> extends Type {
 
 
   toString (): string {
-    return `${this.value.toString()};`;
+    if (this.static) {
+      return `static ${this.value.toString()};`;
+    }
+    else {
+      return this.value.toString();
+    }
   }
 
   toJSON () {
