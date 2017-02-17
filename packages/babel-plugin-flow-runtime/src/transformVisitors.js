@@ -695,7 +695,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
 
         if (hasImplements) {
-          trailer.push(...path.get('implements').map(item => t.expressionStatement(
+          constructorBlock.pushContainer('body', path.get('implements').map(item => t.expressionStatement(
             context.assert(
               convert(context, item),
               t.thisExpression()
@@ -706,7 +706,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       else {
         if (hasImplements) {
-          constructorBlock.unshiftContainer('body', path.get('implements').map(item => t.expressionStatement(context.assert(
+          constructorBlock.pushContainer('body', path.get('implements').map(item => t.expressionStatement(context.assert(
               convert(context, item),
               t.thisExpression()
             ))));
