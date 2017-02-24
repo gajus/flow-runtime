@@ -4373,7 +4373,11 @@
 	};
 	
 	converters.ObjectTypeIndexer = function (context, path) {
-	  return context.call('indexer', t.stringLiteral(path.node.id.name), convert(context, path.get('key')), convert(context, path.get('value')));
+	  var name = "key";
+	  if (path.node.id) {
+	    name = path.node.id.name;
+	  }
+	  return context.call('indexer', t.stringLiteral(name), convert(context, path.get('key')), convert(context, path.get('value')));
 	};
 	
 	converters.FunctionTypeAnnotation = function (context, path) {
@@ -9094,14 +9098,14 @@
 	          }
 	
 	          if (hasImplements) {
-	            trailer.push.apply(trailer, _toConsumableArray(path.get('implements').map(function (item) {
+	            constructorBlock.pushContainer('body', path.get('implements').map(function (item) {
 	              return t.expressionStatement(context.assert((0, _convert2.default)(context, item), t.thisExpression()));
-	            })));
+	            }));
 	          }
 	          getSuperStatement(constructorBlock).insertAfter(trailer);
 	        } else {
 	          if (hasImplements) {
-	            constructorBlock.unshiftContainer('body', path.get('implements').map(function (item) {
+	            constructorBlock.pushContainer('body', path.get('implements').map(function (item) {
 	              return t.expressionStatement(context.assert((0, _convert2.default)(context, item), t.thisExpression()));
 	            }));
 	          }
@@ -13012,7 +13016,7 @@
 /* 181 */
 /***/ function(module, exports, __webpack_require__) {
 
-	(function (global, factory) {
+	/* WEBPACK VAR INJECTION */(function(global) {(function (global, factory) {
 		 true ? module.exports = factory() :
 		typeof define === 'function' && define.amd ? define(factory) :
 		(global['flow-runtime'] = factory());
@@ -22967,7 +22971,19 @@
 	      // Issue 252
 	      var parent = this[ParentSymbol];
 	      if (parent) {
-	        return parent.get.apply(parent, [name].concat(toConsumableArray(propertyNames)));
+	        var fromParent = parent.get.apply(parent, [name].concat(toConsumableArray(propertyNames)));
+	        if (fromParent) {
+	          return fromParent;
+	        }
+	      }
+	
+	      // if we got this far, see if we have a global type with this name.
+	      if (typeof global[name] === 'function') {
+	        var target = new GenericType(this);
+	        target.name = name;
+	        target.impl = global[name];
+	        this[NameRegistrySymbol][name] = target;
+	        return target;
 	      }
 	    }
 	
@@ -23478,7 +23494,9 @@
 	        tail[_key3 - 2] = arguments[_key3];
 	      }
 	
-	      tail.unshift(head);
+	      if (head != null) {
+	        tail.unshift(head);
+	      }
 	      var length = tail.length;
 	
 	      var properties = [];
@@ -24205,7 +24223,8 @@
 	
 	})));
 	//# sourceMappingURL=flow-runtime.umd.js.map
-
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
 /* 182 */
