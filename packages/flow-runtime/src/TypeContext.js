@@ -247,7 +247,19 @@ export default class TypeContext {
     // @flowIssue 252
     const parent = this[ParentSymbol];
     if (parent) {
-      return parent.get(name, ...propertyNames);
+      const fromParent = parent.get(name, ...propertyNames);
+      if (fromParent) {
+        return fromParent;
+      }
+    }
+
+    // if we got this far, see if we have a global type with this name.
+    if (typeof global[name] === 'function') {
+      const target = new GenericType(this);
+      target.name = name;
+      target.impl = global[name];
+      this[NameRegistrySymbol][name] = target;
+      return target;
     }
   }
 
@@ -650,7 +662,7 @@ export default class TypeContext {
     return target;
   }
 
-  class <X, O: {}> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
+  class <X, O: {}> (name: string, head?: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
     if (typeof head === 'function') {
       const target = new ParameterizedClassDeclaration(this);
       target.name = name;
@@ -659,7 +671,9 @@ export default class TypeContext {
     }
     const target = new ClassDeclaration(this);
     target.name = name;
-    tail.unshift(head);
+    if (head != null) {
+      tail.unshift(head);
+    }
     const {length} = tail;
     const properties = [];
     let body;
