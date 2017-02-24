@@ -650,7 +650,7 @@ export default class TypeContext {
     return target;
   }
 
-  class <X, O: {}> (name: string, head: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
+  class <X, O: {}> (name: string, head?: ClassBodyCreator<X, O> | ValidClassBody<X, O>, ...tail: Array<ValidClassBody<X, O>>): ClassDeclaration<O> {
     if (typeof head === 'function') {
       const target = new ParameterizedClassDeclaration(this);
       target.name = name;
@@ -659,7 +659,9 @@ export default class TypeContext {
     }
     const target = new ClassDeclaration(this);
     target.name = name;
-    tail.unshift(head);
+    if (head != null) {
+      tail.unshift(head);
+    }
     const {length} = tail;
     const properties = [];
     let body;
