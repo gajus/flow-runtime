@@ -247,7 +247,19 @@ export default class TypeContext {
     // @flowIssue 252
     const parent = this[ParentSymbol];
     if (parent) {
-      return parent.get(name, ...propertyNames);
+      const fromParent = parent.get(name, ...propertyNames);
+      if (fromParent) {
+        return fromParent;
+      }
+    }
+
+    // if we got this far, see if we have a global type with this name.
+    if (typeof global[name] === 'function') {
+      const target = new GenericType(this);
+      target.name = name;
+      target.impl = global[name];
+      this[NameRegistrySymbol][name] = target;
+      return target;
     }
   }
 
