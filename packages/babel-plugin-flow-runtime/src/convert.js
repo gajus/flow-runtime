@@ -783,9 +783,13 @@ converters.ObjectTypeProperty = (context: ConversionContext, path: NodePath): No
 };
 
 converters.ObjectTypeIndexer = (context: ConversionContext, path: NodePath): Node => {
+  let name = "key";
+  if (path.node.id) {
+    name = path.node.id.name;
+  }
   return context.call(
     'indexer',
-    t.stringLiteral(path.node.id.name),
+    t.stringLiteral(name),
     convert(context, path.get('key')),
     convert(context, path.get('value'))
   );
