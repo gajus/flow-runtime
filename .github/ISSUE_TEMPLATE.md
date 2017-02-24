@@ -14,7 +14,7 @@ Which concerns:
 
  - [ ] flow-runtime
  - [ ] babel-plugin-flow-runtime
- - [ ] flow-runtime-validatosr
+ - [ ] flow-runtime-validators
  - [ ] flow-runtime-mobx
  - [ ] flow-config-parser
  - [ ] The documentation website
