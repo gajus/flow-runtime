@@ -1,6 +1,6 @@
 {
   "name": "flow-runtime-cli",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A command line tool for working with flow and flow-runtime.",
   "main": "index.js",
   "bin": {
@@ -39,12 +39,12 @@
     "mocha": "^3.1.2"
   },
   "dependencies": {
-    "babel-plugin-flow-runtime": "^0.6.0",
+    "babel-plugin-flow-runtime": "^0.6.1",
     "bluebird": "^3.4.7",
     "double-ended-queue": "^2.1.0-0",
     "flow-config-parser": "^0.3.0",
     "flow-parser": "^0.38.0",
-    "flow-runtime": "^0.6.0",
+    "flow-runtime": "^0.6.1",
     "minimist": "^1.2.0",
     "prettier": "^0.11.0"
   }
