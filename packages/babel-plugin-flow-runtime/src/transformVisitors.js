@@ -32,11 +32,14 @@ export default function transformVisitors (context: ConversionContext): Object {
           path.skip();
           return;
         }
-        if (path.node.importKind !== 'type') {
-          return;
-        }
+
+        const isImportType = path.node.importKind === 'type';
         const declarations = [];
+
         for (const specifier of path.get('specifiers')) {
+          if (!isImportType && specifier.node.importKind !== 'type') {
+            continue;
+          }
           const local = specifier.get('local');
           const {name} = local.node;
           const replacement = path.scope.generateUidIdentifier(name);
@@ -51,23 +54,30 @@ export default function transformVisitors (context: ConversionContext): Object {
             )
           ]));
         }
-        let target = path;
+        if (declarations.length !== 0) {
+          let target = path;
 
-        const container = path.parentPath.get(path.listKey);
-        for (let i = path.key; i < container.length; i++) {
-          const item = container[i];
-          if (item.isImportDeclaration()) {
-            target = item;
-            continue;
+          const container = path.parentPath.get(path.listKey);
+          for (let i = path.key; i < container.length; i++) {
+            const item = container[i];
+            if (item.isImportDeclaration()) {
+              target = item;
+              continue;
+            }
+            break;
           }
-          break;
-        }
-        for (let i = declarations.length - 1; i >= 0; i--) {
-          target.insertAfter(declarations[i]);
+          for (let i = declarations.length - 1; i >= 0; i--) {
+            target.insertAfter(declarations[i]);
+          }
         }
       },
       exit (path: NodePath) {
         if (path.node.importKind !== 'type') {
+          for (const specifier of path.get('specifiers')) {
+            if (specifier.node.importKind === 'type') {
+              specifier.node.importKind = null;
+            }
+          }
           return;
         }
         path.node.importKind = 'value';
