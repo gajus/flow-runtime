@@ -21,6 +21,12 @@ export default function annotateVisitors (context: ConversionContext): Object {
         return;
       }
 
+      const extractedName = path.isArrowFunctionExpression() && extractFunctionName(path);
+      if (extractedName) {
+        path.arrowFunctionToShadowed();
+        path.node.id = t.identifier(extractedName);
+      }
+
       const typeCall = convert(context, path);
 
       // Capture the data from the scope, as it
@@ -91,4 +97,25 @@ export default function annotateVisitors (context: ConversionContext): Object {
       path.unshiftContainer('decorators', decorator);
     }
   };
+}
+
+
+function extractFunctionName (path: NodePath): ? string {
+  let id;
+  if (path.parentPath.type === 'VariableDeclarator') {
+    id = path.parentPath.node.id;
+  }
+  else if (path.parentPath.type === 'AssignmentExpression') {
+    id = path.parentPath.node.left;
+  }
+  else {
+    return;
+  }
+
+  if (id.type === 'Identifier') {
+    return id.name;
+  }
+  else if (id.type === 'MemberExpression' && !id.computed) {
+    return id.property.name;
+  }
 }

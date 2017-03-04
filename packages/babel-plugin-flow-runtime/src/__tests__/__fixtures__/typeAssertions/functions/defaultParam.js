@@ -18,7 +18,7 @@ export const expected = `
 export const annotated = `
   import t from "flow-runtime";
   const demo = t.annotate(
-    (input = "Hello World") => {
+    function demo(input = "Hello World") {
       return input;
     },
     t.function(
@@ -31,7 +31,7 @@ export const annotated = `
 export const combined = `
   import t from "flow-runtime";
   const demo = t.annotate(
-    (input = "Hello World") => {
+    function demo(input = "Hello World") {
       let _inputType = t.string();
       const _returnType = t.return(t.string());
       t.param("input", _inputType).assert(input);

@@ -16,7 +16,7 @@ export const expected = `
 export const annotated = `
   import t from "flow-runtime";
   const demo = t.annotate(
-    ([foo]) => {
+    function demo([foo]) {
       return foo;
     },
     t.function(
@@ -29,7 +29,7 @@ export const annotated = `
 export const combined = `
   import t from "flow-runtime";
   const demo = t.annotate(
-    function ([foo]) {
+    function demo([foo]) {
       const _returnType = t.return(t.string());
       t.param("arguments[0]", t.array(t.string())).assert(arguments[0]);
       return _returnType.assert(foo);
