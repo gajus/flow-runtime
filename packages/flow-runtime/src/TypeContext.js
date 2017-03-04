@@ -258,6 +258,7 @@ export default class TypeContext {
       const target = new GenericType(this);
       target.name = name;
       target.impl = global[name];
+      // @flowIssue 252
       this[NameRegistrySymbol][name] = target;
       return target;
     }
