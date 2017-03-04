@@ -7321,6 +7321,12 @@
 	        return;
 	      }
 	
+	      var extractedName = path.isArrowFunctionExpression() && extractFunctionName(path);
+	      if (extractedName) {
+	        path.arrowFunctionToShadowed();
+	        path.node.id = t.identifier(extractedName);
+	      }
+	
 	      var typeCall = (0, _convert2.default)(context, path);
 	
 	      // Capture the data from the scope, as it
@@ -7367,6 +7373,24 @@
 	      path.unshiftContainer('decorators', decorator);
 	    }
 	  };
+	}
+	
+	
+	function extractFunctionName(path) {
+	  var id = void 0;
+	  if (path.parentPath.type === 'VariableDeclarator') {
+	    id = path.parentPath.node.id;
+	  } else if (path.parentPath.type === 'AssignmentExpression') {
+	    id = path.parentPath.node.left;
+	  } else {
+	    return;
+	  }
+	
+	  if (id.type === 'Identifier') {
+	    return id.name;
+	  } else if (id.type === 'MemberExpression' && !id.computed) {
+	    return id.property.name;
+	  }
 	}
 
 /***/ },
@@ -8594,10 +8618,10 @@
 	          path.skip();
 	          return;
 	        }
-	        if (path.node.importKind !== 'type') {
-	          return;
-	        }
+	
+	        var isImportType = path.node.importKind === 'type';
 	        var declarations = [];
+	
 	        var _iteratorNormalCompletion = true;
 	        var _didIteratorError = false;
 	        var _iteratorError = undefined;
@@ -8606,6 +8630,9 @@
 	          for (var _iterator = path.get('specifiers')[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	            var specifier = _step.value;
 	
+	            if (!isImportType && specifier.node.importKind !== 'type') {
+	              continue;
+	            }
 	            var local = specifier.get('local');
 	            var name = local.node.name;
 	
@@ -8628,23 +8655,52 @@
 	          }
 	        }
 	
-	        var target = path;
+	        if (declarations.length !== 0) {
+	          var target = path;
 	
-	        var container = path.parentPath.get(path.listKey);
-	        for (var i = path.key; i < container.length; i++) {
-	          var item = container[i];
-	          if (item.isImportDeclaration()) {
-	            target = item;
-	            continue;
+	          var container = path.parentPath.get(path.listKey);
+	          for (var i = path.key; i < container.length; i++) {
+	            var item = container[i];
+	            if (item.isImportDeclaration()) {
+	              target = item;
+	              continue;
+	            }
+	            break;
 	          }
-	          break;
-	        }
-	        for (var _i = declarations.length - 1; _i >= 0; _i--) {
-	          target.insertAfter(declarations[_i]);
+	          for (var _i = declarations.length - 1; _i >= 0; _i--) {
+	            target.insertAfter(declarations[_i]);
+	          }
 	        }
 	      },
 	      exit: function exit(path) {
 	        if (path.node.importKind !== 'type') {
+	          var _iteratorNormalCompletion2 = true;
+	          var _didIteratorError2 = false;
+	          var _iteratorError2 = undefined;
+	
+	          try {
+	            for (var _iterator2 = path.get('specifiers')[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	              var specifier = _step2.value;
+	
+	              if (specifier.node.importKind === 'type') {
+	                specifier.node.importKind = null;
+	              }
+	            }
+	          } catch (err) {
+	            _didIteratorError2 = true;
+	            _iteratorError2 = err;
+	          } finally {
+	            try {
+	              if (!_iteratorNormalCompletion2 && _iterator2.return) {
+	                _iterator2.return();
+	              }
+	            } finally {
+	              if (_didIteratorError2) {
+	                throw _iteratorError2;
+	              }
+	            }
+	          }
+	
 	          return;
 	        }
 	        path.node.importKind = 'value';
@@ -8812,13 +8868,13 @@
 	      var typeParameters = (0, _getTypeParameters2.default)(path);
 	      var params = path.get('params');
 	
-	      var _iteratorNormalCompletion2 = true;
-	      var _didIteratorError2 = false;
-	      var _iteratorError2 = undefined;
+	      var _iteratorNormalCompletion3 = true;
+	      var _didIteratorError3 = false;
+	      var _iteratorError3 = undefined;
 	
 	      try {
-	        for (var _iterator2 = typeParameters[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          var typeParameter = _step2.value;
+	        for (var _iterator3 = typeParameters[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var typeParameter = _step3.value;
 	          var name = typeParameter.node.name;
 	
 	          var args = [t.stringLiteral(name)];
@@ -8834,29 +8890,29 @@
 	          definitions.push(t.variableDeclaration('const', [t.variableDeclarator(t.identifier(name), context.call.apply(context, ['typeParameter'].concat(args)))]));
 	        }
 	      } catch (err) {
-	        _didIteratorError2 = true;
-	        _iteratorError2 = err;
+	        _didIteratorError3 = true;
+	        _iteratorError3 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	            _iterator2.return();
+	          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+	            _iterator3.return();
 	          }
 	        } finally {
-	          if (_didIteratorError2) {
-	            throw _iteratorError2;
+	          if (_didIteratorError3) {
+	            throw _iteratorError3;
 	          }
 	        }
 	      }
 	
 	      var shouldShadow = false;
 	
-	      var _iteratorNormalCompletion3 = true;
-	      var _didIteratorError3 = false;
-	      var _iteratorError3 = undefined;
+	      var _iteratorNormalCompletion4 = true;
+	      var _didIteratorError4 = false;
+	      var _iteratorError4 = undefined;
 	
 	      try {
-	        for (var _iterator3 = params[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	          var param = _step3.value;
+	        for (var _iterator4 = params[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	          var param = _step4.value;
 	
 	          var argumentIndex = +param.key;
 	          var assignmentRight = void 0;
@@ -8916,16 +8972,16 @@
 	          }
 	        }
 	      } catch (err) {
-	        _didIteratorError3 = true;
-	        _iteratorError3 = err;
+	        _didIteratorError4 = true;
+	        _iteratorError4 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	            _iterator3.return();
+	          if (!_iteratorNormalCompletion4 && _iterator4.return) {
+	            _iterator4.return();
 	          }
 	        } finally {
-	          if (_didIteratorError3) {
-	            throw _iteratorError3;
+	          if (_didIteratorError4) {
+	            throw _iteratorError4;
 	          }
 	        }
 	      }
@@ -9121,29 +9177,29 @@
 	            return item.isClassMethod() && item.node.static;
 	          });
 	
-	          var _iteratorNormalCompletion4 = true;
-	          var _didIteratorError4 = false;
-	          var _iteratorError4 = undefined;
+	          var _iteratorNormalCompletion5 = true;
+	          var _didIteratorError5 = false;
+	          var _iteratorError5 = undefined;
 	
 	          try {
-	            for (var _iterator4 = staticMethods[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	              var method = _step4.value;
+	            for (var _iterator5 = staticMethods[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	              var method = _step5.value;
 	
 	              method.get('body').unshiftContainer('body', t.variableDeclaration('const', [t.variableDeclarator(typeParametersUid, t.objectExpression(typeParameters.map(function (typeParameter) {
 	                return t.objectProperty(t.identifier(typeParameter.node.name), (0, _convert2.default)(context, typeParameter));
 	              })))]));
 	            }
 	          } catch (err) {
-	            _didIteratorError4 = true;
-	            _iteratorError4 = err;
+	            _didIteratorError5 = true;
+	            _iteratorError5 = err;
 	          } finally {
 	            try {
-	              if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	                _iterator4.return();
+	              if (!_iteratorNormalCompletion5 && _iterator5.return) {
+	                _iterator5.return();
 	              }
 	            } finally {
-	              if (_didIteratorError4) {
-	                throw _iteratorError4;
+	              if (_didIteratorError5) {
+	                throw _iteratorError5;
 	              }
 	            }
 	          }
@@ -9228,27 +9284,27 @@
 	  if (path.node.generator) {
 	    if (supportedIterableNames[name]) {
 	      var extra = [];
-	      var _iteratorNormalCompletion5 = true;
-	      var _didIteratorError5 = false;
-	      var _iteratorError5 = undefined;
+	      var _iteratorNormalCompletion6 = true;
+	      var _didIteratorError6 = false;
+	      var _iteratorError6 = undefined;
 	
 	      try {
-	        for (var _iterator5 = returnTypeParameters[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	          var param = _step5.value;
+	        for (var _iterator6 = returnTypeParameters[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	          var param = _step6.value;
 	
 	          extra.push((0, _convert2.default)(context, param));
 	        }
 	      } catch (err) {
-	        _didIteratorError5 = true;
-	        _iteratorError5 = err;
+	        _didIteratorError6 = true;
+	        _iteratorError6 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	            _iterator5.return();
+	          if (!_iteratorNormalCompletion6 && _iterator6.return) {
+	            _iterator6.return();
 	          }
 	        } finally {
-	          if (_didIteratorError5) {
-	            throw _iteratorError5;
+	          if (_didIteratorError6) {
+	            throw _iteratorError6;
 	          }
 	        }
 	      }
@@ -9262,51 +9318,16 @@
 	}
 	
 	function getClassPropertyAnnotation(path, name) {
-	  var _iteratorNormalCompletion6 = true;
-	  var _didIteratorError6 = false;
-	  var _iteratorError6 = undefined;
-	
-	  try {
-	    for (var _iterator6 = path.get('body.body')[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	      var item = _step6.value;
-	
-	      if (item.isClassProperty() && item.get('key').isIdentifier() && !item.node.computed && item.node.key.name === name) {
-	        return item.get('typeAnnotation');
-	      }
-	    }
-	  } catch (err) {
-	    _didIteratorError6 = true;
-	    _iteratorError6 = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion6 && _iterator6.return) {
-	        _iterator6.return();
-	      }
-	    } finally {
-	      if (_didIteratorError6) {
-	        throw _iteratorError6;
-	      }
-	    }
-	  }
-	}
-	
-	function annotationReferencesClassEntity(context, annotation) {
 	  var _iteratorNormalCompletion7 = true;
 	  var _didIteratorError7 = false;
 	  var _iteratorError7 = undefined;
 	
 	  try {
-	    for (var _iterator7 = (0, _typeAnnotationIterator2.default)(annotation)[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	    for (var _iterator7 = path.get('body.body')[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
 	      var item = _step7.value;
 	
-	      if (item.type !== 'Identifier') {
-	        continue;
-	      }
-	      var entity = context.getEntity(item.node.name, annotation);
-	      if (entity && entity.isClassTypeParameter) {
-	        return true;
-	      } else if (entity && entity.isValue && !entity.isGlobal) {
-	        return true;
+	      if (item.isClassProperty() && item.get('key').isIdentifier() && !item.node.computed && item.node.key.name === name) {
+	        return item.get('typeAnnotation');
 	      }
 	    }
 	  } catch (err) {
@@ -9320,6 +9341,41 @@
 	    } finally {
 	      if (_didIteratorError7) {
 	        throw _iteratorError7;
+	      }
+	    }
+	  }
+	}
+	
+	function annotationReferencesClassEntity(context, annotation) {
+	  var _iteratorNormalCompletion8 = true;
+	  var _didIteratorError8 = false;
+	  var _iteratorError8 = undefined;
+	
+	  try {
+	    for (var _iterator8 = (0, _typeAnnotationIterator2.default)(annotation)[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	      var item = _step8.value;
+	
+	      if (item.type !== 'Identifier') {
+	        continue;
+	      }
+	      var entity = context.getEntity(item.node.name, annotation);
+	      if (entity && entity.isClassTypeParameter) {
+	        return true;
+	      } else if (entity && entity.isValue && !entity.isGlobal) {
+	        return true;
+	      }
+	    }
+	  } catch (err) {
+	    _didIteratorError8 = true;
+	    _iteratorError8 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion8 && _iterator8.return) {
+	        _iterator8.return();
+	      }
+	    } finally {
+	      if (_didIteratorError8) {
+	        throw _iteratorError8;
 	      }
 	    }
 	  }
@@ -22982,6 +23038,7 @@
 	        var target = new GenericType(this);
 	        target.name = name;
 	        target.impl = global[name];
+	        // Issue 252
 	        this[NameRegistrySymbol][name] = target;
 	        return target;
 	      }
