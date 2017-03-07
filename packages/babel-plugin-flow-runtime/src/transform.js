@@ -5,6 +5,7 @@ import collectProgramOptions from './collectProgramOptions';
 import firstPassVisitors from './firstPassVisitors';
 import patternMatchVisitors from './patternMatchVisitors';
 import annotateVisitors from './annotateVisitors';
+import preTransformVisitors from './preTransformVisitors';
 import transformVisitors from './transformVisitors';
 import type {Node, NodePath} from 'babel-traverse';
 
@@ -24,6 +25,7 @@ export default function transform (input: Node, options: Options = {}, scope?: O
     context.isAnnotating = false;
     context.visited = new WeakSet();
   }
+  traverse(input, preTransformVisitors(context), scope, state, parentPath);
   traverse(input, transformVisitors(context), scope, state, parentPath);
 
   return input;

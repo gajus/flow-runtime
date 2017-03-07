@@ -355,8 +355,6 @@ export default function transformVisitors (context: ConversionContext): Object {
         ]));
       }
 
-      let shouldShadow = false;
-
       for (let param of params) {
         const argumentIndex = +param.key;
         let assignmentRight;
@@ -371,8 +369,6 @@ export default function transformVisitors (context: ConversionContext): Object {
         const typeAnnotation = param.get('typeAnnotation');
 
         if (param.isObjectPattern() || param.isArrayPattern()) {
-          shouldShadow = true;
-
           const args = [
             t.stringLiteral(`arguments[${argumentIndex}]`),
             convert(context, typeAnnotation)
@@ -381,17 +377,11 @@ export default function transformVisitors (context: ConversionContext): Object {
             args.push(t.booleanLiteral(true));
           }
 
-          // OMG This is disgusting:
-          // We want to retain a reference to arguments in what was an
-          // arrow function that has been turned into a normal
-          // function expression. The problem is that babel will see
-          // our reference to `arguments` and assume we are talking about
-          // the `arguments` of an outer function because arrow functions
-          // don't have `arguments`. To get around this we make an identifier
-          // with the name `arguments[0]` which is not valid but will survive
-          // all the way through to code generation, and produce a valid node
-          // at the end.
-          const ref = t.identifier(`arguments[${argumentIndex}]`);
+          const ref = t.memberExpression(
+            t.identifier('arguments'),
+            t.numericLiteral(argumentIndex),
+            true
+          );
 
           const expression = t.expressionStatement(
             context.assert(
@@ -498,13 +488,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
       }
       if (definitions.length > 0 || invocations.length > 0) {
-        if (shouldShadow && path.isArrowFunctionExpression()) {
-          path.arrowFunctionToShadowed();
-          path.get('body').unshiftContainer('body', definitions.concat(invocations));
-        }
-        else {
-          body.unshiftContainer('body', definitions.concat(invocations));
-        }
+        body.unshiftContainer('body', definitions.concat(invocations));
       }
     },
 
