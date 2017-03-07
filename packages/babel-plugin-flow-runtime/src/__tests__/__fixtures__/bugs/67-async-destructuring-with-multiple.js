@@ -5,7 +5,7 @@ type Person = {
   name: string
 };
 
-let sayHello = ({ name } : Person) => {
+let sayHello = async (a, { name } : Person, {name: nom}: Person = {name: 'bob'}, extra = nom) => {
   sayHello(name);
 }
 
@@ -18,8 +18,15 @@ const Person = t.type("Person", t.object(
   t.property("name", t.string())
 ));
 
-let sayHello = _arg => {
+let sayHello = async (a, _arg, _arg2, extra) => {
   let { name } = Person.assert(_arg);
+  if (_arg2 === undefined) {
+    _arg2 = { name: 'bob' };
+  }
+  let { name: nom } = Person.assert(_arg2);
+  if (extra === undefined) {
+    extra = nom;
+  }
   sayHello(name);
 };
 

@@ -21,9 +21,9 @@ const Demo = t.type("Demo", t.number(123));
 t.warn(Demo, "nope");
 
 const demo = t.annotate(
-  function demo([foo]) {
+  function demo(_arg) {
     const _returnType = t.return(t.string());
-    t.warn(t.param("arguments[0]", t.array(t.string())), arguments[0]);
+    let [foo] = t.warn(t.array(t.string()), _arg);
     return t.warn(_returnType, foo);
   },
   t.function(

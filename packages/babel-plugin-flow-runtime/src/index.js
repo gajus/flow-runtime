@@ -7,6 +7,7 @@ import attachImport from './attachImport';
 import firstPassVisitors from './firstPassVisitors';
 import annotateVisitors from './annotateVisitors';
 import patternMatchVisitors from './patternMatchVisitors';
+import preTransformVisitors from './preTransformVisitors';
 import transformVisitors from './transformVisitors';
 import type {NodePath} from 'babel-traverse';
 
@@ -37,6 +38,7 @@ export default function babelPluginFlowRuntime () {
           context.isAnnotating = false;
           context.visited = new WeakSet();
         }
+        path.traverse(preTransformVisitors(context));
         path.traverse(transformVisitors(context));
       }
     }

@@ -72,7 +72,9 @@ function typeParameterCanFlow (annotation: NodePath) {
     else if (subject.isStatement()) {
       return false;
     }
-
+    else if (subject.__flowRuntime__wasParam || subject.node.__flowRuntime__wasParam) {
+      return true;
+    }
     if (subject.isIdentifier() || subject.isArrayPattern() || subject.isObjectPattern()) {
       if (subject.parentPath.isFunction() && subject.listKey === 'params') {
         return true;

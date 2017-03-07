@@ -6,17 +6,13 @@ export const input = `
 
 export const expected = `
   import t from "flow-runtime";
-  const demo = function ({
-      foo
-    } = {
+  const demo = (_arg = {
       foo: "hello world"
-    }) {
+    }) => {
     const _returnType = t.return(t.string());
-    if (arguments[0] !== undefined) {
-      t.param("arguments[0]", t.object(
-        t.property("foo", t.string())
-      )).assert(arguments[0]);
-    }
+    let { foo }  = t.object(
+      t.property("foo", t.string())
+    ).assert(_arg);
     return _returnType.assert(foo);
   };
 

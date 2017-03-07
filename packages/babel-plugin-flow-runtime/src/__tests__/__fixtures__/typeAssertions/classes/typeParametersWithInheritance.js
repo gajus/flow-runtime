@@ -58,8 +58,8 @@ export const expected = `
 
   const Float = t.type("Float", t.number());
   class FloatPoint extends Point {
-    constructor([x, y]) {
-      t.param("arguments[0]", t.tuple(Float, Float)).assert(arguments[0]);
+    constructor(_arg) {
+      let [x, y] = t.tuple(Float, Float).assert(_arg);
       super(x, y);
       t.bindTypeParameters(this, Float);
     }
@@ -70,11 +70,11 @@ export const expected = `
   class FPoint extends Point {
     static [t.TypeParametersSymbol] = _FPointTypeParametersSymbol;
 
-    constructor([x, y]) {
+    constructor(_arg2) {
       const _typeParameters3 = {
         F: t.typeParameter("F", Float)
       };
-      t.param("arguments[0]", t.tuple(t.flowInto(_typeParameters3.F), t.flowInto(_typeParameters3.F))).assert(arguments[0]);
+      let [x, y] = t.tuple(t.flowInto(_typeParameters3.F), t.flowInto(_typeParameters3.F)).assert(_arg2);
       super(x, y);
       this[_FPointTypeParametersSymbol] = _typeParameters3;
       t.bindTypeParameters(this, this[_FPointTypeParametersSymbol].F);

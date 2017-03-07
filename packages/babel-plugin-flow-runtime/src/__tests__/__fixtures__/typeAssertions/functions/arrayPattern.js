@@ -6,9 +6,9 @@ export const input = `
 
 export const expected = `
   import t from "flow-runtime";
-  const demo = function ([foo]) {
+  const demo = _arg => {
     const _returnType = t.return(t.string());
-    t.param("arguments[0]", t.array(t.string())).assert(arguments[0]);
+    let [foo] = t.array(t.string()).assert(_arg);
     return _returnType.assert(foo);
   };
 `;
@@ -16,7 +16,8 @@ export const expected = `
 export const annotated = `
   import t from "flow-runtime";
   const demo = t.annotate(
-    function demo([foo]) {
+    function demo(_arg) {
+      let [foo] = _arg;
       return foo;
     },
     t.function(
@@ -29,9 +30,9 @@ export const annotated = `
 export const combined = `
   import t from "flow-runtime";
   const demo = t.annotate(
-    function demo([foo]) {
+    function demo(_arg) {
       const _returnType = t.return(t.string());
-      t.param("arguments[0]", t.array(t.string())).assert(arguments[0]);
+      let [foo] = t.array(t.string()).assert(_arg);
       return _returnType.assert(foo);
     },
     t.function(
