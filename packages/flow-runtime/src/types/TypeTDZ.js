@@ -10,6 +10,7 @@ import TypeParameterApplication from './TypeParameterApplication';
 
 const warnedInstances = new WeakSet();
 
+const RevealedName = Symbol('RevealedName');
 const RevealedValue = Symbol('RevealedValue');
 
 export default class TypeTDZ<T: any> extends Type {
@@ -18,10 +19,21 @@ export default class TypeTDZ<T: any> extends Type {
   reveal: TypeRevealer<T>;
 
   // @flowIssue 252
+  [RevealedName]: ? string = undefined;
+
+  // @flowIssue 252
   [RevealedValue]: ? Type<T> = undefined;
 
   get name (): ? string {
-    return (getRevealed(this): any).name;
+    let name = (this: any)[RevealedName];
+    if (!name) {
+      name = (getRevealed(this): any).name;
+    }
+    return name;
+  }
+
+  set name (value: string) {
+    (this: any)[RevealedName] = value;
   }
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
@@ -86,7 +98,13 @@ function getRevealed <T: any> (container: TypeTDZ<T>): Type<T> {
     const type = reveal();
     if (!type) {
       if (!warnedInstances.has(container)) {
-        container.context.emitWarningMessage('Failed to reveal type in Temporal Dead Zone.');
+        const name = (container: any)[RevealedName];
+        if (name) {
+          container.context.emitWarningMessage(`Failed to reveal type called "${name}" in Temporal Dead Zone.`);
+        }
+        else {
+          container.context.emitWarningMessage('Failed to reveal unknown type in Temporal Dead Zone.');
+        }
         warnedInstances.add(container);
       }
       return container.context.mixed();

@@ -579,7 +579,7 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     return context.call('any');
   }
   if (context.inTDZ(id.node)) {
-    subject = context.call('tdz', t.arrowFunctionExpression([], subject));
+    subject = context.call('tdz', t.arrowFunctionExpression([], subject), t.stringLiteral(name));
   }
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
@@ -1165,7 +1165,7 @@ converters.ClassImplements = (context: ConversionContext, path: NodePath): Node 
     return context.call('any');
   }
   if (context.inTDZ(id.node)) {
-    subject = context.call('tdz', t.arrowFunctionExpression([], subject));
+    subject = context.call('tdz', t.arrowFunctionExpression([], subject), t.stringLiteral(name));
   }
   const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);

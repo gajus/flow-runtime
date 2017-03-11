@@ -907,9 +907,10 @@ export default class TypeContext {
     return box;
   }
 
-  tdz <T> (reveal: TypeRevealer<T>): TypeTDZ<T> {
+  tdz <T> (reveal: TypeRevealer<T>, name?: string): TypeTDZ<T> {
     const tdz = new TypeTDZ(this);
     tdz.reveal = reveal;
+    tdz.name = name;
     return tdz;
   }
 
