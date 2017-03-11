@@ -479,12 +479,24 @@ export default function transformVisitors (context: ConversionContext): Object {
         else {
           const returnTypeUid = body.scope.generateUidIdentifier('returnType');
           body.scope.setData(`returnTypeUid`, returnTypeUid);
-          definitions.push(t.variableDeclaration('const', [
-            t.variableDeclarator(
-              returnTypeUid,
-              context.call('return', convert(context, returnType))
-            )
-          ]));
+          const promised = getPromisedType(context, returnType);
+          if (!path.node.async && promised) {
+            returnTypeUid.__isPromise = true;
+            definitions.push(t.variableDeclaration('const', [
+              t.variableDeclarator(
+                returnTypeUid,
+                context.call('return', convert(context, promised))
+              )
+            ]));
+          }
+          else {
+            definitions.push(t.variableDeclaration('const', [
+              t.variableDeclarator(
+                returnTypeUid,
+                context.call('return', convert(context, returnType))
+              )
+            ]));
+          }
         }
       }
       if (definitions.length > 0 || invocations.length > 0) {
@@ -501,13 +513,28 @@ export default function transformVisitors (context: ConversionContext): Object {
       if (!shouldCheck || !fn.has('returnType')) {
         return;
       }
-      const returnTypeUid = path.scope.getData('returnTypeUid');
-
       const argument = path.get('argument');
-      context.replacePath(argument, context.assert(
-        returnTypeUid,
-        ...(argument.node ? [argument.node] : [])
-      ));
+
+      const returnTypeUid = path.scope.getData('returnTypeUid');
+      if (returnTypeUid.__isPromise) {
+        const arg = path.scope.generateUidIdentifier('arg');
+        context.replacePath(argument, t.callExpression(
+          t.memberExpression(argument.node, t.identifier('then')),
+          [t.arrowFunctionExpression(
+            [arg],
+            context.assert(
+              returnTypeUid,
+              arg
+            )
+          )]
+        ));
+      }
+      else {
+        context.replacePath(argument, context.assert(
+          returnTypeUid,
+          ...(argument.node ? [argument.node] : [])
+        ));
+      }
     },
 
     YieldExpression (path: NodePath) {
@@ -822,6 +849,21 @@ const supportedIterableNames = {
   AsyncIterator: true,
 };
 
+function getPromisedType (context: ConversionContext, returnType: NodePath): ? NodePath {
+  if (!returnType.isGenericTypeAnnotation()) {
+    return;
+  }
+  const id = returnType.get('id');
+  const name = id.node.name;
+  if (name !== 'Promise') {
+    return;
+  }
+  const returnTypeParameters = getTypeParameters(returnType);
+  if (returnTypeParameters.length === 0) {
+    return;
+  }
+  return returnTypeParameters[0];
+}
 /**
  * Gets the inner checks for a given return type.
  * This is used for async functions and generators.
