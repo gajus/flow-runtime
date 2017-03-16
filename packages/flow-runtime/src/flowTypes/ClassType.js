@@ -2,6 +2,7 @@
 
 import Type from '../types/Type';
 import GenericType from '../types/GenericType';
+import ClassDeclaration from '../declarations/ClassDeclaration';
 import TypeParameterApplication from '../types/TypeParameterApplication';
 import getErrorMessage from '../getErrorMessage';
 import compareTypes from '../compareTypes';
@@ -35,7 +36,15 @@ export default class ClassType<T> extends Type {
     const annotation = context.getAnnotation(input);
     if (annotation) {
       if (!expectedType.acceptsType(annotation)) {
-        yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
+
+        const acceptsInstance = (
+             annotation instanceof ClassDeclaration
+          && expectedType.acceptsType(annotation.body)
+        );
+
+        if (!acceptsInstance) {
+          yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
+        }
       }
       return;
     }
