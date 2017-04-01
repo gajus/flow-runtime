@@ -8,7 +8,8 @@ import {
   TypeParameter,
   FlowIntoType,
   MixedType,
-  TypeAlias
+  TypeAlias,
+  TypeTDZ
 } from './types';
 
 /**
@@ -26,7 +27,7 @@ export default function compareTypes (a: Type<any>, b: Type<any>): -1 | 0 | 1 {
     return 0;
   }
 
-  if (b instanceof TypeAlias || b instanceof TypeParameter) {
+  if (b instanceof TypeAlias || b instanceof TypeParameter || b instanceof TypeTDZ) {
     b = b.unwrap();
   }
 
