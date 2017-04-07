@@ -37,7 +37,7 @@ export default function createConversionContext (options: Options): ConversionCo
                          ;
   
   if ('suppressComments' in options && Array.isArray(options.suppressComments)) {
-    context.suppressCommentPatterns = options.suppressComments.map(RegExp);
+    context.suppressCommentPatterns = options.suppressComments.map(regexString => new RegExp(regexString));
   }
   
   if ('suppressTypes' in options && Array.isArray(options.suppressTypes)) {
