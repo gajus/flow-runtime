@@ -41,7 +41,7 @@ export default function createConversionContext (options: Options): ConversionCo
   }
   
   if ('suppressTypes' in options && Array.isArray(options.suppressTypes)) {
-    context.suppressTypeNames = options.suppressTypeNames;
+    context.suppressTypeNames = options.suppressTypes;
   }
   
   return context;
