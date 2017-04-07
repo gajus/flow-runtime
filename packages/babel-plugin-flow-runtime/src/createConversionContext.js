@@ -7,7 +7,7 @@ export type Options = {
   assert?: boolean;
   warn?: boolean;
   annotate?: boolean;
-  suppressComments?: RegExp[];
+  suppressComments?: string[];
   suppressTypes?: string[];
   // deprecated
   decorate?: boolean;
@@ -37,7 +37,7 @@ export default function createConversionContext (options: Options): ConversionCo
                          ;
   
   if ('suppressComments' in options && Array.isArray(options.suppressComments)) {
-    context.suppressCommentPatterns = options.suppressComments;
+    context.suppressCommentPatterns = options.suppressComments.map(RegExp);
   }
   
   if ('suppressTypes' in options && Array.isArray(options.suppressTypes)) {
