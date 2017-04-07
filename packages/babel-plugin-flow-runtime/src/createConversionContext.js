@@ -7,6 +7,8 @@ export type Options = {
   assert?: boolean;
   warn?: boolean;
   annotate?: boolean;
+  suppressComments?: RegExp[];
+  suppressTypes?: string[];
   // deprecated
   decorate?: boolean;
 };
@@ -33,5 +35,14 @@ export default function createConversionContext (options: Options): ConversionCo
                          ? true
                          : Boolean(options.annotate)
                          ;
+  
+  if ('suppressComments' in options && Array.isArray(options.suppressComments)) {
+    context.suppressCommentPatterns = options.suppressComments;
+  }
+  
+  if ('suppressTypes' in options && Array.isArray(options.suppressTypes)) {
+    context.suppressTypeNames = options.suppressTypeNames;
+  }
+  
   return context;
 }
