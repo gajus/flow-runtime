@@ -10,6 +10,9 @@ export type PropTypeDict<T: {}> = $ObjMap<T, <V>(v: V) => PropType<V>>;
 
 export default function makeReactPropTypes <T: {}> (objectType: ObjectType<T>): PropTypeDict<T> {
   const output = {};
+  if (!objectType.properties) {
+    return output;
+  }
   for (const property of objectType.properties) {
     output[property.key] = (props, propName, componentName) => {
       return makeError(property, props);
