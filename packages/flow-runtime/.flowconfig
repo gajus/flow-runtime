@@ -27,6 +27,7 @@ munge_underscores=true
 suppress_type=$FlowIssue
 suppress_type=$FlowIgnore
 suppress_type=$FlowFixme
+suppress_type=$FlowFixMe
 suppress_type=$Fixme
 
 suppress_comment=\\(.\\|\n\\)*\\@flowFixme.*
