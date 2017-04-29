@@ -684,7 +684,7 @@ export default class TypeContext {
 
     for (let i = 0; i < length; i++) {
       const item = tail[i];
-      if (item instanceof ObjectTypeProperty) {
+      if (item instanceof ObjectTypeProperty || item instanceof ObjectTypeIndexer) {
         properties.push(item);
       }
       else if (item instanceof ObjectType) {
