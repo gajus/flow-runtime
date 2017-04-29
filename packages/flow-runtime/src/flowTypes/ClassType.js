@@ -16,6 +16,7 @@ export default class ClassType<T> extends Type {
   instanceType: Type<T>;
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+
     const {instanceType, context} = this;
     if (typeof input !== 'function') {
       yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
@@ -33,10 +34,10 @@ export default class ClassType<T> extends Type {
         return;
       }
     }
-    const annotation = context.getAnnotation(input);
+    let annotation = context.getAnnotation(input);
     if (annotation) {
+      annotation = annotation.unwrap();
       if (!expectedType.acceptsType(annotation)) {
-
         const acceptsInstance = (
              annotation instanceof ClassDeclaration
           && expectedType.acceptsType(annotation.body)
