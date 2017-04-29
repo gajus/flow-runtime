@@ -20,6 +20,10 @@ export default class TypeAlias<T> extends Type {
     return this;
   }
 
+  get properties () {
+    return this.type.properties;
+  }
+
   get hasConstraints (): boolean {
     return this.constraints.length > 0;
   }
