@@ -3,16 +3,20 @@
 import Declaration from './Declaration';
 import PartialType from '../types/PartialType';
 import TypeParameterApplication from '../types/TypeParameterApplication';
-import type {Type} from '../types';
+import type {Type, TypeParameter} from '../types';
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import type {ClassBodyCreator} from './';
 
-export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration {
+export default class ParameterizedClassDeclaration<X, O: Object> extends Declaration {
   typeName: string = 'ParameterizedClassDeclaration';
   bodyCreator: ClassBodyCreator<X, O>;
   name: string;
+
+  get typeParameters (): TypeParameter<X>[] {
+    return getPartial(this).typeParameters;
+  }
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): Generator<ErrorTuple, void, void> {
     yield* getPartial(this, ...typeInstances).errors(validation, path, input);
@@ -38,7 +42,22 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
   }
 
   toString (withDeclaration?: boolean) {
-    return getPartial(this).toString(withDeclaration);
+    if (!withDeclaration) {
+      return this.name;
+    }
+    const partial = getPartial(this);
+    const {type, typeParameters} = partial;
+    if (typeParameters.length === 0) {
+      return partial.toString(true);
+    }
+    const items = [];
+    for (let i = 0; i < typeParameters.length; i++) {
+      const typeParameter = typeParameters[i];
+      items.push(typeParameter.toString(true));
+    }
+    const {superClass, body} = type;
+    const superClassName = superClass && ((typeof superClass.name === 'string' && superClass.name) || superClass.toString());
+    return `declare class ${this.name}<${items.join(', ')}>${superClassName ? ` extends ${superClassName}` : ''} ${body.toString()}`;
   }
 
   toJSON () {
@@ -46,7 +65,7 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
   }
 }
 
-function getPartial <X, O: {}> (parent: ParameterizedClassDeclaration<X, O>, ...typeInstances: Type<any>[]): PartialType<O> {
+function getPartial <X, O: Object> (parent: ParameterizedClassDeclaration<X, O>, ...typeInstances: Type<any>[]): PartialType<O> {
 
   const {context, bodyCreator} = parent;
   const partial = new PartialType(context);
