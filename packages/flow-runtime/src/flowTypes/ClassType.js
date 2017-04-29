@@ -2,75 +2,65 @@
 
 import Type from '../types/Type';
 import GenericType from '../types/GenericType';
-import ClassDeclaration from '../declarations/ClassDeclaration';
-import TypeParameterApplication from '../types/TypeParameterApplication';
 import getErrorMessage from '../getErrorMessage';
 import compareTypes from '../compareTypes';
 
+import type TypeContext from '../TypeContext';
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
+
+function checkGenericType (context: TypeContext, expected: GenericType, input: Function) {
+  const {impl} = expected;
+  if (typeof impl !== 'function') {
+    // There is little else we can do here, so accept anything.
+    return true;
+  }
+  else if (impl === input || impl.isPrototypeOf(input)) {
+    return true;
+  }
+
+  const annotation = context.getAnnotation(impl);
+  if (annotation == null) {
+    return false;
+  }
+  else {
+    return checkType(context, annotation, input);
+  }
+}
+
+function checkType (context: TypeContext, expected: Type<*>, input: Function) {
+  const annotation = context.getAnnotation(input);
+  if (annotation != null) {
+    const result = compareTypes(expected, annotation);
+    return result !== -1;
+  }
+  return true;
+}
+
 
 export default class ClassType<T> extends Type {
   typeName: string = 'ClassType';
 
-  instanceType: Type<T>;
+  instanceType: Type<*>;
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
+
     const {instanceType, context} = this;
     if (typeof input !== 'function') {
       yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
-    }
-    const expectedType = instanceType.unwrap();
-    if (expectedType instanceof GenericType && typeof expectedType.impl === 'function') {
-      if (input === expectedType.impl) {
-        return;
-      }
-      else if (expectedType.impl.prototype.isPrototypeOf(input.prototype)) {
-        return;
-      }
-      else {
-        yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
-        return;
-      }
-    }
-    const annotation = context.getAnnotation(input);
-    if (annotation) {
-      if (!expectedType.acceptsType(annotation)) {
-
-        const acceptsInstance = (
-             annotation instanceof ClassDeclaration
-          && expectedType.acceptsType(annotation.body)
-        );
-
-        if (!acceptsInstance) {
-          yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
-        }
-      }
       return;
     }
-    let matches;
-    // we're dealing with a type
-    switch (input.typeName) {
-      case 'NumberType':
-      case 'NumericLiteralType':
-        matches = input === Number;
-        break;
-      case 'BooleanType':
-      case 'BooleanLiteralType':
-        matches = input === Boolean;
-        break;
-      case 'StringType':
-      case 'StringLiteralType':
-        matches = input === String;
-        break;
-      case 'ArrayType':
-      case 'TupleType':
-        matches = input === Array;
-        break;
-      default:
-        return;
-    }
-    if (!matches) {
+    const expectedType = (
+      instanceType.typeName === 'ClassDeclaration'
+      ? instanceType
+      : instanceType.unwrap()
+    );
+    const isValid = (
+      expectedType instanceof GenericType
+      ? checkGenericType(context, expectedType, input)
+      : checkType(context, expectedType, input)
+    );
+    if (!isValid) {
       yield [path, getErrorMessage('ERR_EXPECT_CLASS', instanceType.toString()), this];
     }
   }
@@ -78,58 +68,19 @@ export default class ClassType<T> extends Type {
   accepts (input: any): boolean {
     const {instanceType, context} = this;
     if (typeof input !== 'function') {
-        return false;
-      }
-      let expectedType = instanceType.unwrap();
-      if (expectedType instanceof GenericType && typeof expectedType.impl === 'function') {
-        if (input === expectedType.impl) {
-          return true;
-        }
-        else if (typeof expectedType.impl === 'function') {
-          if (expectedType.impl.prototype.isPrototypeOf(input.prototype)) {
-            return true;
-          }
-          else {
-            return false;
-          }
-        }
-      }
-
-      const annotation = context.getAnnotation(input);
-
-      if (annotation) {
-        return expectedType.acceptsType(annotation);
-      }
-      else if (expectedType instanceof TypeParameterApplication) {
-        expectedType = expectedType.parent;
-      }
-
-      if (expectedType instanceof GenericType && typeof expectedType.impl === 'function') {
-        if (expectedType.impl.prototype.isPrototypeOf(input.prototype)) {
-          return true;
-        }
-        else {
-          return false;
-        }
-      }
-
-      // we're dealing with a type
-      switch (input.typeName) {
-        case 'NumberType':
-        case 'NumericLiteralType':
-          return input === Number;
-        case 'BooleanType':
-        case 'BooleanLiteralType':
-          return input === Boolean;
-        case 'StringType':
-        case 'StringLiteralType':
-          return input === String;
-        case 'ArrayType':
-        case 'TupleType':
-          return input === Array;
-        default:
-          return false;
-      }
+      return false;
+    }
+    const expectedType = (
+      instanceType.typeName === 'ClassDeclaration'
+      ? instanceType
+      : instanceType.unwrap()
+    );
+    if (expectedType instanceof GenericType) {
+      return checkGenericType(context, expectedType, input);
+    }
+    else {
+      return checkType(context, expectedType, input);
+    }
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {

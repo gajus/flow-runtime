@@ -23,6 +23,8 @@ import {
  */
 export default function compareTypes (a: Type<any>, b: Type<any>): -1 | 0 | 1 {
 
+  let result;
+
   if (a === b) {
     return 0;
   }
@@ -32,16 +34,24 @@ export default function compareTypes (a: Type<any>, b: Type<any>): -1 | 0 | 1 {
   }
 
   if (a instanceof TypeAlias) {
-    return a.compareWith(b);
+    result = a.compareWith(b);
   }
-
-  if (a instanceof FlowIntoType || a instanceof TypeParameter || b instanceof FlowIntoType) {
-    return a.compareWith(b);
+  else if (a instanceof FlowIntoType || a instanceof TypeParameter || b instanceof FlowIntoType) {
+    result = a.compareWith(b);
   }
   else if (a instanceof AnyType || a instanceof ExistentialType || a instanceof MixedType) {
     return 1;
   }
   else {
-    return a.compareWith(b);
+    result = a.compareWith(b);
+  }
+
+  if (b instanceof AnyType) {
+    // Note: This check cannot be moved higher in the scope,
+    // as this would prevent types from being propagated upwards.
+    return 1;
+  }
+  else {
+    return result;
   }
 }

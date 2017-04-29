@@ -4,6 +4,7 @@ import Type from './Type';
 import compareTypes from '../compareTypes';
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
+import FunctionTypeRestParam from './FunctionTypeRestParam';
 
 export default class FunctionTypeParam<T> extends Type {
   typeName: string = 'FunctionTypeParam';
@@ -32,7 +33,7 @@ export default class FunctionTypeParam<T> extends Type {
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {
-    if (input instanceof FunctionTypeParam) {
+    if (input instanceof FunctionTypeParam || input instanceof FunctionTypeRestParam) {
       return compareTypes(this.type, input.type);
     }
     else {

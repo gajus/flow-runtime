@@ -60,10 +60,6 @@ import {
   ExtendsDeclaration
 } from './declarations';
 
-import {
-  TypeParametersSymbol
-} from './symbols';
-
 import TypeContext from './TypeContext';
 
 function defineProperty (name: string, value: any) {
@@ -72,7 +68,6 @@ function defineProperty (name: string, value: any) {
   });
 }
 
-defineProperty('TypeParametersSymbol', TypeParametersSymbol);
 defineProperty('TypeContext', TypeContext);
 defineProperty('Type', Type);
 defineProperty('TypeBox', TypeBox);

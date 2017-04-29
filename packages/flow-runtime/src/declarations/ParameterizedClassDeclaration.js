@@ -3,16 +3,37 @@
 import Declaration from './Declaration';
 import PartialType from '../types/PartialType';
 import TypeParameterApplication from '../types/TypeParameterApplication';
-import type {Type} from '../types';
+import type {Type, TypeParameter} from '../types';
+import type {Property} from '../types/ObjectType';
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import type {ClassBodyCreator} from './';
 
-export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration {
+
+
+export default class ParameterizedClassDeclaration<X, O: Object> extends Declaration {
   typeName: string = 'ParameterizedClassDeclaration';
   bodyCreator: ClassBodyCreator<X, O>;
   name: string;
+
+  shapeID: Symbol = Symbol();
+
+  get superClass (): ? Type<$Supertype<O>> {
+    return getPartial(this).type.superClass;
+  }
+
+  get body (): ? Type<O> {
+    return getPartial(this).type.body;
+  }
+
+  get properties(): Property<*, *>[] {
+    return getPartial(this).type.properties;
+  }
+
+  get typeParameters (): TypeParameter<X>[] {
+    return getPartial(this).typeParameters;
+  }
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): Generator<ErrorTuple, void, void> {
     yield* getPartial(this, ...typeInstances).errors(validation, path, input);
@@ -27,7 +48,11 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
   }
 
   unwrap (...typeInstances: Type<any>[]): Type<O> {
-    return getPartial(this, ...typeInstances).unwrap();
+    return getPartial(this, ...typeInstances).type;
+  }
+
+  isSuperClassOf (candidate: *) {
+    return getPartial(this).type.isSuperClassOf(candidate);
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, O> {
@@ -38,7 +63,22 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
   }
 
   toString (withDeclaration?: boolean) {
-    return getPartial(this).toString(withDeclaration);
+    if (!withDeclaration) {
+      return this.name;
+    }
+    const partial = getPartial(this);
+    const {type, typeParameters} = partial;
+    if (typeParameters.length === 0) {
+      return partial.toString(true);
+    }
+    const items = [];
+    for (let i = 0; i < typeParameters.length; i++) {
+      const typeParameter = typeParameters[i];
+      items.push(typeParameter.toString(true));
+    }
+    const {superClass, body} = type;
+    const superClassName = superClass && ((typeof superClass.name === 'string' && superClass.name) || superClass.toString());
+    return `declare class ${this.name}<${items.join(', ')}>${superClassName ? ` extends ${superClassName}` : ''} ${body.toString()}`;
   }
 
   toJSON () {
@@ -46,7 +86,7 @@ export default class ParameterizedClassDeclaration<X, O: {}> extends Declaration
   }
 }
 
-function getPartial <X, O: {}> (parent: ParameterizedClassDeclaration<X, O>, ...typeInstances: Type<any>[]): PartialType<O> {
+function getPartial <X, O: Object> (parent: ParameterizedClassDeclaration<X, O>, ...typeInstances: Type<any>[]): PartialType<O> {
 
   const {context, bodyCreator} = parent;
   const partial = new PartialType(context);
@@ -57,6 +97,8 @@ function getPartial <X, O: {}> (parent: ParameterizedClassDeclaration<X, O>, ...
   else {
     partial.type = context.class(parent.name, body);
   }
+
+  (partial.type: $FlowFixme).shapeID = parent.shapeID;
 
   const {typeParameters} = partial;
   const limit = Math.min(typeInstances.length, typeParameters.length);

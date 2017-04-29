@@ -27,6 +27,9 @@ export default class FunctionType<P, R> extends Type {
     const annotation = input[TypeSymbol];
     const {returnType, params} = this;
     if (annotation) {
+      if (!annotation.params) {
+        return;
+      }
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
         const annotationParam = annotation.params[i];
@@ -72,6 +75,9 @@ export default class FunctionType<P, R> extends Type {
     const {returnType, params} = this;
     const annotation = input[TypeSymbol];
     if (annotation) {
+      if (!annotation.params) {
+        return true;
+      }
       for (let i = 0; i < params.length; i++) {
         const param = params[i];
         const annotationParam = annotation.params[i];
@@ -117,12 +123,12 @@ export default class FunctionType<P, R> extends Type {
 
     const params = this.params;
     const inputParams = input.params;
-    if (inputParams.length < params.length) {
-      return -1;
-    }
     for (let i = 0; i < params.length; i++) {
       const param = params[i];
-      const inputParam = inputParams[i];
+      const inputParam = i >= inputParams.length ? input.rest : inputParams[i];
+      if (inputParam == null) {
+        return -1;
+      }
       const result = compareTypes(param, inputParam);
       if (result === -1) {
         return -1;

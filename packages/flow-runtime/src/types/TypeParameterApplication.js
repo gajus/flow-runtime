@@ -1,7 +1,6 @@
 /* @flow */
 
 import Type from './Type';
-import compareTypes from '../compareTypes';
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
@@ -29,7 +28,7 @@ export default class TypeParameterApplication<X, T> extends Type {
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {
-    return compareTypes(this.parent, input);
+    return this.parent.compareWith(input, ...this.typeInstances);
   }
 
   hasProperty (name: string): boolean {
@@ -47,6 +46,10 @@ export default class TypeParameterApplication<X, T> extends Type {
     if (inner && typeof (inner: $FlowIgnore).getProperty === 'function') {
       return (inner: $FlowIgnore).getProperty(name, ...this.typeInstances);
     }
+  }
+
+  unwrap () {
+    return this.parent.unwrap(...this.typeInstances);
   }
 
   toString (): string {

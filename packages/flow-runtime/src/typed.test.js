@@ -1,9 +1,9 @@
 /* @flow */
-import {ok, throws} from 'assert';
+import {ok, equal, throws} from 'assert';
 
 import t from './globalContext';
 
-const no = (input: any): any => ok(!input);
+const no = (input: any): any => equal(Boolean(input), false);
 
 describe('Typed API', () => {
   it('should check a string', () => {
@@ -252,7 +252,8 @@ describe('Typed API', () => {
 
   it('should handle Class<User>', () => {
 
-    @t.decorate(t.object(
+    @t.annotate(t.class(
+      'User',
       t.property('id', t.number()),
       t.property('name', t.string()),
       t.property('email', t.string())
@@ -264,11 +265,13 @@ describe('Typed API', () => {
     }
 
 
+    @t.annotate(t.class('AdminUser', t.extends(User)))
     class AdminUser extends User {
 
     }
 
-    @t.decorate(t.object(
+    @t.annotate(t.class(
+      'Role',
       t.property('name', t.string()),
     ))
     class Role {
@@ -286,6 +289,7 @@ describe('Typed API', () => {
 
     const IUserClass = t.Class(t.ref(User));
     const IAdminUserClass = t.Class(t.ref(AdminUser));
+
     no(IUserClass.accepts(Role));
     ok(IUserClass.accepts(User));
     ok(IUserClass.accepts(AdminUser));
