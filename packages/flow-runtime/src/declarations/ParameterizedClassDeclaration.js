@@ -4,15 +4,32 @@ import Declaration from './Declaration';
 import PartialType from '../types/PartialType';
 import TypeParameterApplication from '../types/TypeParameterApplication';
 import type {Type, TypeParameter} from '../types';
+import type {Property} from '../types/ObjectType';
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
 import type {ClassBodyCreator} from './';
 
+
+
 export default class ParameterizedClassDeclaration<X, O: Object> extends Declaration {
   typeName: string = 'ParameterizedClassDeclaration';
   bodyCreator: ClassBodyCreator<X, O>;
   name: string;
+
+  shapeID: Symbol = Symbol();
+
+  get superClass (): ? Type<$Supertype<O>> {
+    return getPartial(this).type.superClass;
+  }
+
+  get body (): ? Type<O> {
+    return getPartial(this).type.body;
+  }
+
+  get properties(): Property<*, *>[] {
+    return getPartial(this).type.properties;
+  }
 
   get typeParameters (): TypeParameter<X>[] {
     return getPartial(this).typeParameters;
@@ -31,7 +48,11 @@ export default class ParameterizedClassDeclaration<X, O: Object> extends Declara
   }
 
   unwrap (...typeInstances: Type<any>[]): Type<O> {
-    return getPartial(this, ...typeInstances).unwrap();
+    return getPartial(this, ...typeInstances).type;
+  }
+
+  isSuperClassOf (candidate: *) {
+    return getPartial(this).type.isSuperClassOf(candidate);
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, O> {
@@ -76,6 +97,8 @@ function getPartial <X, O: Object> (parent: ParameterizedClassDeclaration<X, O>,
   else {
     partial.type = context.class(parent.name, body);
   }
+
+  (partial.type: $FlowFixme).shapeID = parent.shapeID;
 
   const {typeParameters} = partial;
   const limit = Math.min(typeInstances.length, typeParameters.length);

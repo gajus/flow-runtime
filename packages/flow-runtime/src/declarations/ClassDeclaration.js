@@ -5,6 +5,8 @@ import TypeParameterApplication from '../types/TypeParameterApplication';
 import getErrorMessage from "../getErrorMessage";
 import compareTypes from '../compareTypes';
 
+import type ParameterizedClassDeclaration from './ParameterizedClassDeclaration';
+
 import type {Type, ObjectType} from '../types';
 
 import type {Property} from '../types/ObjectType';
@@ -17,6 +19,40 @@ export default class ClassDeclaration<O: {}> extends Declaration {
   name: string;
   superClass: ? Type<any>;
   body: ObjectType<O>;
+
+  shapeID: Symbol = Symbol();
+
+  get properties (): Array<*> {
+    const {body, superClass} = this;
+    if (superClass == null) {
+      return body.properties;
+    }
+    const bodyProps = body.properties;
+    const superProps = (superClass.unwrap(): $FlowFixme).properties;
+    const seen = {};
+    const seenStatic = {};
+    const props = [];
+    for (let i = 0; i < superProps.length; i++) {
+      const prop = superProps[i];
+      props.push(prop);
+      if (prop.static) {
+        seenStatic[prop.key] = i;
+      }
+      else {
+        seen[prop.key] = i;
+      }
+    }
+    for (let i = 0; i < bodyProps.length; i++) {
+      const prop = bodyProps[i];
+      if (seen[prop.key]) {
+        props[i] = prop;
+      }
+      else {
+        props.push(prop);
+      }
+    }
+    return props;
+  }
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {body} = this;
@@ -57,6 +93,17 @@ export default class ClassDeclaration<O: {}> extends Declaration {
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {
+    if (input instanceof ClassDeclaration) {
+      if (input === this) {
+        return 0;
+      }
+      else if (this.isSuperClassOf(input)) {
+        return 1;
+      }
+      else {
+        return -1;
+      }
+    }
     return compareTypes(this.body, input);
   }
 
@@ -88,6 +135,28 @@ export default class ClassDeclaration<O: {}> extends Declaration {
     else {
       return false;
     }
+  }
+
+  /**
+   * Determine whether this class declaration represents a super class of
+   * the given type.
+   */
+  isSuperClassOf <X: {}> (candidate: ClassDeclaration<X> | ParameterizedClassDeclaration<*, X>) {
+    const {body, shapeID} = this;
+    let current = candidate;
+
+    while (current != null) {
+      if (current === this || current === body || current.shapeID === shapeID) {
+        return true;
+      }
+      if (current instanceof ClassDeclaration) {
+        current = current.superClass;
+      }
+      else {
+        current = current.unwrap();
+      }
+    }
+    return false;
   }
 
   apply <X> (...typeInstances: Type<X>[]): TypeParameterApplication<X, O> {
