@@ -1,1 +1,17 @@
-require("babel-register");
+require('babel-register')({
+  presets: [
+    ['env', {
+      targets: {
+        browsers: ['last 2 versions']
+      },
+      exclude: [
+        'transform-regenerator'
+      ],
+    }],
+    'stage-0',
+    'react'
+  ],
+  plugins: [
+    'transform-decorators-legacy'
+  ]
+});

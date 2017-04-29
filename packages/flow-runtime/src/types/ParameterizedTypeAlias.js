@@ -15,6 +15,10 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
 
   typeCreator: TypeCreator<T>;
 
+  get properties () {
+    return getPartial(this).type.properties;
+  }
+
   *errors (validation: Validation<any>, path: IdentifierPath, input: any, ...typeInstances: Type<any>[]): Generator<ErrorTuple, void, void> {
     yield* getPartial(this, ...typeInstances).errors(validation, path, input);
   }

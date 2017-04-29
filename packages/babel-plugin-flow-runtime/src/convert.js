@@ -703,7 +703,7 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
   const [properties] = path.get('properties').reduce(
     ([properties, seen, seenStatic], property) => {
       const key = property.get('key');
-      if (property.node.computed) {
+      if (property.type === 'ObjectTypeSpreadProperty' || property.node.computed) {
         properties.push(property);
       }
       else if (property.node.static) {
@@ -753,6 +753,13 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
     ...path.get('indexers')
   ];
   return context.call(path.node.exact ? 'exactObject' : 'object', ...body.map(item => convert(context, item)));
+};
+
+converters.ObjectTypeSpreadProperty = (context: ConversionContext, path: NodePath): Node => {
+  const arg = convert(context, path.get('argument'));
+  return t.spreadElement(
+    t.memberExpression(arg, t.identifier('properties'))
+  );
 };
 
 converters.ObjectTypeCallProperty = (context: ConversionContext, path: NodePath): Node => {
