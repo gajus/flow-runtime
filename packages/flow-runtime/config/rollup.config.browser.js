@@ -22,6 +22,12 @@ export default {
       ],
       plugins: [
         'transform-decorators-legacy',
+        ['transform-runtime', {
+          helpers: false,
+          polyfill: false,
+          regenerator: true,
+          moduleName: 'rollup-regenerator-runtime'
+        }],
         'external-helpers'
       ]
     }),
