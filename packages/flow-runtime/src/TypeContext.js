@@ -890,7 +890,7 @@ export default class TypeContext {
     return target;
   }
 
-  union <T> (...types: Type<T>[]): UnionType<T> {
+  union <T> (...types: Type<T>[]): Type<T> {
     return makeUnion(this, types);
   }
 
