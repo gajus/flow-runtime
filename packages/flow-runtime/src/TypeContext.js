@@ -190,6 +190,10 @@ export default class TypeContext {
   // @flowIssue 252
   [CurrentModuleSymbol]: ? ModuleDeclaration;
 
+  get TypeParametersSymbol (): typeof TypeParametersSymbol {
+    return TypeParametersSymbol;
+  }
+
 
   makeJSONError <T> (validation: Validation<T>): ? Array<Object> {
     return makeJSONError(validation);
@@ -605,7 +609,6 @@ export default class TypeContext {
    * Bind the type parameters for the parent class of the given instance.
    */
   bindTypeParameters <T: {}> (subject: T, ...typeInstances: Type<any>[]): T {
-
     const instancePrototype = Object.getPrototypeOf(subject);
     // @flowIssue
     const parentPrototype = instancePrototype && Object.getPrototypeOf(instancePrototype);
