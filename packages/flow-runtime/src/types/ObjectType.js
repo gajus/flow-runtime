@@ -7,6 +7,8 @@ import ObjectTypeProperty from './ObjectTypeProperty';
 import ObjectTypeIndexer from './ObjectTypeIndexer';
 import ObjectTypeCallProperty from './ObjectTypeCallProperty';
 
+import {ClassDeclaration, ParameterizedClassDeclaration} from '../declarations';
+
 export type Property<K: string | number, V>
  = ObjectTypeProperty<K, V>
  | ObjectTypeIndexer<K, V>
@@ -164,14 +166,14 @@ export default class ObjectType<T: {}> extends Type {
   }
 
   compareWith (input: Type<any>): -1 | 0 | 1 {
-    if (!(input instanceof ObjectType)) {
+    if (!(input instanceof ObjectType || input instanceof ClassDeclaration || input instanceof ParameterizedClassDeclaration)) {
       return -1;
     }
     const hasCallProperties = this.callProperties.length > 0;
 
     let isGreater = false;
     if (hasCallProperties) {
-      const result = compareTypeCallProperties(this, input);
+      const result = compareTypeCallProperties(this, (input: $FlowFixme));
       if (result === -1) {
         return -1;
       }
@@ -182,10 +184,10 @@ export default class ObjectType<T: {}> extends Type {
 
     let result;
     if (this.indexers.length > 0) {
-      result = compareTypeWithIndexers(this, input);
+      result = compareTypeWithIndexers(this, (input: $FlowFixme));
     }
     else {
-      result = compareTypeWithoutIndexers(this, input);
+      result = compareTypeWithoutIndexers(this, (input: $FlowFixme));
     }
 
     if (result === -1) {
@@ -385,7 +387,7 @@ function compareTypeWithoutIndexers (type: ObjectType<any>, input: ObjectType<an
     for (let j = 0; j < inputProperties.length; j++) {
       const inputProperty = inputProperties[j];
       if (inputProperty.key === property.key) {
-        const result = compareTypes(property, inputProperty);
+        const result = compareTypes(property.value, inputProperty.value);
         if (result === -1) {
           return -1;
         }
