@@ -549,6 +549,13 @@ export default function transformVisitors (context: ConversionContext): Object {
       if (context.visited.has(path.node)) {
         return;
       }
+      let returnType = fn.get('returnType');
+      if (returnType.isTypeAnnotation()) {
+        returnType = returnType.get('typeAnnotation');
+      }
+      if (!returnType.isGenericTypeAnnotation()) {
+        return;
+      }
       const yieldTypeUid = path.scope.getData('yieldTypeUid');
       const nextTypeUid = path.scope.getData('nextTypeUid');
 
