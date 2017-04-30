@@ -214,6 +214,9 @@ export default class TypeContext {
 
     const annotation = this.getAnnotation(input);
     if (annotation) {
+      if (typeof input === 'function' && (annotation instanceof ClassDeclaration || annotation instanceof ParameterizedClassDeclaration)) {
+        return this.Class(annotation);
+      }
       return annotation;
     }
     // @flowIssue 252
