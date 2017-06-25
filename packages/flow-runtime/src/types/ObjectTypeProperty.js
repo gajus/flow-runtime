@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import NullableType from './NullableType';
 import compareTypes from '../compareTypes';
 import getErrorMessage from "../getErrorMessage";
 import {addConstraints, collectConstraintErrors, constraintsAccept} from '../typeConstraints';
@@ -21,6 +22,22 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
   addConstraint (...constraints: TypeConstraint[]): ObjectTypeProperty<K, V> {
     addConstraints(this, ...constraints);
     return this;
+  }
+  
+  /**
+   * Determine whether the property is nullable.
+   */
+  isNullable(): boolean {
+    return this.value instanceof NullableType;
+  }
+  
+  /**
+   * Determine whether the property exists on the given input or its prototype chain.
+   */
+  existsOn(input: Object): boolean {
+    // @flowIgnore
+    const {key, static: isStatic} = this;
+    return key in (isStatic ? input.constructor : input) === true;
   }
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
@@ -50,6 +67,10 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
     if (optional && target === undefined) {
       return;
     }
+    if (this.isNullable() && !this.existsOn(input)) {
+      yield [targetPath, getErrorMessage('ERR_MISSING_PROPERTY'), this];
+      return;
+    }
     let hasErrors = false;
     for (const error of value.errors(validation, targetPath, target)) {
       hasErrors = true;
@@ -76,11 +97,16 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
     else {
       target = input[key];
     }
-
+    
     if (optional && target === undefined) {
       return true;
     }
-    else if (!value.accepts(target)) {
+    
+    if (this.isNullable() && !this.existsOn(input)) {
+      return false;
+    }
+    
+    if (!value.accepts(target)) {
       return false;
     }
     else {
