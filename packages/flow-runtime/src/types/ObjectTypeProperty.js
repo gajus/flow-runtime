@@ -1,6 +1,7 @@
 /* @flow */
 
 import Type from './Type';
+import NullableType from './NullableType';
 import compareTypes from '../compareTypes';
 import getErrorMessage from "../getErrorMessage";
 import {addConstraints, collectConstraintErrors, constraintsAccept} from '../typeConstraints';
@@ -76,11 +77,18 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
     else {
       target = input[key];
     }
-
+    
     if (optional && target === undefined) {
       return true;
     }
-    else if (!value.accepts(target)) {
+    
+    if (value instanceof NullableType) {
+      if (key in (isStatic ? input.constructor : input) === false) {
+        return false;
+      }
+    }
+    
+    if (!value.accepts(target)) {
       return false;
     }
     else {

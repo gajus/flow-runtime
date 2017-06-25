@@ -45,6 +45,58 @@ describe('Typed API', () => {
     type.assert('');
     type.assert('foo');
   });
+  
+  it('should check nullable properties of an object', () => {
+    const type = t.object(t.property('foo', t.nullable(t.number())));
+    
+    const A = function A() {};
+    const B = function B() {};
+
+    ok(type.accepts({foo: 0}));
+    ok(type.accepts({foo: 1}));
+    ok(type.accepts({foo: -1}));
+    ok(type.accepts({foo: null}));
+    ok(type.accepts({foo: undefined}));
+    no(type.accepts({foo: false}));
+    no(type.accepts({foo: ''}));
+    no(type.accepts());
+    no(type.accepts({}));
+    no(type.accepts(new B()));
+    A.foo = null;
+    no(type.accepts(new A()));
+    A.foo = undefined;
+    no(type.accepts(new A()));
+    A.foo = 1;
+    no(type.accepts(new A()));
+  });
+  
+  it('should check nullable static properties of an object', () => {
+    const type = t.object(t.staticProperty('foo', t.nullable(t.number())));
+    
+    const A = function A() {};
+    const B = function B() {};
+
+    A.foo = null;
+    ok(type.accepts(new A()));
+    A.foo = undefined;
+    ok(type.accepts(new A()));
+    A.foo = 0;
+    ok(type.accepts(new A()));
+    A.foo = 1;
+    ok(type.accepts(new A()));
+    A.foo = -1;
+    ok(type.accepts(new A()));
+    A.foo = false;
+    no(type.accepts(new A()));
+    A.foo = '';
+    no(type.accepts(new A()));
+    no(type.accepts(new B()));
+    no(type.accepts({foo: null}));
+    no(type.accepts({foo: undefined}));
+    no(type.accepts({foo: 1}));
+    no(type.accepts());
+    no(type.accepts({}));
+  });
 
 
   it('should check a simple object with shortcut syntax', () => {
