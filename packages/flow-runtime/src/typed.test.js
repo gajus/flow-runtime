@@ -70,6 +70,30 @@ describe('Typed API', () => {
     no(type.accepts(new A()));
   });
   
+  it('should assert nullable properties of an object', () => {
+    const type = t.object(t.property('foo', t.nullable(t.number())));
+    
+    const A = function A() {};
+    const B = function B() {};
+
+    ok(type.assert({foo: 0}));
+    ok(type.assert({foo: 1}));
+    ok(type.assert({foo: -1}));
+    ok(type.assert({foo: null}));
+    ok(type.assert({foo: undefined}));
+    throws(() => type.assert({foo: false}));
+    throws(() => type.assert({foo: ''}));
+    throws(() => type.assert());
+    throws(() => type.assert({}));
+    throws(() => type.assert(new B()));
+    A.foo = null;
+    throws(() => type.assert(new A()));
+    A.foo = undefined;
+    throws(() => type.assert(new A()));
+    A.foo = 1;
+    throws(() => type.assert(new A()));
+  });
+  
   it('should check nullable static properties of an object', () => {
     const type = t.object(t.staticProperty('foo', t.nullable(t.number())));
     
@@ -96,6 +120,34 @@ describe('Typed API', () => {
     no(type.accepts({foo: 1}));
     no(type.accepts());
     no(type.accepts({}));
+  });
+  
+  it('should assert nullable static properties of an object', () => {
+    const type = t.object(t.staticProperty('foo', t.nullable(t.number())));
+    
+    const A = function A() {};
+    const B = function B() {};
+
+    A.foo = null;
+    ok(type.assert(new A()));
+    A.foo = undefined;
+    ok(type.assert(new A()));
+    A.foo = 0;
+    ok(type.assert(new A()));
+    A.foo = 1;
+    ok(type.assert(new A()));
+    A.foo = -1;
+    ok(type.assert(new A()));
+    A.foo = false;
+    throws(() => type.assert(new A()));
+    A.foo = '';
+    throws(() => type.assert(new A()));
+    throws(() => type.assert(new B()));
+    throws(() => type.assert({foo: null}));
+    throws(() => type.assert({foo: undefined}));
+    throws(() => type.assert({foo: 1}));
+    throws(() => type.assert());
+    throws(() => type.assert({}));
   });
 
 

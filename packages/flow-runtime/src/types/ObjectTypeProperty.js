@@ -23,6 +23,22 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
     addConstraints(this, ...constraints);
     return this;
   }
+  
+  /**
+   * Determine whether the property is nullable.
+   */
+  isNullable(): boolean {
+    return this.value instanceof NullableType;
+  }
+  
+  /**
+   * Determine whether the property exists on the given input or its prototype chain.
+   */
+  existsOn(input: Object): boolean {
+    // @flowIgnore
+    const {key, static: isStatic} = this;
+    return key in (isStatic ? input.constructor : input) === true;
+  }
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     // @flowIgnore
@@ -49,6 +65,10 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
       targetPath = path.concat(key);
     }
     if (optional && target === undefined) {
+      return;
+    }
+    if (this.isNullable() && !this.existsOn(input)) {
+      yield [targetPath, getErrorMessage('ERR_MISSING_PROPERTY'), this];
       return;
     }
     let hasErrors = false;
@@ -82,10 +102,8 @@ export default class ObjectTypeProperty<K: string | number, V> extends Type {
       return true;
     }
     
-    if (value instanceof NullableType) {
-      if (key in (isStatic ? input.constructor : input) === false) {
-        return false;
-      }
+    if (this.isNullable() && !this.existsOn(input)) {
+      return false;
     }
     
     if (!value.accepts(target)) {
