@@ -9,12 +9,11 @@ export default function registerTypePredicates (context: TypeContext) {
   context.setPredicate('Promise', (input: any) => {
     if (input instanceof Promise) {
       return true;
-    }
-    else if (input !== null && typeof input === 'object' && typeof input.then === 'function') {
-      return input.then.length >= 2;
-    }
-    else {
-      return false;
+    } else {
+      return input !== null
+        && (typeof input === 'object' || typeof input === 'function')
+        && typeof input.then === 'function'
+        ;
     }
   });
 }
