@@ -62,63 +62,65 @@ import {
 
 import TypeContext from './TypeContext';
 
-function defineProperty (name: string, value: any) {
-  Object.defineProperty(globalContext, name, {
-    value: value
-  });
+function v (thing) {
+  return { value: thing }
 }
 
-defineProperty('TypeContext', TypeContext);
-defineProperty('Type', Type);
-defineProperty('TypeBox', TypeBox);
-defineProperty('TypeParameter', TypeParameter);
-defineProperty('TypeReference', TypeReference);
-defineProperty('TypeTDZ', TypeTDZ);
-defineProperty('ParameterizedTypeAlias', ParameterizedTypeAlias);
-defineProperty('TypeAlias', TypeAlias);
-defineProperty('TypeConstructor', TypeConstructor);
-defineProperty('GenericType', GenericType);
-defineProperty('NullLiteralType', NullLiteralType);
-defineProperty('NumberType', NumberType);
-defineProperty('NumericLiteralType', NumericLiteralType);
-defineProperty('BooleanType', BooleanType);
-defineProperty('BooleanLiteralType', BooleanLiteralType);
-defineProperty('SymbolType', SymbolType);
-defineProperty('SymbolLiteralType', SymbolLiteralType);
-defineProperty('StringType', StringType);
-defineProperty('StringLiteralType', StringLiteralType);
-defineProperty('ArrayType', ArrayType);
-defineProperty('ObjectType', ObjectType);
-defineProperty('ObjectTypeCallProperty', ObjectTypeCallProperty);
-defineProperty('ObjectTypeIndexer', ObjectTypeIndexer);
-defineProperty('ObjectTypeProperty', ObjectTypeProperty);
-defineProperty('FunctionType', FunctionType);
-defineProperty('FunctionTypeParam', FunctionTypeParam);
-defineProperty('FunctionTypeRestParam', FunctionTypeRestParam);
-defineProperty('FunctionTypeReturn', FunctionTypeReturn);
-defineProperty('ParameterizedFunctionType', ParameterizedFunctionType);
-defineProperty('PartialType', PartialType);
-defineProperty('RefinementType', RefinementType);
-defineProperty('TypeParameterApplication', TypeParameterApplication);
-defineProperty('GeneratorType', GeneratorType);
-defineProperty('ExistentialType', ExistentialType);
-defineProperty('FlowIntoType', FlowIntoType);
-defineProperty('AnyType', AnyType);
-defineProperty('MixedType', MixedType);
-defineProperty('EmptyType', EmptyType);
-defineProperty('NullableType', NullableType);
-defineProperty('ThisType', ThisType);
-defineProperty('TupleType', TupleType);
-defineProperty('UnionType', UnionType);
-defineProperty('IntersectionType', IntersectionType);
-defineProperty('VoidType', VoidType);
-defineProperty('Declaration', Declaration);
-defineProperty('VarDeclaration', VarDeclaration);
-defineProperty('TypeDeclaration', TypeDeclaration);
-defineProperty('ModuleDeclaration', ModuleDeclaration);
-defineProperty('ModuleExportsDeclaration', ModuleExportsDeclaration);
-defineProperty('ClassDeclaration', ClassDeclaration);
-defineProperty('ParameterizedClassDeclaration', ParameterizedClassDeclaration);
-defineProperty('ExtendsDeclaration', ExtendsDeclaration);
+if (typeof global !== 'undefined' && global.__FLOW_RUNTIME_GLOBAL_CONTEXT_DO_NOT_USE_THIS_VARIABLE__ !== globalContext) {
+  Object.defineProperties(globalContext, {
+    TypeContext: v(TypeContext),
+    Type: v(Type),
+    TypeBox: v(TypeBox),
+    TypeParameter: v(TypeParameter),
+    TypeReference: v(TypeReference),
+    TypeTDZ: v(TypeTDZ),
+    ParameterizedTypeAlias: v(ParameterizedTypeAlias),
+    TypeAlias: v(TypeAlias),
+    TypeConstructor: v(TypeConstructor),
+    GenericType: v(GenericType),
+    NullLiteralType: v(NullLiteralType),
+    NumberType: v(NumberType),
+    NumericLiteralType: v(NumericLiteralType),
+    BooleanType: v(BooleanType),
+    BooleanLiteralType: v(BooleanLiteralType),
+    SymbolType: v(SymbolType),
+    SymbolLiteralType: v(SymbolLiteralType),
+    StringType: v(StringType),
+    StringLiteralType: v(StringLiteralType),
+    ArrayType: v(ArrayType),
+    ObjectType: v(ObjectType),
+    ObjectTypeCallProperty: v(ObjectTypeCallProperty),
+    ObjectTypeIndexer: v(ObjectTypeIndexer),
+    ObjectTypeProperty: v(ObjectTypeProperty),
+    FunctionType: v(FunctionType),
+    FunctionTypeParam: v(FunctionTypeParam),
+    FunctionTypeRestParam: v(FunctionTypeRestParam),
+    FunctionTypeReturn: v(FunctionTypeReturn),
+    ParameterizedFunctionType: v(ParameterizedFunctionType),
+    PartialType: v(PartialType),
+    RefinementType: v(RefinementType),
+    TypeParameterApplication: v(TypeParameterApplication),
+    GeneratorType: v(GeneratorType),
+    ExistentialType: v(ExistentialType),
+    FlowIntoType: v(FlowIntoType),
+    AnyType: v(AnyType),
+    MixedType: v(MixedType),
+    EmptyType: v(EmptyType),
+    NullableType: v(NullableType),
+    ThisType: v(ThisType),
+    TupleType: v(TupleType),
+    UnionType: v(UnionType),
+    IntersectionType: v(IntersectionType),
+    VoidType: v(VoidType),
+    Declaration: v(Declaration),
+    VarDeclaration: v(VarDeclaration),
+    TypeDeclaration: v(TypeDeclaration),
+    ModuleDeclaration: v(ModuleDeclaration),
+    ModuleExportsDeclaration: v(ModuleExportsDeclaration),
+    ClassDeclaration: v(ClassDeclaration),
+    ParameterizedClassDeclaration: v(ParameterizedClassDeclaration),
+    ExtendsDeclaration: v(ExtendsDeclaration),
+  })
+}
 
 export default globalContext;
