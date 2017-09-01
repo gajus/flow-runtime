@@ -174,7 +174,7 @@ describe('Typed API', () => {
   });
 
   it('should check an exact object', () => {
-    const type = t.object({
+    const type = t.exactObject({
       foo: t.boolean(),
       bar: t.string()
     });
@@ -185,7 +185,17 @@ describe('Typed API', () => {
     }));
 
     no(type.accepts({
+      foo: true
+    }));
+
+    no(type.accepts({}));
+
+    no(type.accepts({
       foo: 123,
+    }));
+
+    throws(() => type.assert({
+      bar: 'hello'
     }));
   });
 
