@@ -37,7 +37,7 @@ export default function createConversionContext (options: Options): ConversionCo
                          ;
 
   context.shouldGenerateReifiedOnly = options.generateReifiedOnly === undefined
-                                    ? true
+                                    ? false
                                     : Boolean(options.generateReifiedOnly)
                                     ;
   
