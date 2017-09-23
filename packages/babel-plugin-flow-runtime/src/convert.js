@@ -445,6 +445,10 @@ converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
       ])
     );
   }
+  const entity = context.getEntity(name, path);
+  if (context.shouldGenerateReifiedOnly && (!entity || !entity.reified)) {
+    return path.node;
+  }
   return t.variableDeclaration('const', [
     t.variableDeclarator(
       t.identifier(name),
