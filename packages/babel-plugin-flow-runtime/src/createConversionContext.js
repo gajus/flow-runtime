@@ -35,6 +35,11 @@ export default function createConversionContext (options: Options): ConversionCo
                          ? true
                          : Boolean(options.annotate)
                          ;
+
+  context.shouldGenerateReifiedOnly = options.generateReifiedOnly === undefined
+                                    ? false
+                                    : Boolean(options.generateReifiedOnly)
+                                    ;
   
   if ('suppressComments' in options && Array.isArray(options.suppressComments)) {
     context.suppressCommentPatterns = options.suppressComments.map(regexString => new RegExp(regexString));

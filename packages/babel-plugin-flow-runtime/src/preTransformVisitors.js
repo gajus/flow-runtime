@@ -11,7 +11,43 @@ export default function preTransformVisitors (context: ConversionContext): Objec
       // see if we have any annotated ObjectPatterns or ArrayPatterns
       // as arguments.
       foldComplexParamsIntoBody(path);
-    }
+    },
+    TypeCastExpression (path: NodePath) {
+      if (context.shouldSuppressPath(path)) {
+        path.skip();
+        return;
+      }
+      const expression = path.get('expression');
+      const name = expression.node.name;
+      const binding = path.scope.getBinding(name);
+      if (binding) {
+        if (name === 'reify') {
+          const typeAnnotation = path.get('typeAnnotation');
+          if (typeAnnotation.isTypeAnnotation()) {
+            const annotation = typeAnnotation.get('typeAnnotation');
+            const isTypeWrapper = (
+              annotation.isGenericTypeAnnotation() &&
+              annotation.node.id.name === 'Type' &&
+              annotation.node.typeParameters &&
+              annotation.node.typeParameters.params &&
+              annotation.node.typeParameters.params.length === 1
+            );
+            let typeName;
+            if (isTypeWrapper) {
+              typeName = annotation.get('typeParameters.params')[0].node.id.name;
+            } else if (annotation.isGenericTypeAnnotation()) {
+              typeName = annotation.node.id.name;
+            }
+            if (typeName) {
+              const entity = context.getEntity(typeName, path);
+              if (entity) {
+                entity.reified = true;
+              }
+            }
+          }
+        }
+      }
+    },
   };
 }
 
