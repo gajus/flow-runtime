@@ -123,11 +123,11 @@ export default class ObjectType<T: {}> extends Type {
     if (this.indexers.length > 0) {
       yield* collectErrorsWithIndexers(this, validation, path, input);
     }
-    else if (this.exact) {
-      yield* collectErrorsExact(this, validation, path, input);
-    }
     else {
       yield* collectErrorsWithoutIndexers(this, validation, path, input);
+    }
+    if (this.exact) {
+      yield* collectErrorsExact(this, validation, path, input);
     }
     validation.endCycle(this, input);
   }
@@ -155,11 +155,11 @@ export default class ObjectType<T: {}> extends Type {
     if (this.indexers.length > 0) {
       result = acceptsWithIndexers(this, input);
     }
-    else if (this.exact) {
-      result = acceptsExact(this, input);
-    }
     else {
       result = acceptsWithoutIndexers(this, input);
+    }
+    if (result && this.exact) {
+      result = acceptsExact(this, input);
     }
     endValidationCycle(this, input);
     return result;
@@ -358,22 +358,12 @@ function acceptsWithoutIndexers (type: ObjectType<any>, input: Object): boolean 
   return true;
 }
 
-
 function acceptsExact (type: ObjectType<any>, input: Object): boolean {
   const {properties} = type;
-  const {length} = properties;
-  loop: for (const key in input) { // eslint-disable-line guard-for-in
-    for (let i = 0; i < length; i++) {
-      const property = properties[i];
-      if (property.key === key) {
-        if (!property.accepts(input)) {
-          return false;
-        }
-        continue loop;
-      }
+  for (const key in input) { // eslint-disable-line guard-for-in
+    if (!properties.some(property => property.key === key)) {
+      return false;
     }
-    // if we got this far the property does not exist in the object.
-    return false;
   }
   return true;
 }
@@ -440,17 +430,10 @@ function *collectErrorsWithoutIndexers (type: ObjectType<any>, validation: Valid
 
 function *collectErrorsExact (type: ObjectType<any>, validation: Validation<any>, path: IdentifierPath, input: Object): Generator<ErrorTuple, void, void> {
   const {properties} = type;
-  const {length} = properties;
-  loop: for (const key in input) { // eslint-disable-line guard-for-in
-    for (let i = 0; i < length; i++) {
-      const property = properties[i];
-      if (property.key === key) {
-        yield* property.errors(validation, path, input);
-        continue loop;
-      }
+  for (const key in input) { // eslint-disable-line guard-for-in
+    if (!properties.some(property => property.key === key)) {
+      yield [path, getErrorMessage('ERR_UNKNOWN_KEY', key), type];
     }
-    // if we got this far the property does not exist in the object.
-    yield [path, getErrorMessage('ERR_UNKNOWN_KEY', key), type];
   }
 }
 
