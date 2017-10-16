@@ -3,7 +3,8 @@
 import globalContext from './globalContext';
 
 import {
-  TypeParametersSymbol
+  TypeParametersSymbol,
+  TypeSymbol
 } from './symbols';
 
 import AnyType from './types/AnyType';
@@ -115,5 +116,6 @@ export {
   ParameterizedClassDeclaration,
   ExtendsDeclaration,
 
-  TypeParametersSymbol
+  TypeParametersSymbol,
+  TypeSymbol
 };
