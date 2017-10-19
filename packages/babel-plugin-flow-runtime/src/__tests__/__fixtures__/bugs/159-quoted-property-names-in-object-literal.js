@@ -1,7 +1,7 @@
 /* @flow */
 
 export const input = `
-  type A = {"foo": string, "bar": string};
+  type A = {"a": string, "b": string};
 `;
 
 export const expected = `
