@@ -21,7 +21,7 @@ export default function collectProgramOptions (context: ConversionContext, node:
   const options = collectOptionsFromPragma(context, node);
   if (!options) {
     // if we have no options, check to see whether flow is in use in this file
-    return hasFlowNodes(node);
+    return !context.optInOnly && hasFlowNodes(node);
   }
   else if (options.ignore) {
     return false;
