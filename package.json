@@ -1,4 +1,5 @@
 {
+  "private": true,
   "repository": "https://github.com/codemix/flow-runtime.git",
   "scripts": {
     "test": "lerna run test",
@@ -7,7 +8,10 @@
     "ci": "lerna bootstrap && npm test"
   },
   "devDependencies": {
-    "lerna": "2.0.0-beta.35"
+    "lerna": "^2.5.1"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "license": "MIT"
 }
