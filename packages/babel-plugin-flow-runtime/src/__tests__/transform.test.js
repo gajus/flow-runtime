@@ -13,7 +13,7 @@ import type {Node, NodePath} from 'babel-traverse';
 
 
 describe('transform', () => {
-  for (const [name, {input, expected, annotated, combined, reifiedOnly}] of fixtures) {
+  for (const [name, {input, expected, annotated, combined}] of fixtures) {
     it(`should transform ${name}`, () => {
       const parsed = parse(input);
       const transformed = stripFlowTypes(transform(parsed, {
@@ -43,18 +43,6 @@ describe('transform', () => {
         }));
         const generated = generate(transformed).code;
         equal(normalize(generated), normalize(combined));
-      });
-    }
-    if (reifiedOnly) {
-      it(`should transform ${name} with only reified types generated`, () => {
-        const parsed = parse(input);
-        const transformed = stripFlowTypes(transform(parsed, {
-          assert: false,
-          annotate: false,
-          generateReifiedOnly: true
-        }));
-        const generated = generate(transformed).code;
-        equal(normalize(generated), normalize(reifiedOnly));
       });
     }
   }
