@@ -98,5 +98,7 @@ function throwIfFlow (node: Node) {
   }
   else if (t.isImportDeclaration(node) && (node.importKind === 'type' || node.importKind === 'typeof')) {
     throw HAS_FLOW;
+  } else if (t.isExportDeclaration(node) && (node.exportKind === 'type' || node.exportKind === 'typeof')) {
+    throw HAS_FLOW;
   }
 }
