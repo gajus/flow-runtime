@@ -49,7 +49,7 @@ Next, add the following to your babel configuration or `.babelrc`:
 {
   "plugins": [["flow-runtime", {
     "assert": true,
-    "decorate": true
+    "annotate": true
   }]]
 }
 ```
