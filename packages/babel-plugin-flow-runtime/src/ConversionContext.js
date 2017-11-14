@@ -10,6 +10,7 @@ import type {Node, NodePath} from 'babel-traverse';
 const tdzIdentifiers: WeakSet<Node> = new WeakSet();
 
 const FLOW_TYPENAMES = {
+  $Exact: '$exact',
   $Diff: '$diff',
   $Keys: '$keys',
   $ObjMapi: '$objMapi',

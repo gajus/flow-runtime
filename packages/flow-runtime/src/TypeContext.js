@@ -1103,6 +1103,21 @@ export default class TypeContext {
     return target;
   }
 
+  $exact <T> (type: Type<T>): ObjectType<T> {
+    const target = new ObjectType(this);
+    type = type.unwrap();
+    if (Array.isArray(type.callProperties)) {
+      target.callProperties.push(...type.callProperties);
+    }
+    if (Array.isArray(type.indexers)) {
+      target.indexers.push(...type.indexers);
+    }
+    if (Array.isArray(type.properties)) {
+      target.properties.push(...type.properties);
+    }
+    target.exact = true;
+    return target;
+  }
 
   $diff <A: {}, B: {}> (aType: Type<A>, bType: Type<B>): $DiffType<A, B> {
     const target = new $DiffType(this);
