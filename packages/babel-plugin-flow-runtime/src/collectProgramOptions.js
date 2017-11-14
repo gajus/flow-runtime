@@ -36,9 +36,6 @@ export default function collectProgramOptions (context: ConversionContext, node:
   if (options.annotate) {
     context.shouldAnnotate = true;
   }
-  if (options.generateReifiedOnly) {
-    context.shouldGenerateReifiedOnly = true;
-  }
   return true;
 }
 

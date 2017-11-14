@@ -14,6 +14,10 @@ export type ConverterDict = {[name: string]: Converter};
 
 const converters: ConverterDict = {};
 
+function getPropertyName(path: NodePath): string {
+  if (path.get('key').isIdentifier()) return path.node.key.name;
+  return path.node.key.value;
+}
 
 /**
  * Convert a type definition to a typed method call.
@@ -445,10 +449,6 @@ converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
       ])
     );
   }
-  const entity = context.getEntity(name, path);
-  if (context.shouldGenerateReifiedOnly && (!entity || !entity.reified)) {
-    return path.node;
-  }
   return t.variableDeclaration('const', [
     t.variableDeclarator(
       t.identifier(name),
@@ -711,7 +711,8 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
         properties.push(property);
       }
       else if (property.node.static) {
-        const existing = seenStatic.get(key.node.name);
+        const propertyName = getPropertyName(property);
+        const existing = seenStatic.get(propertyName);
         if (existing) {
           if (existing.node.value.type === 'UnionTypeAnnotation') {
             existing.node.value.types.push(property.node.value);
@@ -724,12 +725,13 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
           }
         }
         else {
-          seenStatic.set(key.node.name, property);
+          seenStatic.set(propertyName, property);
           properties.push(property);
         }
       }
       else {
-        const existing = seen.get(key.node.name);
+        const propertyName = getPropertyName(property);
+        const existing = seen.get(propertyName);
         if (existing) {
           if (existing.node.value.type === 'UnionTypeAnnotation') {
             existing.node.value.types.push(property.node.value);
@@ -742,7 +744,7 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
           }
         }
         else {
-          seen.set(key.node.name, property);
+          seen.set(propertyName, property);
           properties.push(property);
         }
       }
@@ -776,8 +778,8 @@ converters.ObjectTypeCallProperty = (context: ConversionContext, path: NodePath)
 
 converters.ObjectTypeProperty = (context: ConversionContext, path: NodePath): Node => {
   let propName;
-  if (!path.node.computed && path.get('key').isIdentifier()) {
-    propName = t.stringLiteral(path.node.key.name);
+  if (!path.node.computed) {
+    propName = t.stringLiteral(getPropertyName(path));
   }
   else {
     propName = path.node.key;
@@ -1135,12 +1137,7 @@ converters.ClassProperty = (context: ConversionContext, path: NodePath): Node =>
     );
     return context.call('indexer', t.stringLiteral('key'), keyType, typeAnnotation);
   }
-  else if (path.get('key').isIdentifier()) {
-    return context.call(path.node.static ? 'staticProperty' : 'property', t.stringLiteral(path.node.key.name), typeAnnotation);
-  }
-  else {
-    return context.call(path.node.static ? 'staticProperty' : 'property', t.stringLiteral(path.node.key.value), typeAnnotation);
-  }
+  else return context.call(path.node.static ? 'staticProperty' : 'property', t.stringLiteral(getPropertyName(path)), typeAnnotation);
 };
 
 converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
@@ -1155,7 +1152,7 @@ converters.ClassMethod = (context: ConversionContext, path: NodePath): Node => {
     return context.call('indexer', t.stringLiteral('key'), keyType, context.call('function', ...args));
   }
   else {
-    return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(path.node.key.name), ...args);
+    return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(getPropertyName(path)), ...args);
   }
 };
 
@@ -1296,7 +1293,7 @@ converters.ObjectMethod = (context: ConversionContext, path: NodePath): Node => 
     return context.call('indexer', t.stringLiteral('key'), keyType, context.call('function', ...args));
   }
   else {
-    return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(path.node.key.name), ...args);
+    return context.call(path.node.static ? 'staticMethod' : 'method', t.stringLiteral(getPropertyName(path)), ...args);
   }
 };
 
