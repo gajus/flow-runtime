@@ -90,6 +90,7 @@ import {
   $SubType,
   $SuperType,
   $TupleMapType,
+  $ValuesType,
   ClassType
 } from './flowTypes';
 
@@ -1148,6 +1149,12 @@ export default class TypeContext {
     const target = new $TupleMapType(this);
     target.tuple = tuple;
     target.mapper = mapper;
+    return target;
+  }
+
+  $values <T: {}> (type: Type<T>): $ValuesType<T> {
+    const target = new $ValuesType(this);
+    target.type = type;
     return target;
   }
 
