@@ -5,7 +5,7 @@
     "test": "lerna run test",
     "lint": "lerna run lint",
     "build": "lerna run build",
-    "ci": "lerna bootstrap && npm test"
+    "ci": "lerna bootstrap && lerna run build && lerna run test"
   },
   "devDependencies": {
     "lerna": "^2.5.1"
