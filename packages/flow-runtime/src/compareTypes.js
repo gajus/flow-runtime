@@ -9,6 +9,7 @@ import {
   FlowIntoType,
   MixedType,
   TypeAlias,
+  TypeParameterApplication,
   TypeTDZ
 } from './types';
 
@@ -22,14 +23,13 @@ import {
  *    1 if A accepts every possible B.
  */
 export default function compareTypes (a: Type<any>, b: Type<any>): -1 | 0 | 1 {
-
   let result;
 
   if (a === b) {
     return 0;
   }
 
-  if (b instanceof TypeAlias || b instanceof TypeParameter || b instanceof TypeTDZ) {
+  if (b instanceof TypeAlias || b instanceof TypeParameter || b instanceof TypeParameterApplication || b instanceof TypeTDZ) {
     b = b.unwrap();
   }
 
