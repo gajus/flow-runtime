@@ -14,28 +14,29 @@ export default class GenericType extends TypeConstructor {
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {name, impl, context} = this;
+
     if (!(input instanceof impl)) {
+      yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', name), this];
+    }
+    else {
       const annotation = context.getAnnotation(impl);
       if (annotation) {
-        yield* annotation.errors(validation, path, input);
-      }
-      else {
-        yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', name), this];
+        yield * annotation.errors(validation, path, input);
       }
     }
   }
 
   accepts <P> (input: any, ...typeInstances: Type<P>[]): boolean {
     const {context, impl} = this;
-    if (input instanceof impl) {
-      return true;
+    if (!(input instanceof impl)) {
+      return false;
     }
     const annotation = context.getAnnotation(impl);
     if (annotation) {
       return annotation.accepts(input);
     }
     else {
-      return false;
+      return true;
     }
   }
 

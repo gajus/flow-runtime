@@ -49,6 +49,24 @@ export default class ObjectType<T: {}> extends Type {
     return this.getIndexer(key);
   }
 
+  setProperty (key: string | number, value: Type<*>, optional: boolean = false) {
+    const { context, properties } = this;
+    const { length } = properties;
+    const newProp = new ObjectTypeProperty(context);
+    newProp.key = key;
+    newProp.value = value;
+    newProp.optional = optional;
+
+    for (let i = 0; i < length; i++) {
+      const property = properties[i];
+      if (property.key === key) {
+        properties[i] = newProp;
+        return;
+      }
+    }
+    properties.push(newProp);
+  }
+
   /**
    * Determine whether a property with the given name exists.
    */

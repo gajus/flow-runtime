@@ -3,15 +3,14 @@ git:
 sudo: false
 language: node_js
 cache:
-  directories:
-  - node_modules
-node_js:
-  - 7
-  - 6
-  - 4
+  yarn: true
 
-script: npm run ci
+node_js:
+  - 9
+  - 8
+  - 7
+
+script: yarn run ci
 
 install:
-  - npm i -g npm@latest
-  - npm install
+  - yarn install

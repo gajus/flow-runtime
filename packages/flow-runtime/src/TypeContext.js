@@ -90,6 +90,7 @@ import {
   $SubType,
   $SuperType,
   $TupleMapType,
+  $ValuesType,
   ClassType
 } from './flowTypes';
 
@@ -881,6 +882,27 @@ export default class TypeContext {
     return prop;
   }
 
+  spread <T> (...types: Type<T>[]): ObjectType<T> {
+    const target = new ObjectType(this);
+    for (let i = 0; i < types.length; i++) {
+      const type = types[i].unwrap();
+      if (Array.isArray(type.callProperties)) {
+        target.callProperties.push(...type.callProperties);
+      }
+      if (Array.isArray(type.indexers)) {
+        target.indexers.push(...type.indexers);
+      }
+      if (Array.isArray(type.properties)) {
+        for (let j = 0; j < type.properties.length; j++) {
+          const prop = type.properties[j];
+          invariant(prop instanceof ObjectTypeProperty);
+          target.setProperty(prop.key, prop.value, prop.optional);
+        }
+      }
+    }
+    return target;
+  }
+
   tuple <T> (...types: Type<T>[]): TupleType<any> {
     const target = new TupleType(this);
     target.types = types;
@@ -1081,6 +1103,21 @@ export default class TypeContext {
     return target;
   }
 
+  $exact <T> (type: Type<T>): ObjectType<T> {
+    const target = new ObjectType(this);
+    type = type.unwrap();
+    if (Array.isArray(type.callProperties)) {
+      target.callProperties.push(...type.callProperties);
+    }
+    if (Array.isArray(type.indexers)) {
+      target.indexers.push(...type.indexers);
+    }
+    if (Array.isArray(type.properties)) {
+      target.properties.push(...type.properties);
+    }
+    target.exact = true;
+    return target;
+  }
 
   $diff <A: {}, B: {}> (aType: Type<A>, bType: Type<B>): $DiffType<A, B> {
     const target = new $DiffType(this);
@@ -1148,6 +1185,12 @@ export default class TypeContext {
     const target = new $TupleMapType(this);
     target.tuple = tuple;
     target.mapper = mapper;
+    return target;
+  }
+
+  $values <T: {}> (type: Type<T>): $ValuesType<T> {
+    const target = new $ValuesType(this);
+    target.type = type;
     return target;
   }
 

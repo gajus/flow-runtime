@@ -9,7 +9,8 @@ import $PropertyType from './$PropertyType';
 import $ShapeType from './$ShapeType';
 import $SubType from './$SubType';
 import $SuperType from './$SuperType';
-import $TupleMapType from './$TupleMapType';
+import $TupleMapType from "./$TupleMapType";
+import $ValuesType from './$ValuesType';
 import ClassType from './ClassType';
 
 export {
@@ -23,5 +24,6 @@ export {
   $SubType,
   $SuperType,
   $TupleMapType,
+  $ValuesType,
   ClassType
 };

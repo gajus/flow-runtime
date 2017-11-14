@@ -330,7 +330,7 @@ converters.InterfaceDeclaration = (context: ConversionContext, path: NodePath): 
 
   if (path.has('extends')) {
     body = context.call(
-      'intersect',
+      'spread',
       ...path.get('extends').map(item => convert(context, item)),
       body
     );
@@ -589,14 +589,14 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   const entity = context.getEntity(name, path);
 
   if (!entity) {
-    if (name === 'Array') {
-      return context.call('array', ...typeParameters);
-    }
-    else if (name === 'Function') {
-      return context.call('function');
-    }
-    else if (name === 'Object') {
-      return context.call('object');
+    if (name === "Array") {
+      return context.call("array", ...typeParameters);
+    } else if (name === "Function") {
+      return context.call("function");
+    } else if (name === "Object") {
+      return context.call("object");
+    } else if (name === "Symbol") {
+      return context.call("symbol");
     }
   }
 
