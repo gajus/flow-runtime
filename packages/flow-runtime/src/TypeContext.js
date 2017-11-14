@@ -882,6 +882,27 @@ export default class TypeContext {
     return prop;
   }
 
+  spread <T> (...types: Type<T>[]): ObjectType<T> {
+    const target = new ObjectType(this);
+    for (let i = 0; i < types.length; i++) {
+      const type = types[i].unwrap();
+      if (Array.isArray(type.callProperties)) {
+        target.callProperties.push(...type.callProperties);
+      }
+      if (Array.isArray(type.indexers)) {
+        target.indexers.push(...type.indexers);
+      }
+      if (Array.isArray(type.properties)) {
+        for (let j = 0; j < type.properties.length; j++) {
+          const prop = type.properties[j];
+          invariant(prop instanceof ObjectTypeProperty);
+          target.setProperty(prop.key, prop.value, prop.optional);
+        }
+      }
+    }
+    return target;
+  }
+
   tuple <T> (...types: Type<T>[]): TupleType<any> {
     const target = new TupleType(this);
     target.types = types;

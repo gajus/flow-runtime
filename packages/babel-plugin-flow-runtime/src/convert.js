@@ -330,7 +330,7 @@ converters.InterfaceDeclaration = (context: ConversionContext, path: NodePath): 
 
   if (path.has('extends')) {
     body = context.call(
-      'intersect',
+      'spread',
       ...path.get('extends').map(item => convert(context, item)),
       body
     );
