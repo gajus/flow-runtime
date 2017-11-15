@@ -25,6 +25,12 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     accepts (input): boolean {
       return input instanceof Date && !isNaN(input.getTime());
     },
+    compareWith(input) {
+      if (input.typeName === 'DateType') {
+        return 0;
+      }
+      return -1;
+    },
     inferTypeParameters (input: Date): Type<any>[] {
       return [];
     }
@@ -44,6 +50,12 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     accepts (input): boolean {
       const {context} = this;
       return context.checkPredicate('Promise', input);
+    },
+    compareWith(input) {
+      if (input.typeName === 'PromiseType') {
+        return 0;
+      }
+      return -1;
     },
     inferTypeParameters (input: any): Type<any>[] {
       return [];
@@ -81,6 +93,12 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         }
       }
       return true;
+    },
+    compareWith(input) {
+      if (input.typeName === 'MapType') {
+        return 0;
+      }
+      return -1;
     },
     inferTypeParameters (input: Map<*, *>): Type<any>[] {
       const keyTypes = [];
@@ -156,6 +174,12 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
         }
       }
       return true;
+    },
+    compareWith(input) {
+      if (input.typeName === 'SetType') {
+        return 0;
+      }
+      return -1;
     },
     inferTypeParameters (input: Set<*>): Type<any>[] {
       const valueTypes = [];

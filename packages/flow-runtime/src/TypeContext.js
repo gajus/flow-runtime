@@ -126,6 +126,7 @@ export type TypeConstructorConfig = {
   name: string;
   impl?: Function;
   typeName: string;
+  compareWith?: (Type<any>) => -1 | 0 | 1;
   errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void>;
   accepts (input: any, ...typeInstances: Type<any>[]): boolean;
   inferTypeParameters (input: any): Type<any>[];
@@ -451,7 +452,7 @@ export default class TypeContext {
     }
   }
 
-  declareTypeConstructor ({name, impl, typeName, errors, accepts, inferTypeParameters}: TypeConstructorConfig): TypeConstructor<any> {
+  declareTypeConstructor ({name, impl, typeName, errors, accepts, inferTypeParameters, compareWith}: TypeConstructorConfig): TypeConstructor<any> {
     const nameRegistry: NameRegistry = (this: $FlowIssue<252>)[NameRegistrySymbol];
 
     if (nameRegistry[name]) {
@@ -465,6 +466,9 @@ export default class TypeContext {
     target.errors = errors;
     target.accepts = accepts;
     target.inferTypeParameters = inferTypeParameters;
+    if (typeof compareWith === 'function') {
+      target.compareWith = compareWith;
+    }
 
     nameRegistry[name] = target;
 
