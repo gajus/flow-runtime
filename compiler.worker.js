@@ -26012,6 +26012,9 @@
 	      }
 	      var bodyProps = body.properties;
 	      var superProps = superClass.unwrap().properties;
+	      if (superProps == null) {
+	        return bodyProps;
+	      }
 	      var seen = {};
 	      var seenStatic = {};
 	      var props = [];
@@ -28984,6 +28987,12 @@
 	    accepts: function accepts(input) {
 	      return input instanceof Date && !isNaN(input.getTime());
 	    },
+	    compareWith: function compareWith(input) {
+	      if (input.typeName === 'DateType') {
+	        return 0;
+	      }
+	      return -1;
+	    },
 	    inferTypeParameters: function inferTypeParameters(input) {
 	      return [];
 	    }
@@ -29021,6 +29030,12 @@
 	      var context = this.context;
 	
 	      return context.checkPredicate('Promise', input);
+	    },
+	    compareWith: function compareWith(input) {
+	      if (input.typeName === 'PromiseType') {
+	        return 0;
+	      }
+	      return -1;
 	    },
 	    inferTypeParameters: function inferTypeParameters(input) {
 	      return [];
@@ -29167,6 +29182,12 @@
 	      }
 	
 	      return true;
+	    },
+	    compareWith: function compareWith(input) {
+	      if (input.typeName === 'MapType') {
+	        return 0;
+	      }
+	      return -1;
 	    },
 	    inferTypeParameters: function inferTypeParameters(input) {
 	      var keyTypes = [];
@@ -29360,6 +29381,12 @@
 	      }
 	
 	      return true;
+	    },
+	    compareWith: function compareWith(input) {
+	      if (input.typeName === 'SetType') {
+	        return 0;
+	      }
+	      return -1;
 	    },
 	    inferTypeParameters: function inferTypeParameters(input) {
 	      var valueTypes = [];
@@ -31764,7 +31791,8 @@
 	          typeName = _ref.typeName,
 	          errors = _ref.errors,
 	          accepts = _ref.accepts,
-	          inferTypeParameters = _ref.inferTypeParameters;
+	          inferTypeParameters = _ref.inferTypeParameters,
+	          compareWith = _ref.compareWith;
 	
 	      var nameRegistry = this[NameRegistrySymbol];
 	
@@ -31779,6 +31807,9 @@
 	      target.errors = errors;
 	      target.accepts = accepts;
 	      target.inferTypeParameters = inferTypeParameters;
+	      if (typeof compareWith === 'function') {
+	        target.compareWith = compareWith;
+	      }
 	
 	      nameRegistry[name] = target;
 	
