@@ -1,12 +1,9 @@
 /**
-* Copyright (c) 2013-present, Facebook, Inc.
-* All rights reserved.
-*
-* This source code is licensed under the BSD-style license found in the
-* LICENSE file in the "flow" directory of this source tree. An additional grant
-* of patent rights can be found in the PATENTS file in the same directory.
-*
-*/
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
 /* Files */
 
 declare class Blob {
@@ -37,16 +34,25 @@ declare class FileReader extends EventTarget {
   readAsDataURL(blob: Blob): void;
   readAsText(blob: Blob, encoding?: string): void;
   readyState: 0 | 1 | 2;
-  result: any;
+  result: string | ArrayBuffer;
 }
 
+declare type FilePropertyBag = {
+  type?: string,
+  lastModified?: number,
+};
 declare class File extends Blob {
+  constructor(
+    fileBits: $ReadOnlyArray<string | BufferDataSource | Blob>,
+    filename: string,
+    options?: FilePropertyBag,
+  ): void;
   lastModifiedDate: any;
   name: string;
 }
 
 declare class FileList {
-  ____iterator(): Iterator<File>;
+  @@iterator(): Iterator<File>;
   length: number;
   item(index: number): File;
   [index: number]: File;
@@ -67,7 +73,7 @@ declare class DataTransfer {
 }
 
 declare class DataTransferItemList {
-  ____iterator(): Iterator<DataTransferItem>;
+  @@iterator(): Iterator<DataTransferItem>;
   length: number; // readonly
   [index: number]: DataTransferItem;
   add(data: string, type: string): ?DataTransferItem;
@@ -115,6 +121,8 @@ type EventHandler = (event: Event) => mixed
 type EventListener = {handleEvent: EventHandler} | EventHandler
 type MouseEventHandler = (event: MouseEvent) => mixed
 type MouseEventListener = {handleEvent: MouseEventHandler} | MouseEventHandler
+type FocusEventHandler = (event: FocusEvent) => mixed
+type FocusEventListener = {handleEvent: FocusEventHandler} | FocusEventHandler
 type KeyboardEventHandler = (event: KeyboardEvent) => mixed
 type KeyboardEventListener = {handleEvent: KeyboardEventHandler} | KeyboardEventHandler
 type TouchEventHandler = (event: TouchEvent) => mixed
@@ -125,13 +133,17 @@ type ProgressEventHandler = (event: ProgressEvent) => mixed
 type ProgressEventListener = {handleEvent: ProgressEventHandler} | ProgressEventHandler
 type DragEventHandler = (event: DragEvent) => mixed
 type DragEventListener = {handleEvent: DragEventHandler} | DragEventHandler
+type AnimationEventHandler = (event: AnimationEvent) => mixed
+type AnimationEventListener = {handleEvent: AnimationEventHandler} | AnimationEventHandler
 
 type MouseEventTypes = 'contextmenu' | 'mousedown' | 'mouseenter' | 'mouseleave' | 'mousemove' | 'mouseout' | 'mouseover' | 'mouseup' | 'click' | 'dblclick';
+type FocusEventTypes = 'blur' | 'focus' | 'focusin' | 'focusout';
 type KeyboardEventTypes = 'keydown' | 'keyup' | 'keypress';
 type TouchEventTypes = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
 type WheelEventTypes = 'wheel';
 type ProgressEventTypes = 'abort' | 'error' | 'load' | 'loadend' | 'loadstart' | 'progress' | 'timeout';
 type DragEventTypes = 'drag' | 'dragend' | 'dragenter' | 'dragexit' | 'dragleave' | 'dragover' | 'dragstart' | 'drop';
+type AnimationEventTypes = 'animationstart' | 'animationend' | 'animationiteration';
 
 type EventListenerOptionsOrUseCapture = boolean | {
   capture?: boolean,
@@ -141,46 +153,58 @@ type EventListenerOptionsOrUseCapture = boolean | {
 
 declare class EventTarget {
   addEventListener(type: MouseEventTypes, listener: MouseEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
+  addEventListener(type: FocusEventTypes, listener: FocusEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   addEventListener(type: KeyboardEventTypes, listener: KeyboardEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   addEventListener(type: TouchEventTypes, listener: TouchEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   addEventListener(type: WheelEventTypes, listener: WheelEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   addEventListener(type: ProgressEventTypes, listener: ProgressEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   addEventListener(type: DragEventTypes, listener: DragEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
+  addEventListener(type: AnimationEventTypes, listener: AnimationEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   addEventListener(type: string, listener: EventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
 
   removeEventListener(type: MouseEventTypes, listener: MouseEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
+  removeEventListener(type: FocusEventTypes, listener: FocusEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   removeEventListener(type: KeyboardEventTypes, listener: KeyboardEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   removeEventListener(type: TouchEventTypes, listener: TouchEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   removeEventListener(type: WheelEventTypes, listener: WheelEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   removeEventListener(type: ProgressEventTypes, listener: ProgressEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   removeEventListener(type: DragEventTypes, listener: DragEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
+  removeEventListener(type: AnimationEventTypes, listener: AnimationEventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
   removeEventListener(type: string, listener: EventListener, optionsOrUseCapture?: EventListenerOptionsOrUseCapture): void;
 
   attachEvent?: (type: MouseEventTypes, listener: MouseEventListener) => void;
+  attachEvent?: (type: FocusEventTypes, listener: FocusEventListener) => void;
   attachEvent?: (type: KeyboardEventTypes, listener: KeyboardEventListener) => void;
   attachEvent?: (type: TouchEventTypes, listener: TouchEventListener) => void;
   attachEvent?: (type: WheelEventTypes, listener: WheelEventListener) => void;
   attachEvent?: (type: ProgressEventTypes, listener: ProgressEventListener) => void;
   attachEvent?: (type: DragEventTypes, listener: DragEventListener) => void;
+  attachEvent?: (type: AnimationEventTypes, listener: AnimationEventListener) => void;
   attachEvent?: (type: string, listener: EventListener) => void;
 
   detachEvent?: (type: MouseEventTypes, listener: MouseEventListener) => void;
+  detachEvent?: (type: FocusEventTypes, listener: FocusEventListener) => void;
   detachEvent?: (type: KeyboardEventTypes, listener: KeyboardEventListener) => void;
   detachEvent?: (type: TouchEventTypes, listener: TouchEventListener) => void;
   detachEvent?: (type: WheelEventTypes, listener: WheelEventListener) => void;
   detachEvent?: (type: ProgressEventTypes, listener: ProgressEventListener) => void;
   detachEvent?: (type: DragEventTypes, listener: DragEventListener) => void;
+  detachEvent?: (type: AnimationEventTypes, listener: AnimationEventListener) => void;
   detachEvent?: (type: string, listener: EventListener) => void;
 
   dispatchEvent(evt: Event): boolean;
 
+  // Deprecated
+
+  cancelBubble: boolean;
+  initEvent(eventTypeArg: string, canBubbleArg: boolean, cancelableArg: boolean): void;
 }
 
 type Event$Init = {
   bubbles?: boolean,
   cancelable?: boolean,
   composed?: boolean,
-  scoped?: ? boolean
+  scoped?: boolean
 }
 
 declare class Event {
@@ -192,17 +216,24 @@ declare class Event {
   defaultPrevented: boolean;
   eventPhase: number;
   isTrusted: boolean;
-  scoped: ? boolean;
-  srcElement: ? Element | {}; // @fixme too broad
+  scoped: boolean;
+  srcElement: Element;
   target: EventTarget;
   timeStamp: number;
   type: string;
   preventDefault(): void;
   stopImmediatePropagation(): void;
   stopPropagation(): void;
-  static AT_TARGET: number;
-  static BUBBLING_PHASE: number;
-  static CAPTURING_PHASE: number;
+  AT_TARGET: number;
+  BUBBLING_PHASE: number;
+  CAPTURING_PHASE: number;
+
+  // deprecated
+  initEvent(
+    type: string,
+    bubbles: boolean,
+    cancelable: boolean
+  ): void;
 }
 
 type CustomEvent$Init = Event$Init & {
@@ -212,6 +243,14 @@ type CustomEvent$Init = Event$Init & {
 declare class CustomEvent extends Event {
   constructor(type: string, eventInitDict?: CustomEvent$Init): void;
   detail: any;
+
+  // deprecated
+  initCustomEvent(
+    type: string,
+    bubbles: boolean,
+    cancelable: boolean,
+    detail: any
+  ): CustomEvent;
 }
 
 declare class UIEvent extends Event {
@@ -219,7 +258,26 @@ declare class UIEvent extends Event {
   view: any;
 }
 
+type MouseEvent$MouseEventInit = {
+  screenX?: number,
+  screenY?: number,
+  clientX?: number,
+  clientY?: number,
+  ctrlKey?: boolean,
+  shiftKey?: boolean,
+  altKey?: boolean,
+  metaKey?: boolean,
+  button?: number,
+  buttons?: number,
+  region?: string | null,
+  relatedTarget?: string | null,
+};
+
 declare class MouseEvent extends UIEvent {
+  constructor(
+    typeArg: string,
+    mouseEventInit?: MouseEvent$MouseEventInit,
+  ): void;
   altKey: boolean;
   button: number;
   buttons: number;
@@ -239,6 +297,10 @@ declare class MouseEvent extends UIEvent {
   shiftKey: boolean;
   relatedTarget: ?EventTarget;
   getModifierState(keyArg: string): boolean;
+}
+
+declare class FocusEvent extends UIEvent {
+  relatedTarget: ?EventTarget;
 }
 
 declare class WheelEvent extends MouseEvent {
@@ -336,7 +398,7 @@ declare class Touch {
 // TouchList#item(index) will return null if n > #length. Should #item's
 // return type just been Touch?
 declare class TouchList {
-  ____iterator(): Iterator<Touch>;
+  @@iterator(): Iterator<Touch>;
   length: number,
   item(index: number): null | Touch,
   [index: number]: Touch,
@@ -349,8 +411,17 @@ declare class TouchEvent extends UIEvent {
   ctrlKey: boolean,
   metaKey: boolean,
   shiftKey: boolean,
-  targetTouchesRead: TouchList,
+  targetTouches: TouchList,
   touches: TouchList,
+}
+
+// https://www.w3.org/TR/webstorage/#the-storageevent-interface
+declare class StorageEvent extends Event {
+  key: ?string,
+  oldValue: ?string,
+  newValue: ?string,
+  url: string,
+  storageArea: ?Storage,
 }
 
 // TODO: *Event
@@ -409,7 +480,7 @@ declare class Node extends EventTarget {
 }
 
 declare class NodeList<T> {
-  ____iterator(): Iterator<T>;
+  @@iterator(): Iterator<T>;
   length: number;
   item(index: number): T;
   [index: number]: T;
@@ -421,7 +492,7 @@ declare class NodeList<T> {
 }
 
 declare class NamedNodeMap {
-  ____iterator(): Iterator<Attr>;
+  @@iterator(): Iterator<Attr>;
   length: number;
   removeNamedItemNS(namespaceURI: string, localName: string): Attr;
   item(index: number): Attr;
@@ -445,7 +516,7 @@ declare class Attr extends Node {
 }
 
 declare class HTMLCollection<Elem: HTMLElement> {
-  ____iterator(): Iterator<Elem>;
+  @@iterator(): Iterator<Elem>;
   length: number;
   item(nameOrIndex?: any, optionalIndex?: any): Elem;
   namedItem(name: string): Elem;
@@ -501,19 +572,29 @@ declare class Document extends Node {
   createDocumentFragment(): DocumentFragment;
   createElement(tagName: 'a'): HTMLAnchorElement;
   createElement(tagName: 'audio'): HTMLAudioElement;
+  createElement(tagName: 'br'): HTMLBRElement;
   createElement(tagName: 'button'): HTMLButtonElement;
   createElement(tagName: 'canvas'): HTMLCanvasElement;
+  createElement(tagName: 'details'): HTMLDetailsElement;
   createElement(tagName: 'div'): HTMLDivElement;
+  createElement(tagName: 'dl'): HTMLDListElement;
+  createElement(tagName: 'fieldset'): HTMLFieldSetElement;
   createElement(tagName: 'form'): HTMLFormElement;
+  createElement(tagName: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'): HTMLHeadingElement;
+  createElement(tagName: 'hr'): HTMLHRElement;
   createElement(tagName: 'iframe'): HTMLIFrameElement;
   createElement(tagName: 'img'): HTMLImageElement;
   createElement(tagName: 'input'): HTMLInputElement;
   createElement(tagName: 'label'): HTMLLabelElement;
+  createElement(tagName: 'legend'): HTMLLegendElement;
+  createElement(tagName: 'li'): HTMLLIElement;
   createElement(tagName: 'link'): HTMLLinkElement;
-  createElement(tagName: 'media'): HTMLMediaElement;
   createElement(tagName: 'meta'): HTMLMetaElement;
+  createElement(tagName: 'ol'): HTMLOListElement;
+  createElement(tagName: 'optgroup'): HTMLOptGroupElement;
   createElement(tagName: 'option'): HTMLOptionElement;
   createElement(tagName: 'p'): HTMLParagraphElement;
+  createElement(tagName: 'pre'): HTMLPreElement;
   createElement(tagName: 'script'): HTMLScriptElement;
   createElement(tagName: 'select'): HTMLSelectElement;
   createElement(tagName: 'source'): HTMLSourceElement;
@@ -523,9 +604,11 @@ declare class Document extends Node {
   createElement(tagName: 'video'): HTMLVideoElement;
   createElement(tagName: 'table'): HTMLTableElement;
   createElement(tagName: 'caption'): HTMLTableCaptionElement;
-  createElement(tagName: 'thead' | 'tfoot', 'tbody'): HTMLTableSectionElement;
+  createElement(tagName: 'thead' | 'tfoot' | 'tbody'): HTMLTableSectionElement;
   createElement(tagName: 'tr'): HTMLTableRowElement;
   createElement(tagName: 'td' | 'th'): HTMLTableCellElement;
+  createElement(tagName: 'template'): HTMLTemplateElement;
+  createElement(tagName: 'ul'): HTMLUListElement;
   createElement(tagName: string): HTMLElement;
   createElementNS(namespaceURI: string | null, qualifiedName: string): Element;
   createTextNode(data: string): Text;
@@ -542,19 +625,28 @@ declare class Document extends Node {
   getElementsByName(elementName: string): HTMLCollection<HTMLElement>;
   getElementsByTagName(name: 'a'): HTMLCollection<HTMLAnchorElement>;
   getElementsByTagName(name: 'audio'): HTMLCollection<HTMLAudioElement>;
+  getElementsByTagName(name: 'br'): HTMLCollection<HTMLBRElement>;
   getElementsByTagName(name: 'button'): HTMLCollection<HTMLButtonElement>;
   getElementsByTagName(name: 'canvas'): HTMLCollection<HTMLCanvasElement>;
+  getElementsByTagName(name: 'details'): HTMLCollection<HTMLDetailsElement>;
   getElementsByTagName(name: 'div'): HTMLCollection<HTMLDivElement>;
+  getElementsByTagName(name: 'dl'): HTMLCollection<HTMLDListElement>;
+  getElementsByTagName(name: 'fieldset'): HTMLCollection<HTMLFieldSetElement>;
   getElementsByTagName(name: 'form'): HTMLCollection<HTMLFormElement>;
+  getElementsByTagName(name: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'): HTMLCollection<HTMLHeadingElement>;
+  getElementsByTagName(name: 'hr'): HTMLCollection<HTMLHRElement>;
   getElementsByTagName(name: 'iframe'): HTMLCollection<HTMLIFrameElement>;
   getElementsByTagName(name: 'img'): HTMLCollection<HTMLImageElement>;
   getElementsByTagName(name: 'input'): HTMLCollection<HTMLInputElement>;
   getElementsByTagName(name: 'label'): HTMLCollection<HTMLLabelElement>;
+  getElementsByTagName(name: 'legend'): HTMLCollection<HTMLLegendElement>;
+  getElementsByTagName(name: 'li'): HTMLCollection<HTMLLIElement>;
   getElementsByTagName(name: 'link'): HTMLCollection<HTMLLinkElement>;
-  getElementsByTagName(name: 'media'): HTMLCollection<HTMLMediaElement>;
   getElementsByTagName(name: 'meta'): HTMLCollection<HTMLMetaElement>;
+  getElementsByTagName(name: 'ol'): HTMLCollection<HTMLOListElement>;
   getElementsByTagName(name: 'option'): HTMLCollection<HTMLOptionElement>;
   getElementsByTagName(name: 'p'): HTMLCollection<HTMLParagraphElement>;
+  getElementsByTagName(name: 'pre'): HTMLCollection<HTMLPreElement>;
   getElementsByTagName(name: 'script'): HTMLCollection<HTMLScriptElement>;
   getElementsByTagName(name: 'select'): HTMLCollection<HTMLSelectElement>;
   getElementsByTagName(name: 'source'): HTMLCollection<HTMLSourceElement>;
@@ -567,22 +659,33 @@ declare class Document extends Node {
   getElementsByTagName(name: 'thead' | 'tfoot' | 'tbody'): HTMLCollection<HTMLTableSectionElement>;
   getElementsByTagName(name: 'tr'): HTMLCollection<HTMLTableRowElement>;
   getElementsByTagName(name: 'td' | 'th'): HTMLCollection<HTMLTableCellElement>;
+  getElementsByTagName(name: 'template'): HTMLCollection<HTMLTemplateElement>;
+  getElementsByTagName(name: 'ul'): HTMLCollection<HTMLUListElement>;
   getElementsByTagName(name: string): HTMLCollection<HTMLElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'a'): HTMLCollection<HTMLAnchorElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'audio'): HTMLCollection<HTMLAudioElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'br'): HTMLCollection<HTMLBRElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'button'): HTMLCollection<HTMLButtonElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'canvas'): HTMLCollection<HTMLCanvasElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'details'): HTMLCollection<HTMLDetailsElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'div'): HTMLCollection<HTMLDivElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'dl'): HTMLCollection<HTMLDListElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'fieldset'): HTMLCollection<HTMLFieldSetElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'form'): HTMLCollection<HTMLFormElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'): HTMLCollection<HTMLHeadingElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'hr'): HTMLCollection<HTMLHRElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'iframe'): HTMLCollection<HTMLIFrameElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'img'): HTMLCollection<HTMLImageElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'input'): HTMLCollection<HTMLInputElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'label'): HTMLCollection<HTMLLabelElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'legend'): HTMLCollection<HTMLLegendElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'li'): HTMLCollection<HTMLLIElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'link'): HTMLCollection<HTMLLinkElement>;
-  getElementsByTagNameNS(namespaceURI: string | null, localName: 'media'): HTMLCollection<HTMLMediaElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'meta'): HTMLCollection<HTMLMetaElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'ol'): HTMLCollection<HTMLOListElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'option'): HTMLCollection<HTMLOptionElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'p'): HTMLCollection<HTMLParagraphElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'pre'): HTMLCollection<HTMLPreElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'script'): HTMLCollection<HTMLScriptElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'select'): HTMLCollection<HTMLSelectElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'source'): HTMLCollection<HTMLSourceElement>;
@@ -595,6 +698,8 @@ declare class Document extends Node {
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'thead' | 'tfoot' | 'tbody'): HTMLCollection<HTMLTableSectionElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'tr'): HTMLCollection<HTMLTableRowElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'td' | 'th'): HTMLCollection<HTMLTableCellElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'template'): HTMLCollection<HTMLTemplateElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'ul'): HTMLCollection<HTMLUListElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: string): HTMLCollection<HTMLElement>;
   head: HTMLElement | null;
   images: HTMLCollection<HTMLImageElement>;
@@ -639,7 +744,87 @@ declare class Document extends Node {
   children: HTMLCollection<HTMLElement>;
   firstElementChild: ?Element;
   lastElementChild: ?Element;
+  append(...nodes: Array<string | Node>): void;
+  prepend(...nodes: Array<string | Node>): void;
+
+  querySelector(selector: 'a'): HTMLAnchorElement | null;
+  querySelector(selector: 'audio'): HTMLAudioElement | null;
+  querySelector(selector: 'br'): HTMLBRElement | null;
+  querySelector(selector: 'button'): HTMLButtonElement | null;
+  querySelector(selector: 'canvas'): HTMLCanvasElement | null;
+  querySelector(selector: 'details'): HTMLDetailsElement | null;
+  querySelector(selector: 'div'): HTMLDivElement | null;
+  querySelector(selector: 'dl'): HTMLDListElement | null;
+  querySelector(selector: 'fieldset'): HTMLFieldSetElement | null;
+  querySelector(selector: 'form'): HTMLFormElement | null;
+  querySelector(selector: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'): HTMLHeadingElement;
+  querySelector(selector: 'hr'): HTMLHRElement | null;
+  querySelector(selector: 'iframe'): HTMLIFrameElement | null;
+  querySelector(selector: 'img'): HTMLImageElement | null;
+  querySelector(selector: 'input'): HTMLInputElement | null;
+  querySelector(selector: 'label'): HTMLLabelElement | null;
+  querySelector(selector: 'legend'): HTMLLegendElement | null;
+  querySelector(selector: 'li'): HTMLLIElement | null;
+  querySelector(selector: 'link'): HTMLLinkElement | null;
+  querySelector(selector: 'meta'): HTMLMetaElement | null;
+  querySelector(selector: 'ol'): HTMLOListElement | null;
+  querySelector(selector: 'option'): HTMLOptionElement | null;
+  querySelector(selector: 'p'): HTMLParagraphElement | null;
+  querySelector(selector: 'pre'): HTMLPreElement | null;
+  querySelector(selector: 'script'): HTMLScriptElement | null;
+  querySelector(selector: 'select'): HTMLSelectElement | null;
+  querySelector(selector: 'source'): HTMLSourceElement | null;
+  querySelector(selector: 'span'): HTMLSpanElement | null;
+  querySelector(selector: 'style'): HTMLStyleElement | null;
+  querySelector(selector: 'textarea'): HTMLTextAreaElement | null;
+  querySelector(selector: 'video'): HTMLVideoElement | null;
+  querySelector(selector: 'table'): HTMLTableElement | null;
+  querySelector(selector: 'caption'): HTMLTableCaptionElement | null;
+  querySelector(selector: 'thead' | 'tfoot' | 'tbody'): HTMLTableSectionElement | null;
+  querySelector(selector: 'tr'): HTMLTableRowElement | null;
+  querySelector(selector: 'td' | 'th'): HTMLTableCellElement | null;
+  querySelector(selector: 'template'): HTMLTemplateElement | null;
+  querySelector(selector: 'ul'): HTMLUListElement | null;
   querySelector(selector: string): HTMLElement | null;
+
+  querySelectorAll(selector: 'a'): NodeList<HTMLAnchorElement>;
+  querySelectorAll(selector: 'audio'): NodeList<HTMLAudioElement>;
+  querySelectorAll(selector: 'br'): NodeList<HTMLBRElement>;
+  querySelectorAll(selector: 'button'): NodeList<HTMLButtonElement>;
+  querySelectorAll(selector: 'canvas'): NodeList<HTMLCanvasElement>;
+  querySelectorAll(selector: 'details'): NodeList<HTMLDetailsElement>;
+  querySelectorAll(selector: 'div'): NodeList<HTMLDivElement>;
+  querySelectorAll(selector: 'dl'): NodeList<HTMLDListElement>;
+  querySelectorAll(selector: 'fieldset'): NodeList<HTMLFieldSetElement>;
+  querySelectorAll(selector: 'form'): NodeList<HTMLFormElement>;
+  querySelectorAll(selector: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'): NodeList<HTMLHeadingElement>;
+  querySelectorAll(selector: 'hr'): NodeList<HTMLHRElement>;
+  querySelectorAll(selector: 'iframe'): NodeList<HTMLIFrameElement>;
+  querySelectorAll(selector: 'img'): NodeList<HTMLImageElement>;
+  querySelectorAll(selector: 'input'): NodeList<HTMLInputElement>;
+  querySelectorAll(selector: 'label'): NodeList<HTMLLabelElement>;
+  querySelectorAll(selector: 'legend'): NodeList<HTMLLegendElement>;
+  querySelectorAll(selector: 'li'): NodeList<HTMLLIElement>;
+  querySelectorAll(selector: 'link'): NodeList<HTMLLinkElement>;
+  querySelectorAll(selector: 'meta'): NodeList<HTMLMetaElement>;
+  querySelectorAll(selector: 'ol'): NodeList<HTMLOListElement>;
+  querySelectorAll(selector: 'option'): NodeList<HTMLOptionElement>;
+  querySelectorAll(selector: 'p'): NodeList<HTMLParagraphElement>;
+  querySelectorAll(selector: 'pre'): NodeList<HTMLPreElement>;
+  querySelectorAll(selector: 'script'): NodeList<HTMLScriptElement>;
+  querySelectorAll(selector: 'select'): NodeList<HTMLSelectElement>;
+  querySelectorAll(selector: 'source'): NodeList<HTMLSourceElement>;
+  querySelectorAll(selector: 'span'): NodeList<HTMLSpanElement>;
+  querySelectorAll(selector: 'style'): NodeList<HTMLStyleElement>;
+  querySelectorAll(selector: 'textarea'): NodeList<HTMLTextAreaElement>;
+  querySelectorAll(selector: 'video'): NodeList<HTMLVideoElement>;
+  querySelectorAll(selector: 'table'): NodeList<HTMLTableElement>;
+  querySelectorAll(selector: 'caption'): NodeList<HTMLTableCaptionElement>;
+  querySelectorAll(selector: 'thead' | 'tfoot' | 'tbody'): NodeList<HTMLTableSectionElement>;
+  querySelectorAll(selector: 'tr'): NodeList<HTMLTableRowElement>;
+  querySelectorAll(selector: 'td' | 'th'): NodeList<HTMLTableCellElement>;
+  querySelectorAll(selector: 'template'): NodeList<HTMLTemplateElement>;
+  querySelectorAll(selector: 'ul'): NodeList<HTMLUListElement>;
   querySelectorAll(selector: string): NodeList<HTMLElement>;
 
   // Interface DocumentTraversal
@@ -743,7 +928,6 @@ declare class Document extends Node {
   createNodeIterator<RootNodeT: Node>(root: RootNodeT, whatToShow: 129, filter?: NodeFilterInterface): NodeIterator<RootNodeT, Element|Comment>;
   createNodeIterator<RootNodeT: Node>(root: RootNodeT, whatToShow: 132, filter?: NodeFilterInterface): NodeIterator<RootNodeT, Text|Comment>;
   createNodeIterator<RootNodeT: Node>(root: RootNodeT, whatToShow: 133, filter?: NodeFilterInterface): NodeIterator<RootNodeT, Text|Element|Comment>;
-  createNodeIterator<RootNodeT: Node>(root: RootNodeT, whatToShow: -1, filter?: NodeFilterInterface): NodeIterator<RootNodeT, Node>;
   createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: 1, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Element>;
   createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: 4, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Text>;
   createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: 5, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Element|Text>;
@@ -751,15 +935,11 @@ declare class Document extends Node {
   createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: 129, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Element|Comment>;
   createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: 132, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Text|Comment>;
   createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: 133, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Text|Element|Comment>;
-  createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: -1, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Node>;
 
   // Catch all for when we don't know the value of `whatToShow`
-  createNodeIterator<RootNodeT: Document>(root: RootNodeT, whatToShow: number, filter?: NodeFilterInterface): NodeIterator<RootNodeT, Node>;
-  createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: number, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Node>;
-
   // And for when whatToShow is not provided, it is assumed to be SHOW_ALL
-  createNodeIterator<RootNodeT: Node>(root: RootNodeT, whatToShow: void): NodeIterator<RootNodeT, Node>;
-  createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow: void): TreeWalker<RootNodeT, Node>;
+  createNodeIterator<RootNodeT: Node>(root: RootNodeT, whatToShow?: number, filter?: NodeFilterInterface): NodeIterator<RootNodeT, Node>;
+  createTreeWalker<RootNodeT: Node>(root: RootNodeT, whatToShow?: number, filter?: NodeFilterInterface, entityReferenceExpansion?: boolean): TreeWalker<RootNodeT, Node>;
 }
 
 declare class DocumentFragment extends Node {
@@ -768,6 +948,9 @@ declare class DocumentFragment extends Node {
   children: HTMLCollection<HTMLElement>;
   firstElementChild: ?Element;
   lastElementChild: ?Element;
+  append(...nodes: Array<string | Node>): void;
+  prepend(...nodes: Array<string | Node>): void;
+
   querySelector(selector: string): HTMLElement | null;
   querySelectorAll(selector: string): NodeList<HTMLElement>;
 }
@@ -825,10 +1008,10 @@ declare class Range { // extension
   extractContents(): DocumentFragment;
   setEndAfter(refNode: Node): void;
   createContextualFragment(fragment: string): Node;
-  END_TO_END: number;
-  START_TO_START: number;
-  START_TO_END: number;
-  END_TO_START: number;
+  static END_TO_END: number;
+  static START_TO_START: number;
+  static START_TO_END: number;
+  static END_TO_START: number;
 }
 
 declare var document: Document;
@@ -836,13 +1019,13 @@ declare var document: Document;
 // TODO: HTMLDocument
 
 declare class DOMTokenList {
-  ____iterator(): Iterator<string>;
+  @@iterator(): Iterator<string>;
   length: number;
   item(index: number): string;
   contains(token: string): boolean;
-  add(token: string): void;
-  remove(token: string): void;
-  toggle(token: string): boolean;
+  add(...token: Array<string>): void;
+  remove(...token: Array<string>): void;
+  toggle(token: string, force?: boolean): boolean;
 
   forEach(callbackfn: (value: string, index: number, list: DOMTokenList) => any, thisArg?: any): void;
   entries(): Iterator<[number, string]>;
@@ -855,18 +1038,14 @@ declare class Element extends Node {
   assignedSlot: ?HTMLSlotElement;
   attachShadow(shadowRootInitDict: ShadowRootInit): ShadowRoot;
   attributes: NamedNodeMap;
-  childElementCount: number;
-  children: HTMLCollection<HTMLElement>;
   classList: DOMTokenList;
   className: string;
   clientHeight: number;
   clientLeft: number;
   clientTop: number;
   clientWidth: number;
-  firstElementChild: ?Element;
   id: string;
   innerHTML: string;
-  lastElementChild: ?Element;
   localName: string;
   namespaceURI: ?string;
   nextElementSibling: ?Element;
@@ -891,19 +1070,28 @@ declare class Element extends Node {
   getElementsByClassName(names: string): HTMLCollection<HTMLElement>;
   getElementsByTagName(name: 'a'): HTMLCollection<HTMLAnchorElement>;
   getElementsByTagName(name: 'audio'): HTMLCollection<HTMLAudioElement>;
+  getElementsByTagName(name: 'br'): HTMLCollection<HTMLBRElement>;
   getElementsByTagName(name: 'button'): HTMLCollection<HTMLButtonElement>;
   getElementsByTagName(name: 'canvas'): HTMLCollection<HTMLCanvasElement>;
+  getElementsByTagName(name: 'details'): HTMLCollection<HTMLDetailsElement>;
   getElementsByTagName(name: 'div'): HTMLCollection<HTMLDivElement>;
+  getElementsByTagName(name: 'dl'): HTMLCollection<HTMLDListElement>;
+  getElementsByTagName(name: 'fieldset'): HTMLCollection<HTMLFieldSetElement>;
   getElementsByTagName(name: 'form'): HTMLCollection<HTMLFormElement>;
+  getElementsByTagName(name: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'): HTMLCollection<HTMLHeadingElement>;
+  getElementsByTagName(name: 'hr'): HTMLCollection<HTMLHRElement>;
   getElementsByTagName(name: 'iframe'): HTMLCollection<HTMLIFrameElement>;
   getElementsByTagName(name: 'img'): HTMLCollection<HTMLImageElement>;
   getElementsByTagName(name: 'input'): HTMLCollection<HTMLInputElement>;
   getElementsByTagName(name: 'label'): HTMLCollection<HTMLLabelElement>;
+  getElementsByTagName(name: 'legend'): HTMLCollection<HTMLLegendElement>;
+  getElementsByTagName(name: 'li'): HTMLCollection<HTMLLIElement>;
   getElementsByTagName(name: 'link'): HTMLCollection<HTMLLinkElement>;
-  getElementsByTagName(name: 'media'): HTMLCollection<HTMLMediaElement>;
   getElementsByTagName(name: 'meta'): HTMLCollection<HTMLMetaElement>;
+  getElementsByTagName(name: 'ol'): HTMLCollection<HTMLOListElement>;
   getElementsByTagName(name: 'option'): HTMLCollection<HTMLOptionElement>;
   getElementsByTagName(name: 'p'): HTMLCollection<HTMLParagraphElement>;
+  getElementsByTagName(name: 'pre'): HTMLCollection<HTMLPreElement>;
   getElementsByTagName(name: 'script'): HTMLCollection<HTMLScriptElement>;
   getElementsByTagName(name: 'select'): HTMLCollection<HTMLSelectElement>;
   getElementsByTagName(name: 'source'): HTMLCollection<HTMLSourceElement>;
@@ -916,22 +1104,33 @@ declare class Element extends Node {
   getElementsByTagName(name: 'thead' | 'tfoot' | 'tbody'): HTMLCollection<HTMLTableSectionElement>;
   getElementsByTagName(name: 'tr'): HTMLCollection<HTMLTableRowElement>;
   getElementsByTagName(name: 'td' | 'th'): HTMLCollection<HTMLTableCellElement>;
+  getElementsByTagName(name: 'template'): HTMLCollection<HTMLTemplateElement>;
+  getElementsByTagName(name: 'ul'): HTMLCollection<HTMLUListElement>;
   getElementsByTagName(name: string): HTMLCollection<HTMLElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'a'): HTMLCollection<HTMLAnchorElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'audio'): HTMLCollection<HTMLAudioElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'br'): HTMLCollection<HTMLBRElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'button'): HTMLCollection<HTMLButtonElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'canvas'): HTMLCollection<HTMLCanvasElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'details'): HTMLCollection<HTMLDetailsElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'div'): HTMLCollection<HTMLDivElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'dl'): HTMLCollection<HTMLDListElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'fieldset'): HTMLCollection<HTMLFieldSetElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'form'): HTMLCollection<HTMLFormElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'): HTMLCollection<HTMLHeadingElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'hr'): HTMLCollection<HTMLHRElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'iframe'): HTMLCollection<HTMLIFrameElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'img'): HTMLCollection<HTMLImageElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'input'): HTMLCollection<HTMLInputElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'label'): HTMLCollection<HTMLLabelElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'legend'): HTMLCollection<HTMLLegendElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'li'): HTMLCollection<HTMLLIElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'link'): HTMLCollection<HTMLLinkElement>;
-  getElementsByTagNameNS(namespaceURI: string | null, localName: 'media'): HTMLCollection<HTMLMediaElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'meta'): HTMLCollection<HTMLMetaElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'ol'): HTMLCollection<HTMLOListElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'option'): HTMLCollection<HTMLOptionElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'p'): HTMLCollection<HTMLParagraphElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'pre'): HTMLCollection<HTMLPreElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'script'): HTMLCollection<HTMLScriptElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'select'): HTMLCollection<HTMLSelectElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'source'): HTMLCollection<HTMLSourceElement>;
@@ -944,6 +1143,8 @@ declare class Element extends Node {
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'thead' | 'tfoot' | 'tbody'): HTMLCollection<HTMLTableSectionElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'tr'): HTMLCollection<HTMLTableRowElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: 'td' | 'th'): HTMLCollection<HTMLTableCellElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'template'): HTMLCollection<HTMLTemplateElement>;
+  getElementsByTagNameNS(namespaceURI: string | null, localName: 'ul'): HTMLCollection<HTMLUListElement>;
   getElementsByTagNameNS(namespaceURI: string | null, localName: string): HTMLCollection<HTMLElement>;
   hasAttribute(name: string): boolean;
   hasAttributeNS(namespaceURI: string | null, localName: string): boolean;
@@ -954,11 +1155,10 @@ declare class Element extends Node {
   querySelector(selector: string): HTMLElement | null;
   querySelectorAll(selector: string): NodeList<HTMLElement>;
   releasePointerCapture(pointerId: string): void;
-  remove(): void;
   removeAttribute(name?: string): void;
   removeAttributeNode(attributeNode: Attr): Attr;
   removeAttributeNS(namespaceURI: string | null, localName: string): void;
-  requestFullscren(): void;
+  requestFullscreen(): void;
   requestPointerLock(): void;
   scrollIntoView(arg?: (boolean | { behavior?: ('auto' | 'instant' | 'smooth'), block?: ('start' | 'end') })): void;
   setAttribute(name?: string, value?: string): void;
@@ -968,6 +1168,20 @@ declare class Element extends Node {
   setPointerCapture(pointerId: string): void;
   shadowRoot?: ShadowRoot;
   slot?: string;
+
+  // from ParentNode interface
+  childElementCount: number;
+  children: HTMLCollection<HTMLElement>;
+  firstElementChild: ?Element;
+  lastElementChild: ?Element;
+  append(...nodes: Array<string | Node>): void;
+  prepend(...nodes: Array<string | Node>): void;
+
+  // from ChildNode interface
+  after(...nodes: Array<string | Node>): void;
+  before(...nodes: Array<string | Node>): void;
+  replaceWith(...nodes: Array<string | Node>): void;
+  remove(): void;
 }
 
 declare class HTMLElement extends Element {
@@ -982,7 +1196,7 @@ declare class HTMLElement extends Element {
   contentEditable: string;
   contextMenu: ?HTMLMenuElement;
   dataset: {[key:string]: string};
-  dir: 'ltr' | 'trl' | 'auto';
+  dir: 'ltr' | 'rtl' | 'auto';
   draggable: bool;
   dropzone: any;
   hidden: boolean;
@@ -1111,6 +1325,10 @@ declare class HTMLBaseElement extends HTMLElement {
   target: string;
 }
 
+declare class HTMLTemplateElement extends HTMLElement {
+  content: DocumentFragment;
+}
+
 declare class CanvasGradient {
   addColorStop(offset: number, color: string): void;
 }
@@ -1211,6 +1429,12 @@ declare class ImageData {
   width: number;
   height: number;
   data: Uint8ClampedArray;
+
+  // constructor methods are used in Worker where CanvasRenderingContext2D
+  //  is unavailable.
+  // https://html.spec.whatwg.org/multipage/scripting.html#dom-imagedata
+  constructor(data: Uint8ClampedArray, width: number, height: number): void;
+  constructor(width: number, height: number): void;
 };
 
 declare class CanvasRenderingContext2D {
@@ -2225,16 +2449,24 @@ type RenderingContext = CanvasRenderingContext2D | WebGLRenderingContext;
 declare class HTMLCanvasElement extends HTMLElement {
   width: number;
   height: number;
-  getContext(contextId: "2d", ...args: any): ?CanvasRenderingContext2D;
+  getContext(contextId: "2d", ...args: any): CanvasRenderingContext2D;
   getContext(contextId: "webgl", contextAttributes?: $Shape<WebGLContextAttributes>): ?WebGLRenderingContext;
+  // IE currently only supports "experimental-webgl"
+  getContext(contextId: "experimental-webgl", contextAttributes?: $Shape<WebGLContextAttributes>): ?WebGLRenderingContext;
   getContext(contextId: string, ...args: any): ?RenderingContext; // fallback
   toDataURL(type?: string, ...args: any): string;
   toBlob(callback: (v: File) => void, type?: string, ...args: any): void;
+  captureStream(frameRate?: number): CanvasCaptureMediaStream;
+}
+
+// https://html.spec.whatwg.org/multipage/forms.html#the-details-element
+declare class HTMLDetailsElement extends HTMLElement {
+  open: boolean;
 }
 
 declare class HTMLFormElement extends HTMLElement {
-  ____iterator(): Iterator<HTMLElement>;
-  [name: string]: any;
+  @@iterator(): Iterator<HTMLElement>;
+  [index: number | string]: HTMLElement | null;
   acceptCharset: string;
   action: string;
   elements: HTMLCollection<HTMLElement>;
@@ -2246,10 +2478,25 @@ declare class HTMLFormElement extends HTMLElement {
   target: string;
 
   checkValidity(): boolean;
-  item(name?: any, index?: any): any;
-  namedItem(name: string): any;
+  reportValidity(): boolean;
   reset(): void;
   submit(): void;
+}
+
+// https://www.w3.org/TR/html5/forms.html#the-fieldset-element
+declare class HTMLFieldSetElement extends HTMLElement {
+  disabled: boolean;
+  elements: HTMLCollection<HTMLElement>; // readonly
+  form: HTMLFormElement | null; // readonly
+  name: string;
+  type: string; // readonly
+
+  checkValidity(): boolean;
+  setCustomValidity(error: string): void;
+}
+
+declare class HTMLLegendElement extends HTMLElement {
+  form: HTMLFormElement | null; // readonly
 }
 
 declare class HTMLIFrameElement extends HTMLElement {
@@ -2294,6 +2541,7 @@ declare class MediaError {
   MEDIA_ERR_DECODE: number;
   MEDIA_ERR_SRC_NOT_SUPPORTED: number;
   code: number;
+  message: ?string;
 }
 
 declare class TimeRanges {
@@ -2362,7 +2610,7 @@ declare class TextTrackCue extends EventTarget {
 }
 
 declare class TextTrackCueList {
-  ____iterator(): Iterator<TextTrackCue>;
+  @@iterator(): Iterator<TextTrackCue>;
   length: number;
   [index: number]: TextTrackCue;
   getCueById(id: string): ?TextTrackCue;
@@ -2432,9 +2680,10 @@ declare class HTMLMediaElement extends HTMLElement {
   ended: boolean;
   autoplay: boolean;
   loop: boolean;
-  play(): void;
+  play(): Promise<void>;
   pause(): void;
   fastSeek(): void;
+  captureStream(): MediaStream;
 
   // media controller
   mediaGroup: string;
@@ -2484,6 +2733,7 @@ declare class ValidityState {
   tooLong: boolean;
   typeMismatch: boolean;
   valueMissing: boolean;
+  valid: boolean;
 }
 
 // http://www.w3.org/TR/html5/forms.html#dom-textarea/input-setselectionrange
@@ -2605,12 +2855,17 @@ declare class HTMLTextAreaElement extends HTMLElement {
 }
 
 declare class HTMLSelectElement extends HTMLElement {
+  autocomplete: string;
+  autofocus: boolean;
   disabled: boolean;
   form: HTMLFormElement | null;
+  labels: NodeList<HTMLLabelElement>;
   length: number;
   multiple: boolean;
   name: string;
   options: HTMLOptionsCollection;
+  selectedOptions: HTMLCollection<HTMLOptionElement>;
+  required: boolean;
   selectedIndex: number;
   size: number;
   type: string;
@@ -2618,14 +2873,16 @@ declare class HTMLSelectElement extends HTMLElement {
 
   add(element: HTMLElement, before?: HTMLElement): void;
   checkValidity(): boolean;
+  item(index: number): HTMLOptionElement | null;
+  namedItem(name: string): HTMLOptionElement | null;
   remove(index?: number): void;
+  setCustomValidity(error: string): void;
 }
 
-declare class HTMLOptionsCollection {
-  ____iterator(): Iterator<Node>;
-  length: number;
-  item(index: number): Node;
-  namedItem(name: string): Node;
+declare class HTMLOptionsCollection extends HTMLCollection<HTMLOptionElement> {
+  selectedIndex: number;
+  add(element: HTMLOptionElement | HTMLOptGroupElement, before?: HTMLElement | number): void;
+  remove(index: number): void;
 }
 
 declare class HTMLOptionElement extends HTMLElement {
@@ -2637,6 +2894,11 @@ declare class HTMLOptionElement extends HTMLElement {
   selected: boolean;
   text: string;
   value: string;
+}
+
+declare class HTMLOptGroupElement extends HTMLElement {
+  disabled: boolean;
+  label: string;
 }
 
 declare class HTMLAnchorElement extends HTMLElement {
@@ -2695,7 +2957,7 @@ declare class HTMLScriptElement extends HTMLElement {
 declare class HTMLStyleElement extends HTMLElement {
   disabled: boolean;
   media: string;
-  scoped: ? boolean;
+  scoped: boolean;
   sheet: ?StyleSheet;
   type: string;
 }
@@ -2711,6 +2973,28 @@ declare class HTMLSpanElement extends HTMLElement {}
 declare class HTMLAppletElement extends HTMLElement {}
 
 declare class HTMLEmbedElement extends HTMLElement {}
+
+declare class HTMLHeadingElement extends HTMLElement {}
+
+declare class HTMLHRElement extends HTMLElement {}
+
+declare class HTMLBRElement extends HTMLElement {}
+
+declare class HTMLDListElement extends HTMLElement {}
+
+declare class HTMLOListElement extends HTMLElement {
+  reversed: boolean;
+  start: number;
+  type: string;
+}
+
+declare class HTMLUListElement extends HTMLElement {}
+
+declare class HTMLLIElement extends HTMLElement {
+  value: number;
+}
+
+declare class HTMLPreElement extends HTMLElement {}
 
 declare class HTMLMetaElement extends HTMLElement {
   content: string;
@@ -2768,7 +3052,7 @@ declare class ClientRect { // extension
 }
 
 declare class ClientRectList { // extension
-  ____iterator(): Iterator<ClientRect>;
+  @@iterator(): Iterator<ClientRect>;
   length: number;
   item(index: number): ClientRect;
   [index: number]: ClientRect;
@@ -2792,6 +3076,12 @@ declare class DocumentType extends Node {
   internalSubset: string;
   entities: NamedNodeMap;
   publicId: string;
+
+  // from ChildNode interface
+  after(...nodes: Array<string | Node>): void;
+  before(...nodes: Array<string | Node>): void;
+  replaceWith(...nodes: Array<string | Node>): void;
+  remove(): void;
 }
 
 declare class CharacterData extends Node {
@@ -2802,6 +3092,12 @@ declare class CharacterData extends Node {
   appendData(arg: string): void;
   insertData(offset: number, arg: string): void;
   substringData(offset: number, count: number): string;
+
+  // from ChildNode interface
+  after(...nodes: Array<string | Node>): void;
+  before(...nodes: Array<string | Node>): void;
+  replaceWith(...nodes: Array<string | Node>): void;
+  remove(): void;
 }
 
 declare class Text extends CharacterData {
@@ -2867,7 +3163,7 @@ declare class SourceBuffer extends EventTarget {
 }
 
 declare class SourceBufferList extends EventTarget {
-  ____iterator(): Iterator<SourceBuffer>;
+  @@iterator(): Iterator<SourceBuffer>;
   [index: number]: SourceBuffer;
   length: number;
 }

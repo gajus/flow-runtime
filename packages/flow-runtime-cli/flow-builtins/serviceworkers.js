@@ -1,11 +1,8 @@
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the "flow" directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 
 type FrameType = 'auxiliary' | 'top-level' | 'nested' | 'none';
@@ -41,10 +38,10 @@ declare class InstallEvent extends ExtendableEvent {
 
 declare class FetchEvent extends ExtendableEvent {
   request: Request,
-  client: Client, // client is deprecated
   clientId: string,
   isReload: boolean,
   respondWith(response: Response | Promise<Response>): void,
+  preloadResponse: Promise<?Response>,
 }
 
 type ClientType = 'window' | 'worker' | 'sharedworker' | 'all';
@@ -76,10 +73,23 @@ declare class ServiceWorker extends EventTarget {
   onstatechange?: EventHandler,
 }
 
+declare class NavigationPreloadState {
+  enabled: boolean,
+  headerValue: string,
+}
+
+declare class NavigationPreloadManager {
+  enable: Promise<void>,
+  disable: Promise<void>,
+  setHeaderValue(value: string): Promise<void>,
+  getState: Promise<NavigationPreloadState>,
+}
+
 declare class ServiceWorkerRegistration extends EventTarget {
   installing: ?ServiceWorker,
   waiting: ?ServiceWorker,
   active: ?ServiceWorker,
+  navigationPreload: NavigationPreloadManager,
 
   scope: string,
 
@@ -126,8 +136,6 @@ type CacheQueryOptions = {
   ignoreVary?: boolean,
   cacheName?: string,
 }
-
-type RequestInfo = Request | string;
 
 declare class Cache {
   match(request: RequestInfo, options?: CacheQueryOptions): Promise<Response>,
