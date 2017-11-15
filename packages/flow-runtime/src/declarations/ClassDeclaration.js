@@ -29,6 +29,9 @@ export default class ClassDeclaration<O: {}> extends Declaration {
     }
     const bodyProps = body.properties;
     const superProps = (superClass.unwrap(): $FlowFixme).properties;
+    if (superProps == null) {
+      return bodyProps;
+    }
     const seen = {};
     const seenStatic = {};
     const props = [];
