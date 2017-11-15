@@ -8,7 +8,7 @@ export const input = `
     y: number;
   };
 
-  class Point extends React.Component<void, Props, void> {
+  class Point extends React.Component<Props, void> {
     render() {
       return <div>{this.props.x} : {this.props.y}</div>;
     }
@@ -29,7 +29,7 @@ export const expected = `
 
     constructor(...args) {
       super(...args);
-      t.bindTypeParameters(this, t.void(), Props, t.void());
+      t.bindTypeParameters(this, Props, t.void());
     }
 
     render() {

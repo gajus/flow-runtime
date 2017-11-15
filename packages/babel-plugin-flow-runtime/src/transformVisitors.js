@@ -648,7 +648,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       const hasSuperTypeParameters = superTypeParameters.length > 0;
       if (path.has('superClass') && isReactComponentClass(path.get('superClass'))) {
         const annotation = hasSuperTypeParameters
-                         ? superTypeParameters[1]
+                         ? superTypeParameters[0]
                          : getClassPropertyAnnotation(path, 'props')
                          ;
 
