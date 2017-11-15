@@ -467,6 +467,15 @@ converters.TypeofTypeAnnotation = (context: ConversionContext, path: NodePath): 
     // this is a reference to a type
     return value;
   }
+  else if (value.type === 'Identifier') {
+    const {name} = value;
+    const entity = context.getEntity(name, path);
+    if (entity) {
+      return context.call("typeOf", value);
+    } else {
+      return context.call("ref", t.stringLiteral(name));
+    }
+  }
   else {
     return context.call('typeOf', value);
   }
