@@ -10,7 +10,7 @@ type Props = {
 };
 
 @observer
-export default class InstallInstruction extends Component<void, Props, void> {
+export default class InstallInstruction extends Component<Props, void> {
   @observable showYarn: boolean = false;
 
   @computed get installCode (): string {

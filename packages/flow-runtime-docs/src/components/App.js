@@ -10,7 +10,7 @@ type Props = {
 };
 
 @observer
-export default class App extends Component<void, Props, void> {
+export default class App extends Component<Props, void> {
   render() {
     return (
       <div className="App">

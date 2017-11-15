@@ -8,7 +8,7 @@ import PackageList from './PackageList';
 type Props = {};
 
 @observer
-export default class PackageListPage extends Component<void, Props, void> {
+export default class PackageListPage extends Component<Props, void> {
   render() {
     return (
       <div>

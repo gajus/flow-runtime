@@ -9,7 +9,7 @@ type Props = {
 };
 
 @observer
-export default class DocsPage extends Component<void, Props, void> {
+export default class DocsPage extends Component<Props, void> {
   render() {
     return (
       <div className="container-fluid">

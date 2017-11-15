@@ -15,7 +15,7 @@ type Props = {
 };
 
 @observer
-export default class CodeMirror extends React.Component<void, Props, void> {
+export default class CodeMirror extends React.Component<Props, void> {
 
   handleChange = (code: string) => {
     const {onChange} = this.props;
