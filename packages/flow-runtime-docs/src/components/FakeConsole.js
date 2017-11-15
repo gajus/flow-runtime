@@ -10,7 +10,7 @@ type Props = {
 };
 
 @observer
-export default class FakeConsole extends Component<void, Props, void> {
+export default class FakeConsole extends Component<Props, void> {
 
 
   hideLog = (e: SyntheticMouseEvent) => {

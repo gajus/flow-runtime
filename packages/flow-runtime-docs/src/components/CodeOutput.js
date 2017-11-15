@@ -10,7 +10,7 @@ type Props = {
   value: string;
 };
 
-export default class CodeOutput extends React.Component<void, Props, void> {
+export default class CodeOutput extends React.Component<Props, void> {
   render () {
     const options = {
       lineNumbers: true,

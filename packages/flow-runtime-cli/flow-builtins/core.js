@@ -1,11 +1,8 @@
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
- * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the "flow" directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
- *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
  */
 /* JS primitives
    cf. http://typescript.codeplex.com/sourcecontrol/latest#typings/lib.d.ts
@@ -48,7 +45,7 @@ declare class Object {
     static keys(o: any): Array<string>;
     static preventExtensions(o: any): any;
     static seal(o: any): any;
-    static setPrototypeOf(o: any, proto: ?Object): bool;
+    static setPrototypeOf(o: any, proto: ?Object): any;
     static values(object: any): Array<mixed>;
     hasOwnProperty(prop: any): boolean;
     isPrototypeOf(o: any): boolean;
@@ -104,10 +101,24 @@ declare class Function {
 }
 
 declare class Boolean {
+    constructor(value?: mixed): void;
     static (value:any):boolean;
     valueOf(): boolean;
     toString(): string;
 }
+
+type Number$LocaleOptions = {
+  localeMatcher?: string,
+  style?: string,
+  currency?: string,
+  currencyDisplay?: string,
+  useGrouping?: boolean,
+  minimumIntegerDigits?: number,
+  minimumFractionDigits?: number,
+  maximumFractionDigits?: number,
+  minimumSignificantDigits?: number,
+  maximumSignificantDigits?: number,
+};
 
 declare class Number {
     static EPSILON: number;
@@ -124,9 +135,11 @@ declare class Number {
     static isNaN(value: any): boolean;
     static isSafeInteger(value: any): boolean;
     static parseFloat(value: string): number;
-    static parseInt(value: string): number;
+    static parseInt(value: string, radix?: number): number;
+    constructor(value?: mixed): void;
     toExponential(fractionDigits?: number): string;
     toFixed(fractionDigits?: number): string;
+    toLocaleString(locales?: string | Array<string>, options?: Number$LocaleOptions): string;
     toPrecision(precision?: number): string;
     toString(radix?: number): string;
     valueOf(): number;
@@ -184,7 +197,7 @@ declare class $ReadOnlyArray<+T> {
     @@iterator(): Iterator<T>;
     toLocaleString(): string;
     // concat creates a new array
-    concat<S, Item: Array<S> | S>(...items: Array<Item>): Array<T | S>;
+    concat<S, Item: $ReadOnlyArray<S> | S>(...items: Array<Item>): Array<T | S>;
     entries(): Iterator<[number, T]>;
     every(callbackfn: (value: T, index: number, array: $ReadOnlyArray<T>) => any, thisArg?: any): boolean;
     filter(callbackfn: typeof Boolean): Array<$NonMaybeType<T>>;
@@ -192,11 +205,11 @@ declare class $ReadOnlyArray<+T> {
     find(callbackfn: (value: T, index: number, array: $ReadOnlyArray<T>) => any, thisArg?: any): T | void;
     findIndex(callbackfn: (value: T, index: number, array: $ReadOnlyArray<T>) => any, thisArg?: any): number;
     forEach(callbackfn: (value: T, index: number, array: $ReadOnlyArray<T>) => any, thisArg?: any): void;
-    includes(searchElement: T, fromIndex?: number): boolean;
-    indexOf(searchElement: T, fromIndex?: number): number;
+    includes(searchElement: mixed, fromIndex?: number): boolean;
+    indexOf(searchElement: mixed, fromIndex?: number): number;
     join(separator?: string): string;
     keys(): Iterator<number>;
-    lastIndexOf(searchElement: T, fromIndex?: number): number;
+    lastIndexOf(searchElement: mixed, fromIndex?: number): number;
     map<U>(callbackfn: (value: T, index: number, array: $ReadOnlyArray<T>) => U, thisArg?: any): Array<U>;
 
     reduce(
@@ -219,7 +232,7 @@ declare class $ReadOnlyArray<+T> {
     some(callbackfn: (value: T, index: number, array: $ReadOnlyArray<T>) => any, thisArg?: any): boolean;
     values(): Iterator<T>;
     +[key: number]: T;
-    length: number;
+    +length: number;
 }
 
 declare class Array<T> extends $ReadOnlyArray<T> {
@@ -259,6 +272,7 @@ declare class Array<T> extends $ReadOnlyArray<T> {
 
 
     [key: number]: T;
+    length: number;
     static (...values:Array<any>): Array<any>;
     static isArray(obj: any): bool;
     static from<A, B>(iter: Iterable<A>, mapFn: (elem: A, index: number) => B, thisArg?: any): Array<B>;
@@ -277,12 +291,13 @@ declare class String {
     charCodeAt(index: number): number;
     codePointAt(index: number): number;
     concat(...strings: Array<string>): string;
+    constructor(value?: mixed): void;
     endsWith(searchString: string, position?: number): boolean;
     includes(searchString: string, position?: number): boolean;
     indexOf(searchString: string, position?: number): number;
     lastIndexOf(searchString: string, position?: number): number;
     link(href: string): string;
-    localeCompare(that: string): number;
+    localeCompare(that: string, locales?: string | Array<string>, options?: Object): number;
     match(regexp: string | RegExp): ?Array<string>;
     normalize(format?: string): string;
     padEnd(targetLength: number, padString?: string): string;
@@ -312,73 +327,7 @@ declare class String {
     static raw(callSite: $Shape<{raw: string}>, ...substitutions: any[]): string;
 }
 
-type RegExp$flags =
-  'i' | 'g' | 'm' | 'u' | 'y' |
-  'ig' | 'im' | 'iu' | 'iy' |
-  'gi' | 'gm' | 'gu' | 'gy' |
-  'mi' | 'mg' | 'mu' | 'my' |
-  'ui' | 'ug' | 'um' | 'uy' |
-  'yi' | 'yg' | 'ym' | 'yu' |
-  'igm' | 'igu' | 'igy' |
-  'img' | 'imu' | 'imy' |
-  'iug' | 'ium' | 'iuy' |
-  'iyg' | 'iym' | 'iyu' |
-  'giy' | 'gim' | 'giu' |
-  'gmy' | 'gmi' | 'gmu' |
-  'guy' | 'gui' | 'gum' |
-  'gyu' | 'gyi' | 'gym' |
-  'miu' | 'miy' | 'mig' |
-  'mgu' | 'mgy' | 'mgi' |
-  'mug' | 'muy' | 'mui' |
-  'myg' | 'myu' | 'myi' |
-  'uig' | 'uim' | 'uiy' |
-  'ugi' | 'ugm' | 'ugy' |
-  'umi' | 'umg' | 'umy' |
-  'uyi' | 'uyg' | 'uym' |
-  'yiu' | 'yig' | 'yim' |
-  'ygu' | 'ygi' | 'ygm' |
-  'ymu' | 'ymi' | 'ymg' |
-  'yum' | 'yui' | 'yug' |
-  'igmu' | 'igmy' | 'igum' | 'iguy' | 'igym' | 'igyu' |
-  'imgy' | 'imgu' | 'imuy' | 'imug' | 'imyu' | 'imyg' |
-  'iugm' | 'iugy' | 'iumg' | 'iumy' | 'iuyg' | 'iuym' |
-  'iygu' | 'iygm' | 'iymu' | 'iymg' | 'iyum' | 'iyug' |
-  'giym' | 'giyu' | 'gimy' | 'gimu' | 'giuy' | 'gium' |
-  'gmyu' | 'gmyi' | 'gmiu' | 'gmiy' | 'gmui' | 'gmuy' |
-  'guyi' | 'guym' | 'guiy' | 'guim' | 'gumy' | 'gumi' |
-  'gyum' | 'gyui' | 'gyim' | 'gyiu' | 'gymi' | 'gymu' |
-  'miuy' | 'miug' | 'miyu' | 'miyg' | 'migu' | 'migy' |
-  'mgui' | 'mguy' | 'mgyi' | 'mgyu' | 'mgiy' | 'mgiu' |
-  'mugy' | 'mugi' | 'muyg' | 'muyi' | 'muig' | 'muiy' |
-  'mygi' | 'mygu' | 'myui' | 'myug' | 'myiu' | 'myig' |
-  'uigm' | 'uigy' | 'uimg' | 'uimy' | 'uiyg' | 'uiym' |
-  'ugiy' | 'ugim' | 'ugmy' | 'ugmi' | 'ugym' | 'ugyi' |
-  'umig' | 'umiy' | 'umgi' | 'umgy' | 'umyi' | 'umyg' |
-  'uyim' | 'uyig' | 'uygm' | 'uygi' | 'uymg' | 'uymi' |
-  'yiug' | 'yium' | 'yigu' | 'yigm' | 'yimu' | 'yimg' |
-  'ygum' | 'ygui' | 'ygim' | 'ygiu' | 'ygmi' | 'ygmu' |
-  'ymui' | 'ymug' | 'ymiu' | 'ymig' | 'ymgu' | 'ymgi' |
-  'yumg' | 'yumi' | 'yuig' | 'yuim' | 'yugi' | 'yugm' |
-  'igmuy' | 'igmyu' | 'igumy' | 'iguym' | 'igymu' | 'igyum' |
-  'imgyu' | 'imguy' | 'imuyg' | 'imugy' | 'imyug' | 'imygu' |
-  'iugmy' | 'iugym' | 'iumgy' | 'iumyg' | 'iuygm' | 'iuymg' |
-  'iygum' | 'iygmu' | 'iymug' | 'iymgu' | 'iyumg' | 'iyugm' |
-  'giymu' | 'giyum' | 'gimyu' | 'gimuy' | 'giuym' | 'giumy' |
-  'gmyui' | 'gmyiu' | 'gmiuy' | 'gmiyu' | 'gmuiy' | 'gmuyi' |
-  'guyim' | 'guymi' | 'guiym' | 'guimy' | 'gumyi' | 'gumiy' |
-  'gyumi' | 'gyuim' | 'gyimu' | 'gyium' | 'gymiu' | 'gymui' |
-  'miuyg' | 'miugy' | 'miyug' | 'miygu' | 'miguy' | 'migyu' |
-  'mguiy' | 'mguyi' | 'mgyiu' | 'mgyui' | 'mgiyu' | 'mgiuy' |
-  'mugyi' | 'mugiy' | 'muygi' | 'muyig' | 'muigy' | 'muiyg' |
-  'mygiu' | 'mygui' | 'myuig' | 'myugi' | 'myiug' | 'myigu' |
-  'uigmy' | 'uigym' | 'uimgy' | 'uimyg' | 'uiygm' | 'uiymg' |
-  'ugiym' | 'ugimy' | 'ugmyi' | 'ugmiy' | 'ugymi' | 'ugyim' |
-  'umigy' | 'umiyg' | 'umgiy' | 'umgyi' | 'umyig' | 'umygi' |
-  'uyimg' | 'uyigm' | 'uygmi' | 'uygim' | 'uymgi' | 'uymig' |
-  'yiugm' | 'yiumg' | 'yigum' | 'yigmu' | 'yimug' | 'yimgu' |
-  'ygumi' | 'yguim' | 'ygimu' | 'ygium' | 'ygmiu' | 'ygmui' |
-  'ymuig' | 'ymugi' | 'ymiug' | 'ymigu' | 'ymgui' | 'ymgiu' |
-  'yumgi' | 'yumig' | 'yuigm' | 'yuimg' | 'yugim' | 'yugmi';
+type RegExp$flags = $CharSet<"gimsuy">
 
 declare class RegExp {
     static (pattern: string | RegExp, flags?: RegExp$flags): RegExp;
@@ -397,14 +346,27 @@ declare class RegExp {
     toString(): string;
 }
 
+type Date$LocaleOptions = {
+  localeMatcher?: string,
+  timeZone?: string,
+  hour12?: boolean,
+  formatMatcher?: string,
+  weekday?: string,
+  era?: string,
+  year?: string,
+  month?: string,
+  day?: string,
+  hour?: string,
+  minute?: string,
+  second?: string,
+  timeZoneName?: string,
+};
+
 declare class Date {
-    // new Date();
-    // new Date(timestamp);
-    // new Date(dateString);
-    // new Date(year, month[, day[, hour[, minute[, second[, millisecond]]]]]);
-    // TODO: This should specify an overloaded constructor once they're
-    // supported, instead of a union type for the first argument.
-    constructor(value?: number | string, month?: number, day?: number, hour?: number, minute?: number, second?: number, millisecond?: number): void;
+    constructor(): void;
+    constructor(timestamp: number): void;
+    constructor(dateString: string): void;
+    constructor(year: number, month: number, day?: number, hour?: number, minute?: number, second?: number, millisecond?: number): void;
     getDate(): number;
     getDay(): number;
     getFullYear(): number;
@@ -441,9 +403,9 @@ declare class Date {
     toDateString(): string;
     toISOString(): string;
     toJSON(key?: any): string;
-    toLocaleDateString(): string;
-    toLocaleString(): string;
-    toLocaleTimeString(): string;
+    toLocaleDateString(locales?: string | Array<string>, options?: Date$LocaleOptions): string;
+    toLocaleString(locales?: string | Array<string>, options?: Date$LocaleOptions): string;
+    toLocaleTimeString(locales?: string | Array<string>, options?: Date$LocaleOptions): string;
     toTimeString(): string;
     toUTCString(): string;
     valueOf(): number;
@@ -476,6 +438,7 @@ declare class CallSite {
 
 declare class Error {
     static (message?:string):Error;
+    constructor (message?: mixed): void;
     name: string;
     message: string;
     stack: string;
@@ -491,10 +454,10 @@ declare class Error {
     columnNumber?: number;
 
     // note: v8 only (node/chrome)
-    static captureStackTrace?: (target: Object, constructor?: Function) => void;
+    static captureStackTrace(target: Object, constructor?: Function): void;
 
-    static stackTraceLimit?: number;
-    static prepareStackTrace?: (err: Error, stack: CallSite[]) => mixed;
+    static stackTraceLimit: number;
+    static prepareStackTrace: (err: Error, stack: CallSite[]) => mixed;
 }
 
 declare class EvalError extends Error {
@@ -592,6 +555,7 @@ declare class Map<K, V> {
 }
 
 declare class WeakMap<K, V> {
+    constructor(iterable: ?Iterable<[K, V]>): void;
     delete(key: K): boolean;
     get(key: K): V | void;
     has(key: K): boolean;
@@ -636,12 +600,12 @@ declare class Promise<+R> {
     ): Promise<U>;
 
     catch<U>(
-      onReject?: (error: any) => ?Promise<U> | U
-    ): Promise<U>;
+      onReject?: (error: any) => Promise<U> | U
+    ): Promise<R | U>;
 
     static resolve<T>(object: Promise<T> | T): Promise<T>;
     static reject<T>(error?: any): Promise<T>;
-    static all<Elem, T:Iterable<Elem>>(promises: T): Promise<$TupleMap<T, typeof $await>>;
+    static all<T: Iterable<mixed>>(promises: T): Promise<$TupleMap<T, typeof $await>>;
     static race<T, Elem: Promise<T> | T>(promises: Array<Elem>): Promise<T>;
 }
 
@@ -655,7 +619,7 @@ declare class ArrayBuffer {
     constructor(byteLength: number): void;
     byteLength: number;
     slice(begin: number, end?: number): this;
-    [key: $SymbolSpecies]: Function; // This would be the constructor, can't think of a way to correctly type this
+    static [key: $SymbolSpecies]: Class<this>;
 }
 
 // This is a helper type to simplify the specification, it isn't an interface
@@ -777,20 +741,20 @@ declare class Reflect {
     static deleteProperty(o: any, p: any): boolean;
     static get(o: any, p: any, receiver?: any): any;
     static getOwnPropertyDescriptor(o: any, p: any): any;
-    static getPrototypeOf(o: any): any;
+    static getPrototypeOf: Object$GetPrototypeOf;
+    static setPrototypeOf: Object$SetPrototypeOf;
     static has(o: any, p: any): boolean;
     static isExtensible(o: any): boolean;
     static ownKeys(o: any): Array<any>;
     static preventExtensions(o: any): boolean;
     static set(o: any, p: any, value: any, receiver?: any): boolean;
-    static setPrototypeOf(o: any, prototype: any): boolean;
 }
 
 /* Proxy */
 
 type Proxy$traps<T> = {
-  getPrototypeOf?: (target: T) => ?Object;
-  setPrototypeOf?: (target: T, prototype: ?Object) => boolean;
+  getPrototypeOf?: (target: T) => Object|null;
+  setPrototypeOf?: (target: T, prototype: Object|null) => boolean;
   isExtensible?: (target: T) => boolean;
   preventExtensions?: (target: T) => boolean;
   getOwnPropertyDescriptor?: (target: T, property: string) => void | Object;
@@ -850,8 +814,8 @@ declare var console: {
   groupEnd(): void;
   info(...data: Array<any>): void;
   log(...data: Array<any>): void;
-  profile(name: string): void;
-  profileEnd(): void;
+  profile(name?: string): void;
+  profileEnd(name?: string): void;
   table(tabularData: { [key: string]: any } | Array<{ [key: string]: any }> | Array<Array<any>>): void;
   time(label: string): void;
   timeEnd(label: string): void;

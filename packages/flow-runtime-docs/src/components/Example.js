@@ -19,7 +19,7 @@ type Props = {
 };
 
 @observer
-export default class Example extends Component<void, Props, void> {
+export default class Example extends Component<Props, void> {
 
   @observable compiler: Compiler;
 

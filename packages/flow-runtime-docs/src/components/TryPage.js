@@ -29,7 +29,7 @@ console.log(widget);
 `.trim();
 
 @observer
-export default class TryPage extends Component<void, Props, void> {
+export default class TryPage extends Component<Props, void> {
 
   compiler: Compiler;
 
