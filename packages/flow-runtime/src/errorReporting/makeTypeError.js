@@ -15,19 +15,53 @@ export default function makeTypeError <T> (validation: Validation<T>) {
   const collected = [];
   for (const [path, message, expectedType] of validation.errors) {
     const expected = expectedType ? expectedType.toString() : "*";
-    const actual = context.typeOf(resolvePath(input, path)).toString();
+    const actual = resolvePath(input, path);
+    const actualType = context.typeOf(actual).toString();
 
     const field = stringifyPath(validation.path.concat(path));
 
+    const actualAsString = makeString(actual);
 
-    collected.push(
-      `${field} ${message}\n\nExpected: ${expected}\n\nActual: ${actual}\n`
-    );
+    if (typeof actualAsString === 'string') {
+      collected.push(`${field} ${message}\n\nExpected: ${expected}\n\nActual Value: ${actualAsString}\n\nActual Type: ${actualType}\n`);
+    } else {
+      collected.push(
+        `${field} ${message}\n\nExpected: ${expected}\n\nActual: ${actualType}\n`
+      );
+    }
   }
   if (prefix) {
     return new RuntimeTypeError(`${prefix.trim()} ${collected.join(delimiter)}`);
   }
   else {
     return new RuntimeTypeError(collected.join(delimiter));
+  }
+}
+
+function makeString(value: *) {
+  if (value === null) {
+    return 'null';
+  }
+  switch (typeof value) {
+    case 'string':
+      return `"${value}"`;
+    // @flowIssue
+    case 'symbol':
+    case 'number':
+    case 'boolean':
+    case 'undefined':
+      return String(value);
+    case 'function':
+      return;
+    default:
+      if (Array.isArray(value) || value.constructor == null || value.constructor === Object) {
+        try {
+          return JSON.stringify(value, null, 2);
+        }
+        catch (e) {
+          return;
+        }
+      }
+      return;
   }
 }
