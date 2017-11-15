@@ -85,8 +85,7 @@
   "scripts": {
     "lint": "eslint ./src && flow check",
     "start": "node scripts/start.js",
-    "build": "echo \"Not building, use build-app instead\"",
-    "build-app": "node scripts/build.js",
+    "build": "node scripts/build.js",
     "test": "echo \"no tests for flow-runtime-docs yet!\"",
     "test-jsdom": "node scripts/test.js --env=jsdom",
     "predeploy": "npm run build",
