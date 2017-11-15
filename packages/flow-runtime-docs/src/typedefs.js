@@ -43,6 +43,10 @@ t.declare(
       t.staticCallProperty(
         t.function(t.param("value", t.any()), t.return(t.boolean()))
       ),
+      t.property(
+        "constructor",
+        t.function(t.param("value", t.mixed(), true), t.return(t.void()))
+      ),
       t.property("valueOf", t.function(t.return(t.boolean()))),
       t.property("toString", t.function(t.return(t.string())))
     )
@@ -60,7 +64,10 @@ t.declare(
           "concat",
           t.function(_fn => {
             const S = _fn.typeParameter("S"),
-              Item = _fn.typeParameter("Item", t.union(t.array(S), S));
+              Item = _fn.typeParameter(
+                "Item",
+                t.union(t.ref("$ReadOnlyArray", S), S)
+              );
 
             return [
               t.rest("items", t.array(Item)),
@@ -92,7 +99,7 @@ t.declare(
           "filter",
           t.union(
             t.function(
-              t.param("callbackfn", t.typeOf(Boolean)),
+              t.param("callbackfn", t.ref("Boolean")),
               t.return(t.array(t.ref("$NonMaybeType", T)))
             ),
             t.function(
@@ -161,7 +168,7 @@ t.declare(
         t.property(
           "includes",
           t.function(
-            t.param("searchElement", T),
+            t.param("searchElement", t.mixed()),
             t.param("fromIndex", t.number(), true),
             t.return(t.boolean())
           )
@@ -169,7 +176,7 @@ t.declare(
         t.property(
           "indexOf",
           t.function(
-            t.param("searchElement", T),
+            t.param("searchElement", t.mixed()),
             t.param("fromIndex", t.number(), true),
             t.return(t.number())
           )
@@ -185,7 +192,7 @@ t.declare(
         t.property(
           "lastIndexOf",
           t.function(
-            t.param("searchElement", T),
+            t.param("searchElement", t.mixed()),
             t.param("fromIndex", t.number(), true),
             t.return(t.number())
           )
@@ -380,7 +387,7 @@ t.declare(
           "filter",
           t.union(
             t.function(
-              t.param("callbackfn", t.typeOf(Boolean)),
+              t.param("callbackfn", t.ref("Boolean")),
               t.return(t.array(t.ref("$NonMaybeType", T)))
             ),
             t.function(
@@ -591,6 +598,7 @@ t.declare(
           "unshift",
           t.function(t.rest("items", t.array(T)), t.return(t.number()))
         ),
+        t.property("length", t.number()),
         t.staticProperty(
           "isArray",
           t.function(t.param("obj", t.any()), t.return(t.boolean()))
@@ -705,21 +713,18 @@ t.declare(
     "Symbol",
     t.object(
       t.staticCallProperty(
-        t.function(t.param("value", t.any(), true), t.return(t.ref("Symbol")))
+        t.function(t.param("value", t.any(), true), t.return(t.symbol()))
       ),
       t.staticProperty(
         "for",
-        t.function(t.param("key", t.string()), t.return(t.ref("Symbol")))
+        t.function(t.param("key", t.string()), t.return(t.symbol()))
       ),
       t.staticProperty("hasInstance", t.ref("$SymbolHasInstance")),
       t.staticProperty("isConcatSpreadable", t.ref("$SymboIsConcatSpreadable")),
       t.staticProperty("iterator", t.string()),
       t.staticProperty(
         "keyFor",
-        t.function(
-          t.param("sym", t.ref("Symbol")),
-          t.return(t.nullable(t.string()))
-        )
+        t.function(t.param("sym", t.symbol()), t.return(t.nullable(t.string())))
       ),
       t.staticProperty("length", t.number(0)),
       t.staticProperty("match", t.ref("$SymbolMatch")),
@@ -731,8 +736,23 @@ t.declare(
       t.staticProperty("toStringTag", t.ref("$SymbolToStringTag")),
       t.staticProperty("unscopables", t.ref("$SymbolUnscopables")),
       t.property("toString", t.function(t.return(t.string()))),
-      t.property("valueOf", t.function(t.return(t.nullable(t.ref("Symbol")))))
+      t.property("valueOf", t.function(t.return(t.nullable(t.symbol()))))
     )
+  )
+);
+const Number$LocaleOptions = t.type(
+  "Number$LocaleOptions",
+  t.object(
+    t.property("localeMatcher", t.string(), true),
+    t.property("style", t.string(), true),
+    t.property("currency", t.string(), true),
+    t.property("currencyDisplay", t.string(), true),
+    t.property("useGrouping", t.boolean(), true),
+    t.property("minimumIntegerDigits", t.number(), true),
+    t.property("minimumFractionDigits", t.number(), true),
+    t.property("maximumFractionDigits", t.number(), true),
+    t.property("minimumSignificantDigits", t.number(), true),
+    t.property("maximumSignificantDigits", t.number(), true)
   )
 );
 t.declare(
@@ -772,7 +792,15 @@ t.declare(
       ),
       t.staticProperty(
         "parseInt",
-        t.function(t.param("value", t.string()), t.return(t.number()))
+        t.function(
+          t.param("value", t.string()),
+          t.param("radix", t.number(), true),
+          t.return(t.number())
+        )
+      ),
+      t.property(
+        "constructor",
+        t.function(t.param("value", t.mixed(), true), t.return(t.void()))
       ),
       t.property(
         "toExponential",
@@ -785,6 +813,14 @@ t.declare(
         "toFixed",
         t.function(
           t.param("fractionDigits", t.number(), true),
+          t.return(t.string())
+        )
+      ),
+      t.property(
+        "toLocaleString",
+        t.function(
+          t.param("locales", t.union(t.string(), t.array(t.string())), true),
+          t.param("options", Number$LocaleOptions, true),
           t.return(t.string())
         )
       ),
@@ -802,333 +838,7 @@ t.declare(
 );
 const RegExp$flags = t.type(
   "RegExp$flags",
-  t.union(
-    t.string("i"),
-    t.string("g"),
-    t.string("m"),
-    t.string("u"),
-    t.string("y"),
-    t.string("ig"),
-    t.string("im"),
-    t.string("iu"),
-    t.string("iy"),
-    t.string("gi"),
-    t.string("gm"),
-    t.string("gu"),
-    t.string("gy"),
-    t.string("mi"),
-    t.string("mg"),
-    t.string("mu"),
-    t.string("my"),
-    t.string("ui"),
-    t.string("ug"),
-    t.string("um"),
-    t.string("uy"),
-    t.string("yi"),
-    t.string("yg"),
-    t.string("ym"),
-    t.string("yu"),
-    t.string("igm"),
-    t.string("igu"),
-    t.string("igy"),
-    t.string("img"),
-    t.string("imu"),
-    t.string("imy"),
-    t.string("iug"),
-    t.string("ium"),
-    t.string("iuy"),
-    t.string("iyg"),
-    t.string("iym"),
-    t.string("iyu"),
-    t.string("giy"),
-    t.string("gim"),
-    t.string("giu"),
-    t.string("gmy"),
-    t.string("gmi"),
-    t.string("gmu"),
-    t.string("guy"),
-    t.string("gui"),
-    t.string("gum"),
-    t.string("gyu"),
-    t.string("gyi"),
-    t.string("gym"),
-    t.string("miu"),
-    t.string("miy"),
-    t.string("mig"),
-    t.string("mgu"),
-    t.string("mgy"),
-    t.string("mgi"),
-    t.string("mug"),
-    t.string("muy"),
-    t.string("mui"),
-    t.string("myg"),
-    t.string("myu"),
-    t.string("myi"),
-    t.string("uig"),
-    t.string("uim"),
-    t.string("uiy"),
-    t.string("ugi"),
-    t.string("ugm"),
-    t.string("ugy"),
-    t.string("umi"),
-    t.string("umg"),
-    t.string("umy"),
-    t.string("uyi"),
-    t.string("uyg"),
-    t.string("uym"),
-    t.string("yiu"),
-    t.string("yig"),
-    t.string("yim"),
-    t.string("ygu"),
-    t.string("ygi"),
-    t.string("ygm"),
-    t.string("ymu"),
-    t.string("ymi"),
-    t.string("ymg"),
-    t.string("yum"),
-    t.string("yui"),
-    t.string("yug"),
-    t.string("igmu"),
-    t.string("igmy"),
-    t.string("igum"),
-    t.string("iguy"),
-    t.string("igym"),
-    t.string("igyu"),
-    t.string("imgy"),
-    t.string("imgu"),
-    t.string("imuy"),
-    t.string("imug"),
-    t.string("imyu"),
-    t.string("imyg"),
-    t.string("iugm"),
-    t.string("iugy"),
-    t.string("iumg"),
-    t.string("iumy"),
-    t.string("iuyg"),
-    t.string("iuym"),
-    t.string("iygu"),
-    t.string("iygm"),
-    t.string("iymu"),
-    t.string("iymg"),
-    t.string("iyum"),
-    t.string("iyug"),
-    t.string("giym"),
-    t.string("giyu"),
-    t.string("gimy"),
-    t.string("gimu"),
-    t.string("giuy"),
-    t.string("gium"),
-    t.string("gmyu"),
-    t.string("gmyi"),
-    t.string("gmiu"),
-    t.string("gmiy"),
-    t.string("gmui"),
-    t.string("gmuy"),
-    t.string("guyi"),
-    t.string("guym"),
-    t.string("guiy"),
-    t.string("guim"),
-    t.string("gumy"),
-    t.string("gumi"),
-    t.string("gyum"),
-    t.string("gyui"),
-    t.string("gyim"),
-    t.string("gyiu"),
-    t.string("gymi"),
-    t.string("gymu"),
-    t.string("miuy"),
-    t.string("miug"),
-    t.string("miyu"),
-    t.string("miyg"),
-    t.string("migu"),
-    t.string("migy"),
-    t.string("mgui"),
-    t.string("mguy"),
-    t.string("mgyi"),
-    t.string("mgyu"),
-    t.string("mgiy"),
-    t.string("mgiu"),
-    t.string("mugy"),
-    t.string("mugi"),
-    t.string("muyg"),
-    t.string("muyi"),
-    t.string("muig"),
-    t.string("muiy"),
-    t.string("mygi"),
-    t.string("mygu"),
-    t.string("myui"),
-    t.string("myug"),
-    t.string("myiu"),
-    t.string("myig"),
-    t.string("uigm"),
-    t.string("uigy"),
-    t.string("uimg"),
-    t.string("uimy"),
-    t.string("uiyg"),
-    t.string("uiym"),
-    t.string("ugiy"),
-    t.string("ugim"),
-    t.string("ugmy"),
-    t.string("ugmi"),
-    t.string("ugym"),
-    t.string("ugyi"),
-    t.string("umig"),
-    t.string("umiy"),
-    t.string("umgi"),
-    t.string("umgy"),
-    t.string("umyi"),
-    t.string("umyg"),
-    t.string("uyim"),
-    t.string("uyig"),
-    t.string("uygm"),
-    t.string("uygi"),
-    t.string("uymg"),
-    t.string("uymi"),
-    t.string("yiug"),
-    t.string("yium"),
-    t.string("yigu"),
-    t.string("yigm"),
-    t.string("yimu"),
-    t.string("yimg"),
-    t.string("ygum"),
-    t.string("ygui"),
-    t.string("ygim"),
-    t.string("ygiu"),
-    t.string("ygmi"),
-    t.string("ygmu"),
-    t.string("ymui"),
-    t.string("ymug"),
-    t.string("ymiu"),
-    t.string("ymig"),
-    t.string("ymgu"),
-    t.string("ymgi"),
-    t.string("yumg"),
-    t.string("yumi"),
-    t.string("yuig"),
-    t.string("yuim"),
-    t.string("yugi"),
-    t.string("yugm"),
-    t.string("igmuy"),
-    t.string("igmyu"),
-    t.string("igumy"),
-    t.string("iguym"),
-    t.string("igymu"),
-    t.string("igyum"),
-    t.string("imgyu"),
-    t.string("imguy"),
-    t.string("imuyg"),
-    t.string("imugy"),
-    t.string("imyug"),
-    t.string("imygu"),
-    t.string("iugmy"),
-    t.string("iugym"),
-    t.string("iumgy"),
-    t.string("iumyg"),
-    t.string("iuygm"),
-    t.string("iuymg"),
-    t.string("iygum"),
-    t.string("iygmu"),
-    t.string("iymug"),
-    t.string("iymgu"),
-    t.string("iyumg"),
-    t.string("iyugm"),
-    t.string("giymu"),
-    t.string("giyum"),
-    t.string("gimyu"),
-    t.string("gimuy"),
-    t.string("giuym"),
-    t.string("giumy"),
-    t.string("gmyui"),
-    t.string("gmyiu"),
-    t.string("gmiuy"),
-    t.string("gmiyu"),
-    t.string("gmuiy"),
-    t.string("gmuyi"),
-    t.string("guyim"),
-    t.string("guymi"),
-    t.string("guiym"),
-    t.string("guimy"),
-    t.string("gumyi"),
-    t.string("gumiy"),
-    t.string("gyumi"),
-    t.string("gyuim"),
-    t.string("gyimu"),
-    t.string("gyium"),
-    t.string("gymiu"),
-    t.string("gymui"),
-    t.string("miuyg"),
-    t.string("miugy"),
-    t.string("miyug"),
-    t.string("miygu"),
-    t.string("miguy"),
-    t.string("migyu"),
-    t.string("mguiy"),
-    t.string("mguyi"),
-    t.string("mgyiu"),
-    t.string("mgyui"),
-    t.string("mgiyu"),
-    t.string("mgiuy"),
-    t.string("mugyi"),
-    t.string("mugiy"),
-    t.string("muygi"),
-    t.string("muyig"),
-    t.string("muigy"),
-    t.string("muiyg"),
-    t.string("mygiu"),
-    t.string("mygui"),
-    t.string("myuig"),
-    t.string("myugi"),
-    t.string("myiug"),
-    t.string("myigu"),
-    t.string("uigmy"),
-    t.string("uigym"),
-    t.string("uimgy"),
-    t.string("uimyg"),
-    t.string("uiygm"),
-    t.string("uiymg"),
-    t.string("ugiym"),
-    t.string("ugimy"),
-    t.string("ugmyi"),
-    t.string("ugmiy"),
-    t.string("ugymi"),
-    t.string("ugyim"),
-    t.string("umigy"),
-    t.string("umiyg"),
-    t.string("umgiy"),
-    t.string("umgyi"),
-    t.string("umyig"),
-    t.string("umygi"),
-    t.string("uyimg"),
-    t.string("uyigm"),
-    t.string("uygmi"),
-    t.string("uygim"),
-    t.string("uymgi"),
-    t.string("uymig"),
-    t.string("yiugm"),
-    t.string("yiumg"),
-    t.string("yigum"),
-    t.string("yigmu"),
-    t.string("yimug"),
-    t.string("yimgu"),
-    t.string("ygumi"),
-    t.string("yguim"),
-    t.string("ygimu"),
-    t.string("ygium"),
-    t.string("ygmiu"),
-    t.string("ygmui"),
-    t.string("ymuig"),
-    t.string("ymugi"),
-    t.string("ymiug"),
-    t.string("ymigu"),
-    t.string("ymgui"),
-    t.string("ymgiu"),
-    t.string("yumgi"),
-    t.string("yumig"),
-    t.string("yuigm"),
-    t.string("yuimg"),
-    t.string("yugim"),
-    t.string("yugmi")
-  )
+  t.ref("$CharSet", t.string("gimsuy"))
 );
 t.declare(
   t.class(
@@ -1202,6 +912,10 @@ t.declare(
         t.function(t.rest("strings", t.array(t.string())), t.return(t.string()))
       ),
       t.property(
+        "constructor",
+        t.function(t.param("value", t.mixed(), true), t.return(t.void()))
+      ),
+      t.property(
         "endsWith",
         t.function(
           t.param("searchString", t.string()),
@@ -1239,7 +953,12 @@ t.declare(
       ),
       t.property(
         "localeCompare",
-        t.function(t.param("that", t.string()), t.return(t.number()))
+        t.function(
+          t.param("that", t.string()),
+          t.param("locales", t.union(t.string(), t.array(t.string())), true),
+          t.param("options", t.object(), true),
+          t.return(t.number())
+        )
       ),
       t.property(
         "match",
@@ -1456,7 +1175,7 @@ t.declare(
       ),
       t.staticProperty(
         "getOwnPropertySymbols",
-        t.function(t.param("o", t.any()), t.return(t.array(t.ref("Symbol"))))
+        t.function(t.param("o", t.any()), t.return(t.array(t.symbol())))
       ),
       t.staticProperty("getPrototypeOf", t.ref("Object$GetPrototypeOf")),
       t.staticProperty(
@@ -1496,7 +1215,7 @@ t.declare(
         t.function(
           t.param("o", t.any()),
           t.param("proto", t.nullable(t.object())),
-          t.return(t.boolean())
+          t.return(t.any())
         )
       ),
       t.staticProperty(
@@ -1577,6 +1296,10 @@ t.declare(
           t.return(t.ref("Error"))
         )
       ),
+      t.property(
+        "constructor",
+        t.function(t.param("message", t.mixed(), true), t.return(t.void()))
+      ),
       t.property("name", t.string()),
       t.property("message", t.string()),
       t.property("stack", t.string()),
@@ -1592,18 +1315,16 @@ t.declare(
           t.param("target", t.object()),
           t.param("constructor", t.function(), true),
           t.return(t.void())
-        ),
-        true
+        )
       ),
-      t.staticProperty("stackTraceLimit", t.number(), true),
+      t.staticProperty("stackTraceLimit", t.number()),
       t.staticProperty(
         "prepareStackTrace",
         t.function(
           t.param("err", t.ref("Error")),
           t.param("stack", t.array(t.ref("CallSite"))),
           t.return(t.mixed())
-        ),
-        true
+        )
       )
     )
   )
@@ -1639,10 +1360,35 @@ t.declare(
     t.extends("Event")
   )
 );
+const MouseEvent$MouseEventInit = t.type(
+  "MouseEvent$MouseEventInit",
+  t.object(
+    t.property("screenX", t.number(), true),
+    t.property("screenY", t.number(), true),
+    t.property("clientX", t.number(), true),
+    t.property("clientY", t.number(), true),
+    t.property("ctrlKey", t.boolean(), true),
+    t.property("shiftKey", t.boolean(), true),
+    t.property("altKey", t.boolean(), true),
+    t.property("metaKey", t.boolean(), true),
+    t.property("button", t.number(), true),
+    t.property("buttons", t.number(), true),
+    t.property("region", t.union(t.string(), t.null()), true),
+    t.property("relatedTarget", t.union(t.string(), t.null()), true)
+  )
+);
 t.declare(
   t.class(
     "MouseEvent",
     t.object(
+      t.property(
+        "constructor",
+        t.function(
+          t.param("typeArg", t.string()),
+          t.param("mouseEventInit", MouseEvent$MouseEventInit, true),
+          t.return(t.void())
+        )
+      ),
       t.property("altKey", t.boolean()),
       t.property("button", t.number()),
       t.property("buttons", t.number()),
@@ -1689,6 +1435,33 @@ const EventListenerOptionsOrUseCapture = t.type(
       t.property("once", t.boolean(), true),
       t.property("passive", t.boolean(), true)
     )
+  )
+);
+const FocusEventTypes = t.type(
+  "FocusEventTypes",
+  t.union(
+    t.string("blur"),
+    t.string("focus"),
+    t.string("focusin"),
+    t.string("focusout")
+  )
+);
+t.declare(
+  t.class(
+    "FocusEvent",
+    t.object(t.property("relatedTarget", t.nullable(t.ref("EventTarget")))),
+    t.extends("UIEvent")
+  )
+);
+const FocusEventHandler = t.type(
+  "FocusEventHandler",
+  t.function(t.param("event", t.ref("FocusEvent")), t.return(t.mixed()))
+);
+const FocusEventListener = t.type(
+  "FocusEventListener",
+  t.union(
+    t.object(t.property("handleEvent", FocusEventHandler)),
+    FocusEventHandler
   )
 );
 const KeyboardEventTypes = t.type(
@@ -1759,7 +1532,7 @@ t.declare(
     "TouchList",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.ref("Touch"))))
       ),
       t.property("length", t.number()),
@@ -1783,7 +1556,7 @@ t.declare(
       t.property("ctrlKey", t.boolean()),
       t.property("metaKey", t.boolean()),
       t.property("shiftKey", t.boolean()),
-      t.property("targetTouchesRead", t.ref("TouchList")),
+      t.property("targetTouches", t.ref("TouchList")),
       t.property("touches", t.ref("TouchList"))
     ),
     t.extends("UIEvent")
@@ -1889,7 +1662,7 @@ t.declare(
 
     return [
       t.object(
-        t.property("____iterator", t.function(t.return(t.ref(Iterator, T)))),
+        t.property(Symbol.iterator, t.function(t.return(t.ref(Iterator, T)))),
         t.property("length", t.number()),
         t.property(
           "item",
@@ -2422,7 +2195,7 @@ t.declare(
       t.property("dataset", t.object(t.indexer("key", t.string(), t.string()))),
       t.property(
         "dir",
-        t.union(t.string("ltr"), t.string("trl"), t.string("auto"))
+        t.union(t.string("ltr"), t.string("rtl"), t.string("auto"))
       ),
       t.property("draggable", t.boolean()),
       t.property("dropzone", t.any()),
@@ -2507,7 +2280,10 @@ t.declare(
 
     return [
       t.object(
-        t.property("____iterator", t.function(t.return(t.ref(Iterator, Elem)))),
+        t.property(
+          Symbol.iterator,
+          t.function(t.return(t.ref(Iterator, Elem)))
+        ),
         t.property("length", t.number()),
         t.property(
           "item",
@@ -2616,7 +2392,29 @@ t.declare(
           t.param("count", t.number()),
           t.return(t.string())
         )
-      )
+      ),
+      t.property(
+        "after",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "before",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "replaceWith",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property("remove", t.function(t.return(t.void())))
     ),
     t.extends("Node")
   )
@@ -2675,6 +2473,20 @@ t.declare(
       t.property("firstElementChild", t.nullable(t.ref("Element"))),
       t.property("lastElementChild", t.nullable(t.ref("Element"))),
       t.property(
+        "append",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "prepend",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
         "querySelector",
         t.function(
           t.param("selector", t.string()),
@@ -2700,7 +2512,8 @@ t.declare(
       t.property("MEDIA_ERR_NETWORK", t.number()),
       t.property("MEDIA_ERR_DECODE", t.number()),
       t.property("MEDIA_ERR_SRC_NOT_SUPPORTED", t.number()),
-      t.property("code", t.number())
+      t.property("code", t.number()),
+      t.property("message", t.nullable(t.string()))
     )
   )
 );
@@ -2720,6 +2533,24 @@ t.declare(
     )
   )
 );
+const Date$LocaleOptions = t.type(
+  "Date$LocaleOptions",
+  t.object(
+    t.property("localeMatcher", t.string(), true),
+    t.property("timeZone", t.string(), true),
+    t.property("hour12", t.boolean(), true),
+    t.property("formatMatcher", t.string(), true),
+    t.property("weekday", t.string(), true),
+    t.property("era", t.string(), true),
+    t.property("year", t.string(), true),
+    t.property("month", t.string(), true),
+    t.property("day", t.string(), true),
+    t.property("hour", t.string(), true),
+    t.property("minute", t.string(), true),
+    t.property("second", t.string(), true),
+    t.property("timeZoneName", t.string(), true)
+  )
+);
 t.declare(
   t.class(
     "Date",
@@ -2727,15 +2558,20 @@ t.declare(
       t.staticCallProperty(t.function(t.return(t.string()))),
       t.property(
         "constructor",
-        t.function(
-          t.param("value", t.union(t.number(), t.string()), true),
-          t.param("month", t.number(), true),
-          t.param("day", t.number(), true),
-          t.param("hour", t.number(), true),
-          t.param("minute", t.number(), true),
-          t.param("second", t.number(), true),
-          t.param("millisecond", t.number(), true),
-          t.return(t.void())
+        t.union(
+          t.function(t.return(t.void())),
+          t.function(t.param("timestamp", t.number()), t.return(t.void())),
+          t.function(t.param("dateString", t.string()), t.return(t.void())),
+          t.function(
+            t.param("year", t.number()),
+            t.param("month", t.number()),
+            t.param("day", t.number(), true),
+            t.param("hour", t.number(), true),
+            t.param("minute", t.number(), true),
+            t.param("second", t.number(), true),
+            t.param("millisecond", t.number(), true),
+            t.return(t.void())
+          )
         )
       ),
       t.property("getDate", t.function(t.return(t.number()))),
@@ -2870,9 +2706,30 @@ t.declare(
         "toJSON",
         t.function(t.param("key", t.any(), true), t.return(t.string()))
       ),
-      t.property("toLocaleDateString", t.function(t.return(t.string()))),
-      t.property("toLocaleString", t.function(t.return(t.string()))),
-      t.property("toLocaleTimeString", t.function(t.return(t.string()))),
+      t.property(
+        "toLocaleDateString",
+        t.function(
+          t.param("locales", t.union(t.string(), t.array(t.string())), true),
+          t.param("options", Date$LocaleOptions, true),
+          t.return(t.string())
+        )
+      ),
+      t.property(
+        "toLocaleString",
+        t.function(
+          t.param("locales", t.union(t.string(), t.array(t.string())), true),
+          t.param("options", Date$LocaleOptions, true),
+          t.return(t.string())
+        )
+      ),
+      t.property(
+        "toLocaleTimeString",
+        t.function(
+          t.param("locales", t.union(t.string(), t.array(t.string())), true),
+          t.param("options", Date$LocaleOptions, true),
+          t.return(t.string())
+        )
+      ),
       t.property("toTimeString", t.function(t.return(t.string()))),
       t.property("toUTCString", t.function(t.return(t.string()))),
       t.property("valueOf", t.function(t.return(t.number()))),
@@ -2906,6 +2763,246 @@ t.declare(
         )
       )
     )
+  )
+);
+t.declare(
+  "$await",
+  t.function(_fn15 => {
+    const T = _fn15.typeParameter("T");
+
+    return [ t.param("p", t.union(t.ref("Promise", T), T)), t.return(T) ];
+  })
+);
+t.declare(
+  t.class("Promise", _Promise => {
+    const R = _Promise.typeParameter("R");
+
+    return [
+      t.object(
+        t.property(
+          "constructor",
+          t.function(
+            t.param(
+              "callback",
+              t.function(
+                t.param(
+                  "resolve",
+                  t.function(
+                    t.param("result", t.union(t.ref("Promise", R), R)),
+                    t.return(t.void())
+                  )
+                ),
+                t.param(
+                  "reject",
+                  t.function(t.param("error", t.any()), t.return(t.void()))
+                ),
+                t.return(t.mixed())
+              )
+            ),
+            t.return(t.void())
+          )
+        ),
+        t.property(
+          "then",
+          t.function(_fn16 => {
+            const U = _fn16.typeParameter("U");
+
+            return [
+              t.param(
+                "onFulfill",
+                t.function(
+                  t.param("value", R),
+                  t.return(t.union(t.ref("Promise", U), U))
+                ),
+                true
+              ),
+              t.param(
+                "onReject",
+                t.function(
+                  t.param("error", t.any()),
+                  t.return(t.union(t.ref("Promise", U), U))
+                ),
+                true
+              ),
+              t.return(t.ref("Promise", U))
+            ];
+          })
+        ),
+        t.property(
+          "catch",
+          t.function(_fn17 => {
+            const U = _fn17.typeParameter("U");
+
+            return [
+              t.param(
+                "onReject",
+                t.function(
+                  t.param("error", t.any()),
+                  t.return(t.union(t.ref("Promise", U), U))
+                ),
+                true
+              ),
+              t.return(t.ref("Promise", t.union(R, U)))
+            ];
+          })
+        ),
+        t.staticProperty(
+          "resolve",
+          t.function(_fn18 => {
+            const T = _fn18.typeParameter("T");
+
+            return [
+              t.param("object", t.union(t.ref("Promise", T), T)),
+              t.return(t.ref("Promise", T))
+            ];
+          })
+        ),
+        t.staticProperty(
+          "reject",
+          t.function(_fn19 => {
+            const T = _fn19.typeParameter("T");
+
+            return [
+              t.param("error", t.any(), true),
+              t.return(t.ref("Promise", T))
+            ];
+          })
+        ),
+        t.staticProperty(
+          "all",
+          t.function(_fn20 => {
+            const T = _fn20.typeParameter("T", t.ref(Iterable, t.mixed()));
+
+            return [
+              t.param("promises", T),
+              t.return(t.ref("Promise", t.$tupleMap(T, t.ref("$await"))))
+            ];
+          })
+        ),
+        t.staticProperty(
+          "race",
+          t.function(_fn21 => {
+            const T = _fn21.typeParameter("T"),
+              Elem = _fn21.typeParameter(
+                "Elem",
+                t.union(t.ref("Promise", T), T)
+              );
+
+            return [
+              t.param("promises", t.array(Elem)),
+              t.return(t.ref("Promise", T))
+            ];
+          })
+        )
+      )
+    ];
+  })
+);
+t.declare(
+  t.class(
+    "MediaStreamTrack",
+    t.object(
+      t.property("enabled", t.boolean()),
+      t.property("id", t.string()),
+      t.property("kind", t.string()),
+      t.property("label", t.string()),
+      t.property("muted", t.boolean()),
+      t.property("readonly", t.boolean()),
+      t.property("readyState", t.union(t.string("live"), t.string("ended"))),
+      t.property("remote", t.boolean()),
+      t.property(
+        "onstarted",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "onmute",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "onunmute",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "onoverconstrained",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "onended",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property("getConstraints", t.function(t.return(t.any()))),
+      t.property("applyConstraints", t.function(t.return(t.any()))),
+      t.property("getSettings", t.function(t.return(t.any()))),
+      t.property("getCapabilities", t.function(t.return(t.any()))),
+      t.property("clone", t.function(t.return(t.ref("MediaStreamTrack")))),
+      t.property("stop", t.function(t.return(t.void())))
+    ),
+    t.extends("EventTarget")
+  )
+);
+t.declare(
+  t.class(
+    "MediaStream",
+    t.object(
+      t.property("active", t.boolean()),
+      t.property("ended", t.boolean()),
+      t.property("id", t.string()),
+      t.property(
+        "onactive",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "onaddtrack",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "onended",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "oninactive",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "onremovetrack",
+        t.function(t.param("ev", t.any()), t.return(t.any()))
+      ),
+      t.property(
+        "addTrack",
+        t.function(
+          t.param("track", t.ref("MediaStreamTrack")),
+          t.return(t.void())
+        )
+      ),
+      t.property("clone", t.function(t.return(t.ref("MediaStream")))),
+      t.property(
+        "getAudioTracks",
+        t.function(t.return(t.array(t.ref("MediaStreamTrack"))))
+      ),
+      t.property(
+        "getTrackById",
+        t.function(
+          t.param("trackid", t.string(), true),
+          t.return(t.nullable(t.ref("MediaStreamTrack")))
+        )
+      ),
+      t.property(
+        "getTracks",
+        t.function(t.return(t.array(t.ref("MediaStreamTrack"))))
+      ),
+      t.property(
+        "getVideoTracks",
+        t.function(t.return(t.array(t.ref("MediaStreamTrack"))))
+      ),
+      t.property(
+        "removeTrack",
+        t.function(
+          t.param("track", t.ref("MediaStreamTrack")),
+          t.return(t.void())
+        )
+      )
+    ),
+    t.extends("EventTarget")
   )
 );
 t.declare(
@@ -3034,7 +3131,7 @@ t.declare(
     "TextTrackCueList",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.ref("TextTrackCue"))))
       ),
       t.property("length", t.number()),
@@ -3132,9 +3229,10 @@ t.declare(
       t.property("ended", t.boolean()),
       t.property("autoplay", t.boolean()),
       t.property("loop", t.boolean()),
-      t.property("play", t.function(t.return(t.void()))),
+      t.property("play", t.function(t.return(t.ref("Promise", t.void())))),
       t.property("pause", t.function(t.return(t.void()))),
       t.property("fastSeek", t.function(t.return(t.void()))),
+      t.property("captureStream", t.function(t.return(t.ref("MediaStream")))),
       t.property("mediaGroup", t.string()),
       t.property("controller", t.nullable(t.any())),
       t.property("controls", t.boolean()),
@@ -3160,12 +3258,13 @@ t.declare(
 t.declare(
   t.class("HTMLAudioElement", t.object(), t.extends("HTMLMediaElement"))
 );
+t.declare(t.class("HTMLBRElement", t.object(), t.extends("HTMLElement")));
 t.declare(
   t.class(
     "HTMLFormElement",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.ref("HTMLElement"))))
       ),
       t.property("acceptCharset", t.string()),
@@ -3178,21 +3277,14 @@ t.declare(
       t.property("name", t.string()),
       t.property("target", t.string()),
       t.property("checkValidity", t.function(t.return(t.boolean()))),
-      t.property(
-        "item",
-        t.function(
-          t.param("name", t.any(), true),
-          t.param("index", t.any(), true),
-          t.return(t.any())
-        )
-      ),
-      t.property(
-        "namedItem",
-        t.function(t.param("name", t.string()), t.return(t.any()))
-      ),
+      t.property("reportValidity", t.function(t.return(t.boolean()))),
       t.property("reset", t.function(t.return(t.void()))),
       t.property("submit", t.function(t.return(t.void()))),
-      t.indexer("name", t.string(), t.any())
+      t.indexer(
+        "index",
+        t.union(t.number(), t.string()),
+        t.union(t.ref("HTMLElement"), t.null())
+      )
     ),
     t.extends("HTMLElement")
   )
@@ -3574,7 +3666,7 @@ t.declare(
           t.return(t.ref("this"))
         )
       ),
-      t.indexer("key", t.ref("$SymbolSpecies"), t.function())
+      t.indexer("key", t.ref("$SymbolSpecies"), t.Class(t.ref("this")))
     )
   )
 );
@@ -3795,8 +3887,8 @@ t.declare(
             t.param("initialValue", t.void()),
             t.return(t.number())
           ),
-          t.function(_fn15 => {
-            const U = _fn15.typeParameter("U");
+          t.function(_fn22 => {
+            const U = _fn22.typeParameter("U");
 
             return [
               t.param(
@@ -3832,8 +3924,8 @@ t.declare(
             t.param("initialValue", t.void()),
             t.return(t.number())
           ),
-          t.function(_fn16 => {
-            const U = _fn16.typeParameter("U");
+          t.function(_fn23 => {
+            const U = _fn23.typeParameter("U");
 
             return [
               t.param(
@@ -3920,7 +4012,23 @@ t.declare(
     t.object(
       t.property("width", t.number()),
       t.property("height", t.number()),
-      t.property("data", t.ref("Uint8ClampedArray"))
+      t.property("data", t.ref("Uint8ClampedArray")),
+      t.property(
+        "constructor",
+        t.union(
+          t.function(
+            t.param("data", t.ref("Uint8ClampedArray")),
+            t.param("width", t.number()),
+            t.param("height", t.number()),
+            t.return(t.void())
+          ),
+          t.function(
+            t.param("width", t.number()),
+            t.param("height", t.number()),
+            t.return(t.void())
+          )
+        )
+      )
     )
   )
 );
@@ -4385,24 +4493,18 @@ const WebGLContextAttributes = t.type(
   )
 );
 const WebGLObject = t.type("WebGLObject", t.object());
-const WebGLProgram = t.type(
-  "WebGLProgram",
-  t.intersect(WebGLObject, t.object())
-);
-const WebGLShader = t.type("WebGLShader", t.intersect(WebGLObject, t.object()));
-const WebGLBuffer = t.type("WebGLBuffer", t.intersect(WebGLObject, t.object()));
+const WebGLProgram = t.type("WebGLProgram", t.spread(WebGLObject, t.object()));
+const WebGLShader = t.type("WebGLShader", t.spread(WebGLObject, t.object()));
+const WebGLBuffer = t.type("WebGLBuffer", t.spread(WebGLObject, t.object()));
 const WebGLFramebuffer = t.type(
   "WebGLFramebuffer",
-  t.intersect(WebGLObject, t.object())
+  t.spread(WebGLObject, t.object())
 );
 const WebGLRenderbuffer = t.type(
   "WebGLRenderbuffer",
-  t.intersect(WebGLObject, t.object())
+  t.spread(WebGLObject, t.object())
 );
-const WebGLTexture = t.type(
-  "WebGLTexture",
-  t.intersect(WebGLObject, t.object())
-);
+const WebGLTexture = t.type("WebGLTexture", t.spread(WebGLObject, t.object()));
 const BufferDataSource = t.type(
   "BufferDataSource",
   t.union(t.ref("ArrayBuffer"), t.ref("$ArrayBufferView"))
@@ -6229,14 +6331,46 @@ t.declare(
     )
   )
 );
+const FilePropertyBag = t.type(
+  "FilePropertyBag",
+  t.object(
+    t.property("type", t.string(), true),
+    t.property("lastModified", t.number(), true)
+  )
+);
 t.declare(
   t.class(
     "File",
     t.object(
+      t.property(
+        "constructor",
+        t.function(
+          t.param(
+            "fileBits",
+            t.ref(
+              "$ReadOnlyArray",
+              t.union(t.string(), BufferDataSource, t.ref("Blob"))
+            )
+          ),
+          t.param("filename", t.string()),
+          t.param("options", FilePropertyBag, true),
+          t.return(t.void())
+        )
+      ),
       t.property("lastModifiedDate", t.any()),
       t.property("name", t.string())
     ),
     t.extends("Blob")
+  )
+);
+t.declare(
+  t.class(
+    "CanvasCaptureMediaStream",
+    t.object(
+      t.property("canvas", t.ref("HTMLCanvasElement")),
+      t.property("requestFrame", t.function(t.return(t.void())))
+    ),
+    t.extends("MediaStream")
   )
 );
 t.declare(
@@ -6251,10 +6385,19 @@ t.declare(
           t.function(
             t.param("contextId", t.string("2d")),
             t.rest("args", t.any()),
-            t.return(t.nullable(t.ref("CanvasRenderingContext2D")))
+            t.return(t.ref("CanvasRenderingContext2D"))
           ),
           t.function(
             t.param("contextId", t.string("webgl")),
+            t.param(
+              "contextAttributes",
+              t.$shape(WebGLContextAttributes),
+              true
+            ),
+            t.return(t.nullable(t.ref("WebGLRenderingContext")))
+          ),
+          t.function(
+            t.param("contextId", t.string("experimental-webgl")),
             t.param(
               "contextAttributes",
               t.$shape(WebGLContextAttributes),
@@ -6288,18 +6431,53 @@ t.declare(
           t.rest("args", t.any()),
           t.return(t.void())
         )
+      ),
+      t.property(
+        "captureStream",
+        t.function(
+          t.param("frameRate", t.number(), true),
+          t.return(t.ref("CanvasCaptureMediaStream"))
+        )
       )
     ),
     t.extends("HTMLElement")
   )
 );
+t.declare(
+  t.class(
+    "HTMLDetailsElement",
+    t.object(t.property("open", t.boolean())),
+    t.extends("HTMLElement")
+  )
+);
 t.declare(t.class("HTMLDivElement", t.object(), t.extends("HTMLElement")));
+t.declare(t.class("HTMLDListElement", t.object(), t.extends("HTMLElement")));
+t.declare(
+  t.class(
+    "HTMLFieldSetElement",
+    t.object(
+      t.property("disabled", t.boolean()),
+      t.property("elements", t.ref("HTMLCollection", t.ref("HTMLElement"))),
+      t.property("form", t.union(t.ref("HTMLFormElement"), t.null())),
+      t.property("name", t.string()),
+      t.property("type", t.string()),
+      t.property("checkValidity", t.function(t.return(t.boolean()))),
+      t.property(
+        "setCustomValidity",
+        t.function(t.param("error", t.string()), t.return(t.void()))
+      )
+    ),
+    t.extends("HTMLElement")
+  )
+);
+t.declare(t.class("HTMLHeadingElement", t.object(), t.extends("HTMLElement")));
+t.declare(t.class("HTMLHRElement", t.object(), t.extends("HTMLElement")));
 t.declare(
   t.class(
     "DOMTokenList",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.string())))
       ),
       t.property("length", t.number()),
@@ -6313,15 +6491,19 @@ t.declare(
       ),
       t.property(
         "add",
-        t.function(t.param("token", t.string()), t.return(t.void()))
+        t.function(t.rest("token", t.array(t.string())), t.return(t.void()))
       ),
       t.property(
         "remove",
-        t.function(t.param("token", t.string()), t.return(t.void()))
+        t.function(t.rest("token", t.array(t.string())), t.return(t.void()))
       ),
       t.property(
         "toggle",
-        t.function(t.param("token", t.string()), t.return(t.boolean()))
+        t.function(
+          t.param("token", t.string()),
+          t.param("force", t.boolean(), true),
+          t.return(t.boolean())
+        )
       ),
       t.property(
         "forEach",
@@ -6374,7 +6556,7 @@ t.declare(
     "FileList",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.ref("File"))))
       ),
       t.property("length", t.number()),
@@ -6413,7 +6595,8 @@ t.declare(
       t.property("stepMismatch", t.boolean()),
       t.property("tooLong", t.boolean()),
       t.property("typeMismatch", t.boolean()),
-      t.property("valueMissing", t.boolean())
+      t.property("valueMissing", t.boolean()),
+      t.property("valid", t.boolean())
     )
   )
 );
@@ -6422,7 +6605,7 @@ t.declare(
     "ClientRectList",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.ref("ClientRect"))))
       ),
       t.property("length", t.number()),
@@ -6700,6 +6883,20 @@ t.declare(
 );
 t.declare(
   t.class(
+    "HTMLLegendElement",
+    t.object(t.property("form", t.union(t.ref("HTMLFormElement"), t.null()))),
+    t.extends("HTMLElement")
+  )
+);
+t.declare(
+  t.class(
+    "HTMLLIElement",
+    t.object(t.property("value", t.number())),
+    t.extends("HTMLElement")
+  )
+);
+t.declare(
+  t.class(
     "HTMLLinkElement",
     t.object(
       t.property(
@@ -6723,6 +6920,27 @@ t.declare(
       t.property("content", t.string()),
       t.property("httpEquiv", t.string()),
       t.property("name", t.string())
+    ),
+    t.extends("HTMLElement")
+  )
+);
+t.declare(
+  t.class(
+    "HTMLOListElement",
+    t.object(
+      t.property("reversed", t.boolean()),
+      t.property("start", t.number()),
+      t.property("type", t.string())
+    ),
+    t.extends("HTMLElement")
+  )
+);
+t.declare(
+  t.class(
+    "HTMLOptGroupElement",
+    t.object(
+      t.property("disabled", t.boolean()),
+      t.property("label", t.string())
     ),
     t.extends("HTMLElement")
   )
@@ -6760,6 +6978,7 @@ t.declare(
     t.extends("HTMLElement")
   )
 );
+t.declare(t.class("HTMLPreElement", t.object(), t.extends("HTMLElement")));
 t.declare(
   t.class(
     "HTMLScriptElement",
@@ -6779,32 +6998,44 @@ t.declare(
   t.class(
     "HTMLOptionsCollection",
     t.object(
+      t.property("selectedIndex", t.number()),
       t.property(
-        "____iterator",
-        t.function(t.return(t.ref(Iterator, t.ref("Node"))))
+        "add",
+        t.function(
+          t.param(
+            "element",
+            t.union(t.ref("HTMLOptionElement"), t.ref("HTMLOptGroupElement"))
+          ),
+          t.param("before", t.union(t.ref("HTMLElement"), t.number()), true),
+          t.return(t.void())
+        )
       ),
-      t.property("length", t.number()),
       t.property(
-        "item",
-        t.function(t.param("index", t.number()), t.return(t.ref("Node")))
-      ),
-      t.property(
-        "namedItem",
-        t.function(t.param("name", t.string()), t.return(t.ref("Node")))
+        "remove",
+        t.function(t.param("index", t.number()), t.return(t.void()))
       )
-    )
+    ),
+    t.extends("HTMLCollection", t.ref("HTMLOptionElement"))
   )
 );
 t.declare(
   t.class(
     "HTMLSelectElement",
     t.object(
+      t.property("autocomplete", t.string()),
+      t.property("autofocus", t.boolean()),
       t.property("disabled", t.boolean()),
       t.property("form", t.union(t.ref("HTMLFormElement"), t.null())),
+      t.property("labels", t.ref("NodeList", t.ref("HTMLLabelElement"))),
       t.property("length", t.number()),
       t.property("multiple", t.boolean()),
       t.property("name", t.string()),
       t.property("options", t.ref("HTMLOptionsCollection")),
+      t.property(
+        "selectedOptions",
+        t.ref("HTMLCollection", t.ref("HTMLOptionElement"))
+      ),
+      t.property("required", t.boolean()),
       t.property("selectedIndex", t.number()),
       t.property("size", t.number()),
       t.property("type", t.string()),
@@ -6819,8 +7050,26 @@ t.declare(
       ),
       t.property("checkValidity", t.function(t.return(t.boolean()))),
       t.property(
+        "item",
+        t.function(
+          t.param("index", t.number()),
+          t.return(t.union(t.ref("HTMLOptionElement"), t.null()))
+        )
+      ),
+      t.property(
+        "namedItem",
+        t.function(
+          t.param("name", t.string()),
+          t.return(t.union(t.ref("HTMLOptionElement"), t.null()))
+        )
+      ),
+      t.property(
         "remove",
         t.function(t.param("index", t.number(), true), t.return(t.void()))
+      ),
+      t.property(
+        "setCustomValidity",
+        t.function(t.param("error", t.string()), t.return(t.void()))
       )
     ),
     t.extends("HTMLElement")
@@ -6846,7 +7095,7 @@ t.declare(
     t.object(
       t.property("disabled", t.boolean()),
       t.property("media", t.string()),
-      t.property("scoped", t.nullable(t.boolean())),
+      t.property("scoped", t.nullable(t.boolean()), true),
       t.property("sheet", t.nullable(t.ref("StyleSheet"))),
       t.property("type", t.string())
     ),
@@ -6990,10 +7239,18 @@ t.declare(
 );
 t.declare(
   t.class(
+    "HTMLTemplateElement",
+    t.object(t.property("content", t.ref("DocumentFragment"))),
+    t.extends("HTMLElement")
+  )
+);
+t.declare(t.class("HTMLUListElement", t.object(), t.extends("HTMLElement")));
+t.declare(
+  t.class(
     "NamedNodeMap",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.ref("Attr"))))
       ),
       t.property("length", t.number()),
@@ -7046,7 +7303,29 @@ t.declare(
       t.property("systemId", t.string()),
       t.property("internalSubset", t.string()),
       t.property("entities", t.ref("NamedNodeMap")),
-      t.property("publicId", t.string())
+      t.property("publicId", t.string()),
+      t.property(
+        "after",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "before",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "replaceWith",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property("remove", t.function(t.return(t.void())))
     ),
     t.extends("Node")
   )
@@ -7241,10 +7520,10 @@ t.declare(
         "createContextualFragment",
         t.function(t.param("fragment", t.string()), t.return(t.ref("Node")))
       ),
-      t.property("END_TO_END", t.number()),
-      t.property("START_TO_START", t.number()),
-      t.property("START_TO_END", t.number()),
-      t.property("END_TO_START", t.number())
+      t.staticProperty("END_TO_END", t.number()),
+      t.staticProperty("START_TO_START", t.number()),
+      t.staticProperty("START_TO_END", t.number()),
+      t.staticProperty("END_TO_START", t.number())
     )
   )
 );
@@ -7372,7 +7651,17 @@ t.declare(
           t.return(t.void())
         )
       ),
-      t.property("detail", t.any())
+      t.property("detail", t.any()),
+      t.property(
+        "initCustomEvent",
+        t.function(
+          t.param("type", t.string()),
+          t.param("bubbles", t.boolean()),
+          t.param("cancelable", t.boolean()),
+          t.param("detail", t.any()),
+          t.return(t.ref("CustomEvent"))
+        )
+      )
     ),
     t.extends("Event")
   )
@@ -7397,7 +7686,10 @@ t.declare(
       t.staticProperty("FILTER_ACCEPT", t.number(1)),
       t.staticProperty("FILTER_REJECT", t.number(2)),
       t.staticProperty("FILTER_SKIP", t.number(3)),
-      t.property("acceptNode", t.tdz(() => NodeFilterCallback)) // eslint-disable-line
+      t.property(
+        "acceptNode",
+        t.tdz(() => NodeFilterCallback, "NodeFilterCallback")
+      )
     )
   )
 );
@@ -7498,8 +7790,8 @@ t.declare(
       t.property("URL", t.string()),
       t.property(
         "adoptNode",
-        t.function(_fn17 => {
-          const T = _fn17.typeParameter("T", t.ref("Node"));
+        t.function(_fn24 => {
+          const T = _fn24.typeParameter("T", t.ref("Node"));
 
           return [ t.param("source", T), t.return(T) ];
         })
@@ -7552,6 +7844,10 @@ t.declare(
             t.return(t.ref("HTMLAudioElement"))
           ),
           t.function(
+            t.param("tagName", t.string("br")),
+            t.return(t.ref("HTMLBRElement"))
+          ),
+          t.function(
             t.param("tagName", t.string("button")),
             t.return(t.ref("HTMLButtonElement"))
           ),
@@ -7560,12 +7856,42 @@ t.declare(
             t.return(t.ref("HTMLCanvasElement"))
           ),
           t.function(
+            t.param("tagName", t.string("details")),
+            t.return(t.ref("HTMLDetailsElement"))
+          ),
+          t.function(
             t.param("tagName", t.string("div")),
             t.return(t.ref("HTMLDivElement"))
           ),
           t.function(
+            t.param("tagName", t.string("dl")),
+            t.return(t.ref("HTMLDListElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("fieldset")),
+            t.return(t.ref("HTMLFieldSetElement"))
+          ),
+          t.function(
             t.param("tagName", t.string("form")),
             t.return(t.ref("HTMLFormElement"))
+          ),
+          t.function(
+            t.param(
+              "tagName",
+              t.union(
+                t.string("h1"),
+                t.string("h2"),
+                t.string("h3"),
+                t.string("h4"),
+                t.string("h5"),
+                t.string("h6")
+              )
+            ),
+            t.return(t.ref("HTMLHeadingElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("hr")),
+            t.return(t.ref("HTMLHRElement"))
           ),
           t.function(
             t.param("tagName", t.string("iframe")),
@@ -7584,16 +7910,28 @@ t.declare(
             t.return(t.ref("HTMLLabelElement"))
           ),
           t.function(
+            t.param("tagName", t.string("legend")),
+            t.return(t.ref("HTMLLegendElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("li")),
+            t.return(t.ref("HTMLLIElement"))
+          ),
+          t.function(
             t.param("tagName", t.string("link")),
             t.return(t.ref("HTMLLinkElement"))
           ),
           t.function(
-            t.param("tagName", t.string("media")),
-            t.return(t.ref("HTMLMediaElement"))
-          ),
-          t.function(
             t.param("tagName", t.string("meta")),
             t.return(t.ref("HTMLMetaElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("ol")),
+            t.return(t.ref("HTMLOListElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("optgroup")),
+            t.return(t.ref("HTMLOptGroupElement"))
           ),
           t.function(
             t.param("tagName", t.string("option")),
@@ -7602,6 +7940,10 @@ t.declare(
           t.function(
             t.param("tagName", t.string("p")),
             t.return(t.ref("HTMLParagraphElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("pre")),
+            t.return(t.ref("HTMLPreElement"))
           ),
           t.function(
             t.param("tagName", t.string("script")),
@@ -7640,8 +7982,10 @@ t.declare(
             t.return(t.ref("HTMLTableCaptionElement"))
           ),
           t.function(
-            t.param("tagName", t.union(t.string("thead"), t.string("tfoot"))),
-            t.param("_arg1", t.string("tbody")),
+            t.param(
+              "tagName",
+              t.union(t.string("thead"), t.string("tfoot"), t.string("tbody"))
+            ),
             t.return(t.ref("HTMLTableSectionElement"))
           ),
           t.function(
@@ -7651,6 +7995,14 @@ t.declare(
           t.function(
             t.param("tagName", t.union(t.string("td"), t.string("th"))),
             t.return(t.ref("HTMLTableCellElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("template")),
+            t.return(t.ref("HTMLTemplateElement"))
+          ),
+          t.function(
+            t.param("tagName", t.string("ul")),
+            t.return(t.ref("HTMLUListElement"))
           ),
           t.function(
             t.param("tagName", t.string()),
@@ -7722,6 +8074,10 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLAudioElement")))
           ),
           t.function(
+            t.param("name", t.string("br")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLBRElement")))
+          ),
+          t.function(
             t.param("name", t.string("button")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLButtonElement")))
           ),
@@ -7730,12 +8086,42 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLCanvasElement")))
           ),
           t.function(
+            t.param("name", t.string("details")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDetailsElement")))
+          ),
+          t.function(
             t.param("name", t.string("div")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLDivElement")))
           ),
           t.function(
+            t.param("name", t.string("dl")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDListElement")))
+          ),
+          t.function(
+            t.param("name", t.string("fieldset")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLFieldSetElement")))
+          ),
+          t.function(
             t.param("name", t.string("form")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLFormElement")))
+          ),
+          t.function(
+            t.param(
+              "name",
+              t.union(
+                t.string("h1"),
+                t.string("h2"),
+                t.string("h3"),
+                t.string("h4"),
+                t.string("h5"),
+                t.string("h6")
+              )
+            ),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHeadingElement")))
+          ),
+          t.function(
+            t.param("name", t.string("hr")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHRElement")))
           ),
           t.function(
             t.param("name", t.string("iframe")),
@@ -7754,16 +8140,24 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLLabelElement")))
           ),
           t.function(
+            t.param("name", t.string("legend")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLegendElement")))
+          ),
+          t.function(
+            t.param("name", t.string("li")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLIElement")))
+          ),
+          t.function(
             t.param("name", t.string("link")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLLinkElement")))
           ),
           t.function(
-            t.param("name", t.string("media")),
-            t.return(t.ref("HTMLCollection", t.ref("HTMLMediaElement")))
-          ),
-          t.function(
             t.param("name", t.string("meta")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLMetaElement")))
+          ),
+          t.function(
+            t.param("name", t.string("ol")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLOListElement")))
           ),
           t.function(
             t.param("name", t.string("option")),
@@ -7772,6 +8166,10 @@ t.declare(
           t.function(
             t.param("name", t.string("p")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLParagraphElement")))
+          ),
+          t.function(
+            t.param("name", t.string("pre")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLPreElement")))
           ),
           t.function(
             t.param("name", t.string("script")),
@@ -7825,6 +8223,14 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLTableCellElement")))
           ),
           t.function(
+            t.param("name", t.string("template")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLTemplateElement")))
+          ),
+          t.function(
+            t.param("name", t.string("ul")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLUListElement")))
+          ),
+          t.function(
             t.param("name", t.string()),
             t.return(t.ref("HTMLCollection", t.ref("HTMLElement")))
           )
@@ -7845,6 +8251,11 @@ t.declare(
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("br")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLBRElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("button")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLButtonElement")))
           ),
@@ -7855,13 +8266,48 @@ t.declare(
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("details")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDetailsElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("div")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLDivElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("dl")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDListElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("fieldset")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLFieldSetElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("form")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLFormElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param(
+              "localName",
+              t.union(
+                t.string("h1"),
+                t.string("h2"),
+                t.string("h3"),
+                t.string("h4"),
+                t.string("h5"),
+                t.string("h6")
+              )
+            ),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHeadingElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("hr")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHRElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
@@ -7885,18 +8331,28 @@ t.declare(
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("legend")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLegendElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("li")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLIElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("link")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLLinkElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
-            t.param("localName", t.string("media")),
-            t.return(t.ref("HTMLCollection", t.ref("HTMLMediaElement")))
+            t.param("localName", t.string("meta")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLMetaElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
-            t.param("localName", t.string("meta")),
-            t.return(t.ref("HTMLCollection", t.ref("HTMLMetaElement")))
+            t.param("localName", t.string("ol")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLOListElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
@@ -7907,6 +8363,11 @@ t.declare(
             t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("p")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLParagraphElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("pre")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLPreElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
@@ -7973,6 +8434,16 @@ t.declare(
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("template")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLTemplateElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("ul")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLUListElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string()),
             t.return(t.ref("HTMLCollection", t.ref("HTMLElement")))
           )
@@ -7983,8 +8454,8 @@ t.declare(
       t.property("implementation", t.ref("DOMImplementation")),
       t.property(
         "importNode",
-        t.function(_fn18 => {
-          const T = _fn18.typeParameter("T", t.ref("Node"));
+        t.function(_fn25 => {
+          const T = _fn25.typeParameter("T", t.ref("Node"));
 
           return [
             t.param("importedNode", T),
@@ -8083,24 +8554,372 @@ t.declare(
       t.property("firstElementChild", t.nullable(t.ref("Element"))),
       t.property("lastElementChild", t.nullable(t.ref("Element"))),
       t.property(
-        "querySelector",
+        "append",
         t.function(
-          t.param("selector", t.string()),
-          t.return(t.union(t.ref("HTMLElement"), t.null()))
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "prepend",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "querySelector",
+        t.union(
+          t.function(
+            t.param("selector", t.string("a")),
+            t.return(t.union(t.ref("HTMLAnchorElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("audio")),
+            t.return(t.union(t.ref("HTMLAudioElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("br")),
+            t.return(t.union(t.ref("HTMLBRElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("button")),
+            t.return(t.union(t.ref("HTMLButtonElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("canvas")),
+            t.return(t.union(t.ref("HTMLCanvasElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("details")),
+            t.return(t.union(t.ref("HTMLDetailsElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("div")),
+            t.return(t.union(t.ref("HTMLDivElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("dl")),
+            t.return(t.union(t.ref("HTMLDListElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("fieldset")),
+            t.return(t.union(t.ref("HTMLFieldSetElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("form")),
+            t.return(t.union(t.ref("HTMLFormElement"), t.null()))
+          ),
+          t.function(
+            t.param(
+              "selector",
+              t.union(
+                t.string("h1"),
+                t.string("h2"),
+                t.string("h3"),
+                t.string("h4"),
+                t.string("h5"),
+                t.string("h6")
+              )
+            ),
+            t.return(t.ref("HTMLHeadingElement"))
+          ),
+          t.function(
+            t.param("selector", t.string("hr")),
+            t.return(t.union(t.ref("HTMLHRElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("iframe")),
+            t.return(t.union(t.ref("HTMLIFrameElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("img")),
+            t.return(t.union(t.ref("HTMLImageElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("input")),
+            t.return(t.union(t.ref("HTMLInputElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("label")),
+            t.return(t.union(t.ref("HTMLLabelElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("legend")),
+            t.return(t.union(t.ref("HTMLLegendElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("li")),
+            t.return(t.union(t.ref("HTMLLIElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("link")),
+            t.return(t.union(t.ref("HTMLLinkElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("meta")),
+            t.return(t.union(t.ref("HTMLMetaElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("ol")),
+            t.return(t.union(t.ref("HTMLOListElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("option")),
+            t.return(t.union(t.ref("HTMLOptionElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("p")),
+            t.return(t.union(t.ref("HTMLParagraphElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("pre")),
+            t.return(t.union(t.ref("HTMLPreElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("script")),
+            t.return(t.union(t.ref("HTMLScriptElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("select")),
+            t.return(t.union(t.ref("HTMLSelectElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("source")),
+            t.return(t.union(t.ref("HTMLSourceElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("span")),
+            t.return(t.union(t.ref("HTMLSpanElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("style")),
+            t.return(t.union(t.ref("HTMLStyleElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("textarea")),
+            t.return(t.union(t.ref("HTMLTextAreaElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("video")),
+            t.return(t.union(t.ref("HTMLVideoElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("table")),
+            t.return(t.union(t.ref("HTMLTableElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("caption")),
+            t.return(t.union(t.ref("HTMLTableCaptionElement"), t.null()))
+          ),
+          t.function(
+            t.param(
+              "selector",
+              t.union(t.string("thead"), t.string("tfoot"), t.string("tbody"))
+            ),
+            t.return(t.union(t.ref("HTMLTableSectionElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("tr")),
+            t.return(t.union(t.ref("HTMLTableRowElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.union(t.string("td"), t.string("th"))),
+            t.return(t.union(t.ref("HTMLTableCellElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("template")),
+            t.return(t.union(t.ref("HTMLTemplateElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string("ul")),
+            t.return(t.union(t.ref("HTMLUListElement"), t.null()))
+          ),
+          t.function(
+            t.param("selector", t.string()),
+            t.return(t.union(t.ref("HTMLElement"), t.null()))
+          )
         )
       ),
       t.property(
         "querySelectorAll",
-        t.function(
-          t.param("selector", t.string()),
-          t.return(t.ref("NodeList", t.ref("HTMLElement")))
+        t.union(
+          t.function(
+            t.param("selector", t.string("a")),
+            t.return(t.ref("NodeList", t.ref("HTMLAnchorElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("audio")),
+            t.return(t.ref("NodeList", t.ref("HTMLAudioElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("br")),
+            t.return(t.ref("NodeList", t.ref("HTMLBRElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("button")),
+            t.return(t.ref("NodeList", t.ref("HTMLButtonElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("canvas")),
+            t.return(t.ref("NodeList", t.ref("HTMLCanvasElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("details")),
+            t.return(t.ref("NodeList", t.ref("HTMLDetailsElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("div")),
+            t.return(t.ref("NodeList", t.ref("HTMLDivElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("dl")),
+            t.return(t.ref("NodeList", t.ref("HTMLDListElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("fieldset")),
+            t.return(t.ref("NodeList", t.ref("HTMLFieldSetElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("form")),
+            t.return(t.ref("NodeList", t.ref("HTMLFormElement")))
+          ),
+          t.function(
+            t.param(
+              "selector",
+              t.union(
+                t.string("h1"),
+                t.string("h2"),
+                t.string("h3"),
+                t.string("h4"),
+                t.string("h5"),
+                t.string("h6")
+              )
+            ),
+            t.return(t.ref("NodeList", t.ref("HTMLHeadingElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("hr")),
+            t.return(t.ref("NodeList", t.ref("HTMLHRElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("iframe")),
+            t.return(t.ref("NodeList", t.ref("HTMLIFrameElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("img")),
+            t.return(t.ref("NodeList", t.ref("HTMLImageElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("input")),
+            t.return(t.ref("NodeList", t.ref("HTMLInputElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("label")),
+            t.return(t.ref("NodeList", t.ref("HTMLLabelElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("legend")),
+            t.return(t.ref("NodeList", t.ref("HTMLLegendElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("li")),
+            t.return(t.ref("NodeList", t.ref("HTMLLIElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("link")),
+            t.return(t.ref("NodeList", t.ref("HTMLLinkElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("meta")),
+            t.return(t.ref("NodeList", t.ref("HTMLMetaElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("ol")),
+            t.return(t.ref("NodeList", t.ref("HTMLOListElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("option")),
+            t.return(t.ref("NodeList", t.ref("HTMLOptionElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("p")),
+            t.return(t.ref("NodeList", t.ref("HTMLParagraphElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("pre")),
+            t.return(t.ref("NodeList", t.ref("HTMLPreElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("script")),
+            t.return(t.ref("NodeList", t.ref("HTMLScriptElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("select")),
+            t.return(t.ref("NodeList", t.ref("HTMLSelectElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("source")),
+            t.return(t.ref("NodeList", t.ref("HTMLSourceElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("span")),
+            t.return(t.ref("NodeList", t.ref("HTMLSpanElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("style")),
+            t.return(t.ref("NodeList", t.ref("HTMLStyleElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("textarea")),
+            t.return(t.ref("NodeList", t.ref("HTMLTextAreaElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("video")),
+            t.return(t.ref("NodeList", t.ref("HTMLVideoElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("table")),
+            t.return(t.ref("NodeList", t.ref("HTMLTableElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("caption")),
+            t.return(t.ref("NodeList", t.ref("HTMLTableCaptionElement")))
+          ),
+          t.function(
+            t.param(
+              "selector",
+              t.union(t.string("thead"), t.string("tfoot"), t.string("tbody"))
+            ),
+            t.return(t.ref("NodeList", t.ref("HTMLTableSectionElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("tr")),
+            t.return(t.ref("NodeList", t.ref("HTMLTableRowElement")))
+          ),
+          t.function(
+            t.param("selector", t.union(t.string("td"), t.string("th"))),
+            t.return(t.ref("NodeList", t.ref("HTMLTableCellElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("template")),
+            t.return(t.ref("NodeList", t.ref("HTMLTemplateElement")))
+          ),
+          t.function(
+            t.param("selector", t.string("ul")),
+            t.return(t.ref("NodeList", t.ref("HTMLUListElement")))
+          ),
+          t.function(
+            t.param("selector", t.string()),
+            t.return(t.ref("NodeList", t.ref("HTMLElement")))
+          )
         )
       ),
       t.property(
         "createNodeIterator",
         t.union(
-          t.function(_fn19 => {
-            const RootNodeT = _fn19.typeParameter("RootNodeT", t.ref("Attr"));
+          t.function(_fn26 => {
+            const RootNodeT = _fn26.typeParameter("RootNodeT", t.ref("Attr"));
 
             return [
               t.param("root", RootNodeT),
@@ -8109,8 +8928,8 @@ t.declare(
               t.return(t.ref("NodeIterator", RootNodeT, t.ref("Attr")))
             ];
           }),
-          t.function(_fn20 => {
-            const RootNodeT = _fn20.typeParameter(
+          t.function(_fn27 => {
+            const RootNodeT = _fn27.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8122,8 +8941,8 @@ t.declare(
               t.return(t.ref("NodeIterator", RootNodeT, t.ref("Document")))
             ];
           }),
-          t.function(_fn21 => {
-            const RootNodeT = _fn21.typeParameter(
+          t.function(_fn28 => {
+            const RootNodeT = _fn28.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8141,8 +8960,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn22 => {
-            const RootNodeT = _fn22.typeParameter(
+          t.function(_fn29 => {
+            const RootNodeT = _fn29.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8160,8 +8979,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn23 => {
-            const RootNodeT = _fn23.typeParameter(
+          t.function(_fn30 => {
+            const RootNodeT = _fn30.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8179,8 +8998,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn24 => {
-            const RootNodeT = _fn24.typeParameter(
+          t.function(_fn31 => {
+            const RootNodeT = _fn31.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8198,8 +9017,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn25 => {
-            const RootNodeT = _fn25.typeParameter(
+          t.function(_fn32 => {
+            const RootNodeT = _fn32.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8217,8 +9036,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn26 => {
-            const RootNodeT = _fn26.typeParameter(
+          t.function(_fn33 => {
+            const RootNodeT = _fn33.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8236,8 +9055,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn27 => {
-            const RootNodeT = _fn27.typeParameter(
+          t.function(_fn34 => {
+            const RootNodeT = _fn34.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8253,145 +9072,6 @@ t.declare(
                   t.union(
                     t.ref("Document"),
                     t.ref("Element"),
-                    t.ref("Text"),
-                    t.ref("Comment")
-                  )
-                )
-              )
-            ];
-          }),
-          t.function(_fn28 => {
-            const RootNodeT = _fn28.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(512)),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(t.ref("NodeIterator", RootNodeT, t.ref("DocumentType")))
-            ];
-          }),
-          t.function(_fn29 => {
-            const RootNodeT = _fn29.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(513)),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(
-                t.ref(
-                  "NodeIterator",
-                  RootNodeT,
-                  t.union(t.ref("DocumentType"), t.ref("Element"))
-                )
-              )
-            ];
-          }),
-          t.function(_fn30 => {
-            const RootNodeT = _fn30.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(516)),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(
-                t.ref(
-                  "NodeIterator",
-                  RootNodeT,
-                  t.union(t.ref("DocumentType"), t.ref("Text"))
-                )
-              )
-            ];
-          }),
-          t.function(_fn31 => {
-            const RootNodeT = _fn31.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(517)),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(
-                t.ref(
-                  "NodeIterator",
-                  RootNodeT,
-                  t.union(
-                    t.ref("DocumentType"),
-                    t.ref("Element"),
-                    t.ref("Text")
-                  )
-                )
-              )
-            ];
-          }),
-          t.function(_fn32 => {
-            const RootNodeT = _fn32.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(640)),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(
-                t.ref(
-                  "NodeIterator",
-                  RootNodeT,
-                  t.union(t.ref("DocumentType"), t.ref("Comment"))
-                )
-              )
-            ];
-          }),
-          t.function(_fn33 => {
-            const RootNodeT = _fn33.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(641)),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(
-                t.ref(
-                  "NodeIterator",
-                  RootNodeT,
-                  t.union(
-                    t.ref("DocumentType"),
-                    t.ref("Element"),
-                    t.ref("Comment")
-                  )
-                )
-              )
-            ];
-          }),
-          t.function(_fn34 => {
-            const RootNodeT = _fn34.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(644)),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(
-                t.ref(
-                  "NodeIterator",
-                  RootNodeT,
-                  t.union(
-                    t.ref("DocumentType"),
                     t.ref("Text"),
                     t.ref("Comment")
                   )
@@ -8407,6 +9087,145 @@ t.declare(
 
             return [
               t.param("root", RootNodeT),
+              t.param("whatToShow", t.number(512)),
+              t.param("filter", NodeFilterInterface, true),
+              t.return(t.ref("NodeIterator", RootNodeT, t.ref("DocumentType")))
+            ];
+          }),
+          t.function(_fn36 => {
+            const RootNodeT = _fn36.typeParameter(
+              "RootNodeT",
+              t.ref("Document")
+            );
+
+            return [
+              t.param("root", RootNodeT),
+              t.param("whatToShow", t.number(513)),
+              t.param("filter", NodeFilterInterface, true),
+              t.return(
+                t.ref(
+                  "NodeIterator",
+                  RootNodeT,
+                  t.union(t.ref("DocumentType"), t.ref("Element"))
+                )
+              )
+            ];
+          }),
+          t.function(_fn37 => {
+            const RootNodeT = _fn37.typeParameter(
+              "RootNodeT",
+              t.ref("Document")
+            );
+
+            return [
+              t.param("root", RootNodeT),
+              t.param("whatToShow", t.number(516)),
+              t.param("filter", NodeFilterInterface, true),
+              t.return(
+                t.ref(
+                  "NodeIterator",
+                  RootNodeT,
+                  t.union(t.ref("DocumentType"), t.ref("Text"))
+                )
+              )
+            ];
+          }),
+          t.function(_fn38 => {
+            const RootNodeT = _fn38.typeParameter(
+              "RootNodeT",
+              t.ref("Document")
+            );
+
+            return [
+              t.param("root", RootNodeT),
+              t.param("whatToShow", t.number(517)),
+              t.param("filter", NodeFilterInterface, true),
+              t.return(
+                t.ref(
+                  "NodeIterator",
+                  RootNodeT,
+                  t.union(
+                    t.ref("DocumentType"),
+                    t.ref("Element"),
+                    t.ref("Text")
+                  )
+                )
+              )
+            ];
+          }),
+          t.function(_fn39 => {
+            const RootNodeT = _fn39.typeParameter(
+              "RootNodeT",
+              t.ref("Document")
+            );
+
+            return [
+              t.param("root", RootNodeT),
+              t.param("whatToShow", t.number(640)),
+              t.param("filter", NodeFilterInterface, true),
+              t.return(
+                t.ref(
+                  "NodeIterator",
+                  RootNodeT,
+                  t.union(t.ref("DocumentType"), t.ref("Comment"))
+                )
+              )
+            ];
+          }),
+          t.function(_fn40 => {
+            const RootNodeT = _fn40.typeParameter(
+              "RootNodeT",
+              t.ref("Document")
+            );
+
+            return [
+              t.param("root", RootNodeT),
+              t.param("whatToShow", t.number(641)),
+              t.param("filter", NodeFilterInterface, true),
+              t.return(
+                t.ref(
+                  "NodeIterator",
+                  RootNodeT,
+                  t.union(
+                    t.ref("DocumentType"),
+                    t.ref("Element"),
+                    t.ref("Comment")
+                  )
+                )
+              )
+            ];
+          }),
+          t.function(_fn41 => {
+            const RootNodeT = _fn41.typeParameter(
+              "RootNodeT",
+              t.ref("Document")
+            );
+
+            return [
+              t.param("root", RootNodeT),
+              t.param("whatToShow", t.number(644)),
+              t.param("filter", NodeFilterInterface, true),
+              t.return(
+                t.ref(
+                  "NodeIterator",
+                  RootNodeT,
+                  t.union(
+                    t.ref("DocumentType"),
+                    t.ref("Text"),
+                    t.ref("Comment")
+                  )
+                )
+              )
+            ];
+          }),
+          t.function(_fn42 => {
+            const RootNodeT = _fn42.typeParameter(
+              "RootNodeT",
+              t.ref("Document")
+            );
+
+            return [
+              t.param("root", RootNodeT),
               t.param("whatToShow", t.number(645)),
               t.param("filter", NodeFilterInterface, true),
               t.return(
@@ -8423,8 +9242,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn36 => {
-            const RootNodeT = _fn36.typeParameter(
+          t.function(_fn43 => {
+            const RootNodeT = _fn43.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8442,8 +9261,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn37 => {
-            const RootNodeT = _fn37.typeParameter(
+          t.function(_fn44 => {
+            const RootNodeT = _fn44.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8465,8 +9284,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn38 => {
-            const RootNodeT = _fn38.typeParameter(
+          t.function(_fn45 => {
+            const RootNodeT = _fn45.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8488,8 +9307,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn39 => {
-            const RootNodeT = _fn39.typeParameter(
+          t.function(_fn46 => {
+            const RootNodeT = _fn46.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8512,8 +9331,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn40 => {
-            const RootNodeT = _fn40.typeParameter(
+          t.function(_fn47 => {
+            const RootNodeT = _fn47.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8535,8 +9354,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn41 => {
-            const RootNodeT = _fn41.typeParameter(
+          t.function(_fn48 => {
+            const RootNodeT = _fn48.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8559,8 +9378,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn42 => {
-            const RootNodeT = _fn42.typeParameter(
+          t.function(_fn49 => {
+            const RootNodeT = _fn49.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8583,8 +9402,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn43 => {
-            const RootNodeT = _fn43.typeParameter(
+          t.function(_fn50 => {
+            const RootNodeT = _fn50.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8608,8 +9427,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn44 => {
-            const RootNodeT = _fn44.typeParameter(
+          t.function(_fn51 => {
+            const RootNodeT = _fn51.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8623,8 +9442,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn45 => {
-            const RootNodeT = _fn45.typeParameter(
+          t.function(_fn52 => {
+            const RootNodeT = _fn52.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8642,8 +9461,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn46 => {
-            const RootNodeT = _fn46.typeParameter(
+          t.function(_fn53 => {
+            const RootNodeT = _fn53.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8661,8 +9480,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn47 => {
-            const RootNodeT = _fn47.typeParameter(
+          t.function(_fn54 => {
+            const RootNodeT = _fn54.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8684,8 +9503,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn48 => {
-            const RootNodeT = _fn48.typeParameter(
+          t.function(_fn55 => {
+            const RootNodeT = _fn55.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8703,8 +9522,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn49 => {
-            const RootNodeT = _fn49.typeParameter(
+          t.function(_fn56 => {
+            const RootNodeT = _fn56.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8726,8 +9545,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn50 => {
-            const RootNodeT = _fn50.typeParameter(
+          t.function(_fn57 => {
+            const RootNodeT = _fn57.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8749,8 +9568,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn51 => {
-            const RootNodeT = _fn51.typeParameter(
+          t.function(_fn58 => {
+            const RootNodeT = _fn58.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -8773,8 +9592,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn52 => {
-            const RootNodeT = _fn52.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn59 => {
+            const RootNodeT = _fn59.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -8783,8 +9602,8 @@ t.declare(
               t.return(t.ref("NodeIterator", RootNodeT, t.ref("Element")))
             ];
           }),
-          t.function(_fn53 => {
-            const RootNodeT = _fn53.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn60 => {
+            const RootNodeT = _fn60.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -8793,8 +9612,8 @@ t.declare(
               t.return(t.ref("NodeIterator", RootNodeT, t.ref("Text")))
             ];
           }),
-          t.function(_fn54 => {
-            const RootNodeT = _fn54.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn61 => {
+            const RootNodeT = _fn61.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -8809,8 +9628,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn55 => {
-            const RootNodeT = _fn55.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn62 => {
+            const RootNodeT = _fn62.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -8819,8 +9638,8 @@ t.declare(
               t.return(t.ref("NodeIterator", RootNodeT, t.ref("Comment")))
             ];
           }),
-          t.function(_fn56 => {
-            const RootNodeT = _fn56.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn63 => {
+            const RootNodeT = _fn63.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -8835,8 +9654,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn57 => {
-            const RootNodeT = _fn57.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn64 => {
+            const RootNodeT = _fn64.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -8851,8 +9670,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn58 => {
-            const RootNodeT = _fn58.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn65 => {
+            const RootNodeT = _fn65.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -8867,35 +9686,13 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn59 => {
-            const RootNodeT = _fn59.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn66 => {
+            const RootNodeT = _fn66.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(-1)),
+              t.param("whatToShow", t.number(), true),
               t.param("filter", NodeFilterInterface, true),
-              t.return(t.ref("NodeIterator", RootNodeT, t.ref("Node")))
-            ];
-          }),
-          t.function(_fn60 => {
-            const RootNodeT = _fn60.typeParameter(
-              "RootNodeT",
-              t.ref("Document")
-            );
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number()),
-              t.param("filter", NodeFilterInterface, true),
-              t.return(t.ref("NodeIterator", RootNodeT, t.ref("Node")))
-            ];
-          }),
-          t.function(_fn61 => {
-            const RootNodeT = _fn61.typeParameter("RootNodeT", t.ref("Node"));
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.void()),
               t.return(t.ref("NodeIterator", RootNodeT, t.ref("Node")))
             ];
           })
@@ -8904,8 +9701,8 @@ t.declare(
       t.property(
         "createTreeWalker",
         t.union(
-          t.function(_fn62 => {
-            const RootNodeT = _fn62.typeParameter("RootNodeT", t.ref("Attr"));
+          t.function(_fn67 => {
+            const RootNodeT = _fn67.typeParameter("RootNodeT", t.ref("Attr"));
 
             return [
               t.param("root", RootNodeT),
@@ -8915,8 +9712,8 @@ t.declare(
               t.return(t.ref("TreeWalker", RootNodeT, t.ref("Attr")))
             ];
           }),
-          t.function(_fn63 => {
-            const RootNodeT = _fn63.typeParameter(
+          t.function(_fn68 => {
+            const RootNodeT = _fn68.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8929,8 +9726,8 @@ t.declare(
               t.return(t.ref("TreeWalker", RootNodeT, t.ref("Document")))
             ];
           }),
-          t.function(_fn64 => {
-            const RootNodeT = _fn64.typeParameter(
+          t.function(_fn69 => {
+            const RootNodeT = _fn69.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8949,8 +9746,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn65 => {
-            const RootNodeT = _fn65.typeParameter(
+          t.function(_fn70 => {
+            const RootNodeT = _fn70.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8969,8 +9766,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn66 => {
-            const RootNodeT = _fn66.typeParameter(
+          t.function(_fn71 => {
+            const RootNodeT = _fn71.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -8989,8 +9786,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn67 => {
-            const RootNodeT = _fn67.typeParameter(
+          t.function(_fn72 => {
+            const RootNodeT = _fn72.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9009,8 +9806,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn68 => {
-            const RootNodeT = _fn68.typeParameter(
+          t.function(_fn73 => {
+            const RootNodeT = _fn73.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9029,8 +9826,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn69 => {
-            const RootNodeT = _fn69.typeParameter(
+          t.function(_fn74 => {
+            const RootNodeT = _fn74.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9049,8 +9846,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn70 => {
-            const RootNodeT = _fn70.typeParameter(
+          t.function(_fn75 => {
+            const RootNodeT = _fn75.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9074,8 +9871,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn71 => {
-            const RootNodeT = _fn71.typeParameter(
+          t.function(_fn76 => {
+            const RootNodeT = _fn76.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9088,8 +9885,8 @@ t.declare(
               t.return(t.ref("TreeWalker", RootNodeT, t.ref("DocumentType")))
             ];
           }),
-          t.function(_fn72 => {
-            const RootNodeT = _fn72.typeParameter(
+          t.function(_fn77 => {
+            const RootNodeT = _fn77.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9108,8 +9905,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn73 => {
-            const RootNodeT = _fn73.typeParameter(
+          t.function(_fn78 => {
+            const RootNodeT = _fn78.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9128,8 +9925,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn74 => {
-            const RootNodeT = _fn74.typeParameter(
+          t.function(_fn79 => {
+            const RootNodeT = _fn79.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9152,8 +9949,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn75 => {
-            const RootNodeT = _fn75.typeParameter(
+          t.function(_fn80 => {
+            const RootNodeT = _fn80.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9172,8 +9969,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn76 => {
-            const RootNodeT = _fn76.typeParameter(
+          t.function(_fn81 => {
+            const RootNodeT = _fn81.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9196,8 +9993,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn77 => {
-            const RootNodeT = _fn77.typeParameter(
+          t.function(_fn82 => {
+            const RootNodeT = _fn82.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9220,8 +10017,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn78 => {
-            const RootNodeT = _fn78.typeParameter(
+          t.function(_fn83 => {
+            const RootNodeT = _fn83.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9245,8 +10042,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn79 => {
-            const RootNodeT = _fn79.typeParameter(
+          t.function(_fn84 => {
+            const RootNodeT = _fn84.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9265,8 +10062,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn80 => {
-            const RootNodeT = _fn80.typeParameter(
+          t.function(_fn85 => {
+            const RootNodeT = _fn85.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9289,8 +10086,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn81 => {
-            const RootNodeT = _fn81.typeParameter(
+          t.function(_fn86 => {
+            const RootNodeT = _fn86.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9313,8 +10110,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn82 => {
-            const RootNodeT = _fn82.typeParameter(
+          t.function(_fn87 => {
+            const RootNodeT = _fn87.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9338,8 +10135,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn83 => {
-            const RootNodeT = _fn83.typeParameter(
+          t.function(_fn88 => {
+            const RootNodeT = _fn88.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9362,8 +10159,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn84 => {
-            const RootNodeT = _fn84.typeParameter(
+          t.function(_fn89 => {
+            const RootNodeT = _fn89.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9387,8 +10184,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn85 => {
-            const RootNodeT = _fn85.typeParameter(
+          t.function(_fn90 => {
+            const RootNodeT = _fn90.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9412,8 +10209,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn86 => {
-            const RootNodeT = _fn86.typeParameter(
+          t.function(_fn91 => {
+            const RootNodeT = _fn91.typeParameter(
               "RootNodeT",
               t.ref("Document")
             );
@@ -9438,8 +10235,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn87 => {
-            const RootNodeT = _fn87.typeParameter(
+          t.function(_fn92 => {
+            const RootNodeT = _fn92.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9454,8 +10251,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn88 => {
-            const RootNodeT = _fn88.typeParameter(
+          t.function(_fn93 => {
+            const RootNodeT = _fn93.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9474,8 +10271,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn89 => {
-            const RootNodeT = _fn89.typeParameter(
+          t.function(_fn94 => {
+            const RootNodeT = _fn94.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9494,8 +10291,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn90 => {
-            const RootNodeT = _fn90.typeParameter(
+          t.function(_fn95 => {
+            const RootNodeT = _fn95.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9518,8 +10315,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn91 => {
-            const RootNodeT = _fn91.typeParameter(
+          t.function(_fn96 => {
+            const RootNodeT = _fn96.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9538,8 +10335,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn92 => {
-            const RootNodeT = _fn92.typeParameter(
+          t.function(_fn97 => {
+            const RootNodeT = _fn97.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9562,8 +10359,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn93 => {
-            const RootNodeT = _fn93.typeParameter(
+          t.function(_fn98 => {
+            const RootNodeT = _fn98.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9586,8 +10383,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn94 => {
-            const RootNodeT = _fn94.typeParameter(
+          t.function(_fn99 => {
+            const RootNodeT = _fn99.typeParameter(
               "RootNodeT",
               t.ref("DocumentFragment")
             );
@@ -9611,8 +10408,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn95 => {
-            const RootNodeT = _fn95.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn100 => {
+            const RootNodeT = _fn100.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -9622,8 +10419,8 @@ t.declare(
               t.return(t.ref("TreeWalker", RootNodeT, t.ref("Element")))
             ];
           }),
-          t.function(_fn96 => {
-            const RootNodeT = _fn96.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn101 => {
+            const RootNodeT = _fn101.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -9633,8 +10430,8 @@ t.declare(
               t.return(t.ref("TreeWalker", RootNodeT, t.ref("Text")))
             ];
           }),
-          t.function(_fn97 => {
-            const RootNodeT = _fn97.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn102 => {
+            const RootNodeT = _fn102.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -9650,8 +10447,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn98 => {
-            const RootNodeT = _fn98.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn103 => {
+            const RootNodeT = _fn103.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -9661,8 +10458,8 @@ t.declare(
               t.return(t.ref("TreeWalker", RootNodeT, t.ref("Comment")))
             ];
           }),
-          t.function(_fn99 => {
-            const RootNodeT = _fn99.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn104 => {
+            const RootNodeT = _fn104.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -9678,8 +10475,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn100 => {
-            const RootNodeT = _fn100.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn105 => {
+            const RootNodeT = _fn105.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -9695,8 +10492,8 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn101 => {
-            const RootNodeT = _fn101.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn106 => {
+            const RootNodeT = _fn106.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
@@ -9712,34 +10509,14 @@ t.declare(
               )
             ];
           }),
-          t.function(_fn102 => {
-            const RootNodeT = _fn102.typeParameter("RootNodeT", t.ref("Node"));
+          t.function(_fn107 => {
+            const RootNodeT = _fn107.typeParameter("RootNodeT", t.ref("Node"));
 
             return [
               t.param("root", RootNodeT),
-              t.param("whatToShow", t.number(-1)),
+              t.param("whatToShow", t.number(), true),
               t.param("filter", NodeFilterInterface, true),
               t.param("entityReferenceExpansion", t.boolean(), true),
-              t.return(t.ref("TreeWalker", RootNodeT, t.ref("Node")))
-            ];
-          }),
-          t.function(_fn103 => {
-            const RootNodeT = _fn103.typeParameter("RootNodeT", t.ref("Node"));
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.number()),
-              t.param("filter", NodeFilterInterface, true),
-              t.param("entityReferenceExpansion", t.boolean(), true),
-              t.return(t.ref("TreeWalker", RootNodeT, t.ref("Node")))
-            ];
-          }),
-          t.function(_fn104 => {
-            const RootNodeT = _fn104.typeParameter("RootNodeT", t.ref("Node"));
-
-            return [
-              t.param("root", RootNodeT),
-              t.param("whatToShow", t.void()),
               t.return(t.ref("TreeWalker", RootNodeT, t.ref("Node")))
             ];
           })
@@ -9769,8 +10546,8 @@ t.declare(
       t.property("textContent", t.string()),
       t.property(
         "appendChild",
-        t.function(_fn105 => {
-          const T = _fn105.typeParameter("T", t.ref("Node"));
+        t.function(_fn108 => {
+          const T = _fn108.typeParameter("T", t.ref("Node"));
 
           return [ t.param("newChild", T), t.return(T) ];
         })
@@ -9793,8 +10570,8 @@ t.declare(
       t.property("hasChildNodes", t.function(t.return(t.boolean()))),
       t.property(
         "insertBefore",
-        t.function(_fn106 => {
-          const T = _fn106.typeParameter("T", t.ref("Node"));
+        t.function(_fn109 => {
+          const T = _fn109.typeParameter("T", t.ref("Node"));
 
           return [
             t.param("newChild", T),
@@ -9826,16 +10603,16 @@ t.declare(
       t.property("normalize", t.function(t.return(t.void()))),
       t.property(
         "removeChild",
-        t.function(_fn107 => {
-          const T = _fn107.typeParameter("T", t.ref("Node"));
+        t.function(_fn110 => {
+          const T = _fn110.typeParameter("T", t.ref("Node"));
 
           return [ t.param("oldChild", T), t.return(T) ];
         })
       ),
       t.property(
         "replaceChild",
-        t.function(_fn108 => {
-          const T = _fn108.typeParameter("T", t.ref("Node"));
+        t.function(_fn111 => {
+          const T = _fn111.typeParameter("T", t.ref("Node"));
 
           return [
             t.param("newChild", t.ref("Node")),
@@ -9881,7 +10658,7 @@ const ShadowRootInit = t.type(
 );
 const ShadowRoot = t.type(
   "ShadowRoot",
-  t.intersect(
+  t.spread(
     t.ref("DocumentFragment"),
     t.object(
       t.property("host", t.ref("Element")),
@@ -9902,18 +10679,14 @@ t.declare(
         )
       ),
       t.property("attributes", t.ref("NamedNodeMap")),
-      t.property("childElementCount", t.number()),
-      t.property("children", t.ref("HTMLCollection", t.ref("HTMLElement"))),
       t.property("classList", t.ref("DOMTokenList")),
       t.property("className", t.string()),
       t.property("clientHeight", t.number()),
       t.property("clientLeft", t.number()),
       t.property("clientTop", t.number()),
       t.property("clientWidth", t.number()),
-      t.property("firstElementChild", t.nullable(t.ref("Element"))),
       t.property("id", t.string()),
       t.property("innerHTML", t.string()),
-      t.property("lastElementChild", t.nullable(t.ref("Element"))),
       t.property("localName", t.string()),
       t.property("namespaceURI", t.nullable(t.string())),
       t.property("nextElementSibling", t.nullable(t.ref("Element"))),
@@ -9993,6 +10766,10 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLAudioElement")))
           ),
           t.function(
+            t.param("name", t.string("br")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLBRElement")))
+          ),
+          t.function(
             t.param("name", t.string("button")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLButtonElement")))
           ),
@@ -10001,12 +10778,42 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLCanvasElement")))
           ),
           t.function(
+            t.param("name", t.string("details")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDetailsElement")))
+          ),
+          t.function(
             t.param("name", t.string("div")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLDivElement")))
           ),
           t.function(
+            t.param("name", t.string("dl")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDListElement")))
+          ),
+          t.function(
+            t.param("name", t.string("fieldset")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLFieldSetElement")))
+          ),
+          t.function(
             t.param("name", t.string("form")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLFormElement")))
+          ),
+          t.function(
+            t.param(
+              "name",
+              t.union(
+                t.string("h1"),
+                t.string("h2"),
+                t.string("h3"),
+                t.string("h4"),
+                t.string("h5"),
+                t.string("h6")
+              )
+            ),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHeadingElement")))
+          ),
+          t.function(
+            t.param("name", t.string("hr")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHRElement")))
           ),
           t.function(
             t.param("name", t.string("iframe")),
@@ -10025,16 +10832,24 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLLabelElement")))
           ),
           t.function(
+            t.param("name", t.string("legend")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLegendElement")))
+          ),
+          t.function(
+            t.param("name", t.string("li")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLIElement")))
+          ),
+          t.function(
             t.param("name", t.string("link")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLLinkElement")))
           ),
           t.function(
-            t.param("name", t.string("media")),
-            t.return(t.ref("HTMLCollection", t.ref("HTMLMediaElement")))
-          ),
-          t.function(
             t.param("name", t.string("meta")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLMetaElement")))
+          ),
+          t.function(
+            t.param("name", t.string("ol")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLOListElement")))
           ),
           t.function(
             t.param("name", t.string("option")),
@@ -10043,6 +10858,10 @@ t.declare(
           t.function(
             t.param("name", t.string("p")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLParagraphElement")))
+          ),
+          t.function(
+            t.param("name", t.string("pre")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLPreElement")))
           ),
           t.function(
             t.param("name", t.string("script")),
@@ -10096,6 +10915,14 @@ t.declare(
             t.return(t.ref("HTMLCollection", t.ref("HTMLTableCellElement")))
           ),
           t.function(
+            t.param("name", t.string("template")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLTemplateElement")))
+          ),
+          t.function(
+            t.param("name", t.string("ul")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLUListElement")))
+          ),
+          t.function(
             t.param("name", t.string()),
             t.return(t.ref("HTMLCollection", t.ref("HTMLElement")))
           )
@@ -10116,6 +10943,11 @@ t.declare(
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("br")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLBRElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("button")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLButtonElement")))
           ),
@@ -10126,13 +10958,48 @@ t.declare(
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("details")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDetailsElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("div")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLDivElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("dl")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLDListElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("fieldset")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLFieldSetElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("form")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLFormElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param(
+              "localName",
+              t.union(
+                t.string("h1"),
+                t.string("h2"),
+                t.string("h3"),
+                t.string("h4"),
+                t.string("h5"),
+                t.string("h6")
+              )
+            ),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHeadingElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("hr")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLHRElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
@@ -10156,18 +11023,28 @@ t.declare(
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("legend")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLegendElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("li")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLLIElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("link")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLLinkElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
-            t.param("localName", t.string("media")),
-            t.return(t.ref("HTMLCollection", t.ref("HTMLMediaElement")))
+            t.param("localName", t.string("meta")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLMetaElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
-            t.param("localName", t.string("meta")),
-            t.return(t.ref("HTMLCollection", t.ref("HTMLMetaElement")))
+            t.param("localName", t.string("ol")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLOListElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
@@ -10178,6 +11055,11 @@ t.declare(
             t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.string("p")),
             t.return(t.ref("HTMLCollection", t.ref("HTMLParagraphElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("pre")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLPreElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
@@ -10241,6 +11123,16 @@ t.declare(
             t.param("namespaceURI", t.union(t.string(), t.null())),
             t.param("localName", t.union(t.string("td"), t.string("th"))),
             t.return(t.ref("HTMLCollection", t.ref("HTMLTableCellElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("template")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLTemplateElement")))
+          ),
+          t.function(
+            t.param("namespaceURI", t.union(t.string(), t.null())),
+            t.param("localName", t.string("ul")),
+            t.return(t.ref("HTMLCollection", t.ref("HTMLUListElement")))
           ),
           t.function(
             t.param("namespaceURI", t.union(t.string(), t.null())),
@@ -10331,7 +11223,6 @@ t.declare(
         "releasePointerCapture",
         t.function(t.param("pointerId", t.string()), t.return(t.void()))
       ),
-      t.property("remove", t.function(t.return(t.void()))),
       t.property(
         "removeAttribute",
         t.function(t.param("name", t.string(), true), t.return(t.void()))
@@ -10351,7 +11242,7 @@ t.declare(
           t.return(t.void())
         )
       ),
-      t.property("requestFullscren", t.function(t.return(t.void()))),
+      t.property("requestFullscreen", t.function(t.return(t.void()))),
       t.property("requestPointerLock", t.function(t.return(t.void()))),
       t.property(
         "scrollIntoView",
@@ -10418,7 +11309,47 @@ t.declare(
         t.function(t.param("pointerId", t.string()), t.return(t.void()))
       ),
       t.property("shadowRoot", ShadowRoot, true),
-      t.property("slot", t.string(), true)
+      t.property("slot", t.string(), true),
+      t.property("childElementCount", t.number()),
+      t.property("children", t.ref("HTMLCollection", t.ref("HTMLElement"))),
+      t.property("firstElementChild", t.nullable(t.ref("Element"))),
+      t.property("lastElementChild", t.nullable(t.ref("Element"))),
+      t.property(
+        "append",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "prepend",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "after",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "before",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property(
+        "replaceWith",
+        t.function(
+          t.rest("nodes", t.array(t.union(t.string(), t.ref("Node")))),
+          t.return(t.void())
+        )
+      ),
+      t.property("remove", t.function(t.return(t.void())))
     ),
     t.extends("Node")
   )
@@ -10450,7 +11381,7 @@ t.declare(
     "DataTransferItemList",
     t.object(
       t.property(
-        "____iterator",
+        Symbol.iterator,
         t.function(t.return(t.ref(Iterator, t.ref("DataTransferItem"))))
       ),
       t.property("length", t.number()),
@@ -10532,6 +11463,54 @@ const DragEventListener = t.type(
     DragEventHandler
   )
 );
+const AnimationEventTypes = t.type(
+  "AnimationEventTypes",
+  t.union(
+    t.string("animationstart"),
+    t.string("animationend"),
+    t.string("animationiteration")
+  )
+);
+t.declare(
+  t.class(
+    "AnimationEvent",
+    t.object(
+      t.property("animationName", t.string()),
+      t.property("elapsedTime", t.number()),
+      t.property("pseudoElement", t.string()),
+      t.property(
+        "initAnimationEvent",
+        t.function(
+          t.param(
+            "type",
+            t.union(
+              t.string("animationstart"),
+              t.string("animationend"),
+              t.string("animationiteration")
+            )
+          ),
+          t.param("canBubble", t.boolean()),
+          t.param("cancelable", t.boolean()),
+          t.param("animationName", t.string()),
+          t.param("elapsedTime", t.number()),
+          t.return(t.void())
+        )
+      )
+    ),
+    t.extends("UIEvent")
+  )
+);
+const AnimationEventHandler = t.type(
+  "AnimationEventHandler",
+  t.function(t.param("event", t.ref("AnimationEvent")), t.return(t.mixed()))
+);
+const AnimationEventListener = t.type(
+  "AnimationEventListener",
+  t.union(
+    t.object(t.property("handleEvent", AnimationEventHandler)),
+    AnimationEventHandler
+  )
+);
 const EventHandler = t.type(
   "EventHandler",
   t.function(t.param("event", t.ref("Event")), t.return(t.mixed()))
@@ -10550,6 +11529,16 @@ t.declare(
           t.function(
             t.param("type", MouseEventTypes),
             t.param("listener", MouseEventListener),
+            t.param(
+              "optionsOrUseCapture",
+              EventListenerOptionsOrUseCapture,
+              true
+            ),
+            t.return(t.void())
+          ),
+          t.function(
+            t.param("type", FocusEventTypes),
+            t.param("listener", FocusEventListener),
             t.param(
               "optionsOrUseCapture",
               EventListenerOptionsOrUseCapture,
@@ -10600,6 +11589,16 @@ t.declare(
           t.function(
             t.param("type", DragEventTypes),
             t.param("listener", DragEventListener),
+            t.param(
+              "optionsOrUseCapture",
+              EventListenerOptionsOrUseCapture,
+              true
+            ),
+            t.return(t.void())
+          ),
+          t.function(
+            t.param("type", AnimationEventTypes),
+            t.param("listener", AnimationEventListener),
             t.param(
               "optionsOrUseCapture",
               EventListenerOptionsOrUseCapture,
@@ -10633,6 +11632,16 @@ t.declare(
             t.return(t.void())
           ),
           t.function(
+            t.param("type", FocusEventTypes),
+            t.param("listener", FocusEventListener),
+            t.param(
+              "optionsOrUseCapture",
+              EventListenerOptionsOrUseCapture,
+              true
+            ),
+            t.return(t.void())
+          ),
+          t.function(
             t.param("type", KeyboardEventTypes),
             t.param("listener", KeyboardEventListener),
             t.param(
@@ -10675,6 +11684,16 @@ t.declare(
           t.function(
             t.param("type", DragEventTypes),
             t.param("listener", DragEventListener),
+            t.param(
+              "optionsOrUseCapture",
+              EventListenerOptionsOrUseCapture,
+              true
+            ),
+            t.return(t.void())
+          ),
+          t.function(
+            t.param("type", AnimationEventTypes),
+            t.param("listener", AnimationEventListener),
             t.param(
               "optionsOrUseCapture",
               EventListenerOptionsOrUseCapture,
@@ -10703,6 +11722,11 @@ t.declare(
             t.return(t.void())
           ),
           t.function(
+            t.param("type", FocusEventTypes),
+            t.param("listener", FocusEventListener),
+            t.return(t.void())
+          ),
+          t.function(
             t.param("type", KeyboardEventTypes),
             t.param("listener", KeyboardEventListener),
             t.return(t.void())
@@ -10725,6 +11749,11 @@ t.declare(
           t.function(
             t.param("type", DragEventTypes),
             t.param("listener", DragEventListener),
+            t.return(t.void())
+          ),
+          t.function(
+            t.param("type", AnimationEventTypes),
+            t.param("listener", AnimationEventListener),
             t.return(t.void())
           ),
           t.function(
@@ -10744,6 +11773,11 @@ t.declare(
             t.return(t.void())
           ),
           t.function(
+            t.param("type", FocusEventTypes),
+            t.param("listener", FocusEventListener),
+            t.return(t.void())
+          ),
+          t.function(
             t.param("type", KeyboardEventTypes),
             t.param("listener", KeyboardEventListener),
             t.return(t.void())
@@ -10769,6 +11803,11 @@ t.declare(
             t.return(t.void())
           ),
           t.function(
+            t.param("type", AnimationEventTypes),
+            t.param("listener", AnimationEventListener),
+            t.return(t.void())
+          ),
+          t.function(
             t.param("type", t.string()),
             t.param("listener", EventListener),
             t.return(t.void())
@@ -10779,6 +11818,19 @@ t.declare(
       t.property(
         "dispatchEvent",
         t.function(t.param("evt", t.ref("Event")), t.return(t.boolean()))
+      ),
+      t.property("cancelBubble", t.nullable(t.boolean()), true),
+      t.property(
+        "initEvent",
+        t.nullable(
+          t.function(
+            t.param("eventTypeArg", t.string()),
+            t.param("canBubbleArg", t.boolean()),
+            t.param("cancelableArg", t.boolean()),
+            t.return(t.void())
+          )
+        ),
+        true
       )
     )
   )
@@ -10806,20 +11858,26 @@ t.declare(
       t.property("defaultPrevented", t.boolean()),
       t.property("eventPhase", t.number()),
       t.property("isTrusted", t.boolean()),
-      t.property("scoped", t.nullable(t.boolean())),
-      t.property(
-        "srcElement",
-        t.union(t.nullable(t.ref("Element")), t.object())
-      ),
+      t.property("scoped", t.nullable(t.boolean()), true),
+      t.property("srcElement", t.existential()),
       t.property("target", t.ref("EventTarget")),
       t.property("timeStamp", t.number()),
       t.property("type", t.string()),
       t.property("preventDefault", t.function(t.return(t.void()))),
       t.property("stopImmediatePropagation", t.function(t.return(t.void()))),
       t.property("stopPropagation", t.function(t.return(t.void()))),
-      t.staticProperty("AT_TARGET", t.number()),
-      t.staticProperty("BUBBLING_PHASE", t.number()),
-      t.staticProperty("CAPTURING_PHASE", t.number())
+      t.property("AT_TARGET", t.number()),
+      t.property("BUBBLING_PHASE", t.number()),
+      t.property("CAPTURING_PHASE", t.number()),
+      t.property(
+        "initEvent",
+        t.function(
+          t.param("type", t.string()),
+          t.param("bubbles", t.boolean()),
+          t.param("cancelable", t.boolean()),
+          t.return(t.void())
+        )
+      )
     )
   )
 );
@@ -10923,54 +11981,75 @@ t.declare(
   )
 );
 t.declare(
-  t.class(
-    "SyntheticEvent",
-    t.object(
-      t.property("bubbles", t.boolean()),
-      t.property("cancelable", t.boolean()),
-      t.property("currentTarget", t.ref("EventTarget")),
-      t.property("defaultPrevented", t.boolean()),
-      t.property("eventPhase", t.number()),
-      t.property("isDefaultPrevented", t.function(t.return(t.boolean()))),
-      t.property("isPropagationStopped", t.function(t.return(t.boolean()))),
-      t.property("isTrusted", t.boolean()),
-      t.property("nativeEvent", t.ref("Event")),
-      t.property("preventDefault", t.function(t.return(t.void()))),
-      t.property("stopPropagation", t.function(t.return(t.void()))),
-      t.property("target", t.ref("EventTarget")),
-      t.property("timeStamp", t.number()),
-      t.property("type", t.string()),
-      t.property("persist", t.function(t.return(t.void())))
-    )
-  )
+  t.class("SyntheticEvent", _SyntheticEvent => {
+    const T = _SyntheticEvent.typeParameter(
+      "T",
+      t.ref("EventTarget"),
+      t.ref("EventTarget")
+    );
+
+    return [
+      t.object(
+        t.property("bubbles", t.boolean()),
+        t.property("cancelable", t.boolean()),
+        t.property("currentTarget", T),
+        t.property("defaultPrevented", t.boolean()),
+        t.property("eventPhase", t.number()),
+        t.property("isDefaultPrevented", t.function(t.return(t.boolean()))),
+        t.property("isPropagationStopped", t.function(t.return(t.boolean()))),
+        t.property("isTrusted", t.boolean()),
+        t.property("nativeEvent", t.ref("Event")),
+        t.property("preventDefault", t.function(t.return(t.void()))),
+        t.property("stopPropagation", t.function(t.return(t.void()))),
+        t.property("target", t.ref("EventTarget")),
+        t.property("timeStamp", t.number()),
+        t.property("type", t.string()),
+        t.property("persist", t.function(t.return(t.void())))
+      )
+    ];
+  })
 );
 t.declare(
-  t.class(
-    "SyntheticUIEvent",
-    t.object(t.property("detail", t.number()), t.property("view", t.any())),
-    t.extends("SyntheticEvent")
-  )
+  t.class("SyntheticUIEvent", _SyntheticUIEvent => {
+    const T = _SyntheticUIEvent.typeParameter(
+      "T",
+      t.ref("EventTarget"),
+      t.ref("EventTarget")
+    );
+
+    return [
+      t.object(t.property("detail", t.number()), t.property("view", t.any())),
+      t.extends("SyntheticEvent", T)
+    ];
+  })
 );
 t.declare(
-  t.class(
-    "SyntheticMouseEvent",
-    t.object(
-      t.property("altKey", t.boolean()),
-      t.property("button", t.number()),
-      t.property("buttons", t.number()),
-      t.property("clientX", t.number()),
-      t.property("clientY", t.number()),
-      t.property("ctrlKey", t.boolean()),
-      t.property("getModifierState", t.any()),
-      t.property("metaKey", t.boolean()),
-      t.property("pageX", t.number()),
-      t.property("pageY", t.number()),
-      t.property("relatedTarget", t.nullable(t.ref("EventTarget"))),
-      t.property("screenX", t.number()),
-      t.property("screenY", t.number()),
-      t.property("shiftKey", t.boolean())
-    ),
-    t.extends("SyntheticUIEvent")
-  )
+  t.class("SyntheticMouseEvent", _SyntheticMouseEvent => {
+    const T = _SyntheticMouseEvent.typeParameter(
+      "T",
+      t.ref("EventTarget"),
+      t.ref("EventTarget")
+    );
+
+    return [
+      t.object(
+        t.property("altKey", t.boolean()),
+        t.property("button", t.number()),
+        t.property("buttons", t.number()),
+        t.property("clientX", t.number()),
+        t.property("clientY", t.number()),
+        t.property("ctrlKey", t.boolean()),
+        t.property("getModifierState", t.any()),
+        t.property("metaKey", t.boolean()),
+        t.property("pageX", t.number()),
+        t.property("pageY", t.number()),
+        t.property("relatedTarget", t.ref("EventTarget")),
+        t.property("screenX", t.number()),
+        t.property("screenY", t.number()),
+        t.property("shiftKey", t.boolean())
+      ),
+      t.extends("SyntheticUIEvent", T)
+    ];
+  })
 );
 
