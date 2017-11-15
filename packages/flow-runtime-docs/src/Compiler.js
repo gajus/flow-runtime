@@ -184,7 +184,7 @@ export default class Compiler {
 
   run (): any {
     this.log = [];
-    const fn = new Function('console', 'module', 'exports', 'require', this.compiled); // eslint-disable-line
+    const fn: Function = new Function('console', 'module', 'exports', 'require', this.compiled); // eslint-disable-line
     const exports = {};
     const module = {exports};
     const originalEmit = t.emitWarningMessage;
