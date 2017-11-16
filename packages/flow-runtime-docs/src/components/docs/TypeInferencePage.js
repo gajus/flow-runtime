@@ -24,8 +24,8 @@ const inputType = t.typeOf(input);
 console.log(String(inputType));
 
 
-inputType.getProperty('id').assert(456); // ok
-inputType.getProperty('name').assert(false); // throws
+inputType.getProperty('id').unwrap().assert(456); // ok
+inputType.getProperty('name').unwrap().assert(false); // throws
 `.trim();
 
 @observer
