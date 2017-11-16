@@ -21795,11 +21795,18 @@
 	      var expectedType = _ref2[2];
 	
 	      var expected = expectedType ? expectedType.toString() : "*";
-	      var actual = context.typeOf(_resolvePath(input, path)).toString();
+	      var actual = _resolvePath(input, path);
+	      var actualType = context.typeOf(actual).toString();
 	
 	      var field = stringifyPath(validation.path.concat(path));
 	
-	      collected.push(field + ' ' + message + '\n\nExpected: ' + expected + '\n\nActual: ' + actual + '\n');
+	      var actualAsString = makeString(actual);
+	
+	      if (typeof actualAsString === 'string') {
+	        collected.push(field + ' ' + message + '\n\nExpected: ' + expected + '\n\nActual Value: ' + actualAsString + '\n\nActual Type: ' + actualType + '\n');
+	      } else {
+	        collected.push(field + ' ' + message + '\n\nExpected: ' + expected + '\n\nActual: ' + actualType + '\n');
+	      }
 	    }
 	  } catch (err) {
 	    _didIteratorError = true;
@@ -21820,6 +21827,33 @@
 	    return new RuntimeTypeError(prefix.trim() + ' ' + collected.join(delimiter));
 	  } else {
 	    return new RuntimeTypeError(collected.join(delimiter));
+	  }
+	}
+	
+	function makeString(value) {
+	  if (value === null) {
+	    return 'null';
+	  }
+	  switch (typeof value === 'undefined' ? 'undefined' : _typeof(value)) {
+	    case 'string':
+	      return '"' + value + '"';
+	    // Issue
+	    case 'symbol':
+	    case 'number':
+	    case 'boolean':
+	    case 'undefined':
+	      return String(value);
+	    case 'function':
+	      return;
+	    default:
+	      if (Array.isArray(value) || value.constructor == null || value.constructor === Object) {
+	        try {
+	          return JSON.stringify(value, null, 2);
+	        } catch (e) {
+	          return;
+	        }
+	      }
+	      return;
 	  }
 	}
 	
