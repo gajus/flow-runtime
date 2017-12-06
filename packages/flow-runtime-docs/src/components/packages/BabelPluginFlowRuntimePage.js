@@ -100,6 +100,7 @@ export default class BabelPluginFlowRuntimePage extends Component {
                 <li><code>assert</code> - Boolean, indicates whether types should be asserted at runtime. Defaults to <code>true</code> if <code>process.env.NODE_ENV === 'development'</code>, otherwise <code>false</code>.</li>
                 <li><code>warn</code> - Boolean, if <code>true</code> flow-runtime will emit warnings instead of throwing in case of a failing check. This can be very useful when first introducing types to a codebase.</li>
                 <li><code>annotate</code> - Boolean, indicates whether object or function values that have type annotations should be annotated with those types at runtime. Defaults to <code>true</code>.</li>
+                <li><code>optInOnly</code> - Boolean, if <code>true</code>, ignores all files that don't have a <code>@flow-runtime</code> annotation.  To re-enable <code>babel-plugin-flow-runtime</code> for a particular file with the same options as the plugin, annotate it with <code>/* @flow-runtime enable */</code>.</li>
               </ul>
               <p>You can override these plugin options on a per-file basis using <code>//@flow-runtime</code> comments, see the <Link to="/docs/pragmas">Pragmas</Link> documentation.</p>
               <Example code={adderExample}

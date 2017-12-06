@@ -17,6 +17,8 @@ export default function createConversionContext (options: Options): ConversionCo
 
   const context = new ConversionContext();
 
+  context.optInOnly = options.optInOnly ? true : false;
+
   context.shouldAssert = options.assert === undefined
                        ? process.env.NODE_ENV === 'development'
                        : Boolean(options.assert)
