@@ -59,7 +59,7 @@ Next, add the following to your babel configuration or `.babelrc`:
 The plugin supports the following options:
 
 - `assert` - Boolean, indicates whether types should be asserted at runtime. Defaults to `true` if `process.env.NODE_ENV === 'development'`, otherwise `false`.
-- `decorate` - Boolean, indicates whether object or function values that have type annotations should be decorated with those types at runtime. Defaults to `true`.
+- `annotate` - Boolean, indicates whether object or function values that have type annotations should be decorated with those types at runtime. Defaults to `true`.
 
 
 If `assert` is `true`, the following code:
@@ -82,7 +82,7 @@ const add = (a, b) => {
 Which is very safe, and can be very useful during development, but has a non-trivial performance overhead. It's usually a good idea to disable this feature in production.
 
 
-If `decorate` is `true`, the following:
+If `annotate` is `true`, the following:
 ```js
 const add = (a: number, b: number): number => a + b;
 ```
@@ -104,7 +104,7 @@ Now invoking `add(x, y)` does not incur any overhead, as the parameters are not 
 console.log(String(t.typeOf(add))); // (a: number, b: number) => number
 ```
 
-If both `assert` and `decorate` are `false` then value annotations are ignored, but type aliases are still transformed:
+If both `assert` and `annotate` are `false` then value annotations are ignored, but type aliases are still transformed:
 ```js
 type User = {
   id: number;
