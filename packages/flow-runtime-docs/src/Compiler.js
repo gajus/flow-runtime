@@ -6,7 +6,6 @@ import * as validators from 'flow-runtime-validators';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {observable, computed} from 'mobx';
-import * as mobx from 'mobx';
 import * as mobxReact from 'mobx-react';
 
 const sharedState = observable({

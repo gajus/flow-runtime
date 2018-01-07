@@ -62,7 +62,6 @@ import {
   NullableType,
   ThisType,
   TupleType,
-  UnionType,
   IntersectionType,
   VoidType,
   RefinementType
