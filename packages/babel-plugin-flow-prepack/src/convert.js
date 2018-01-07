@@ -155,7 +155,7 @@ converters.DeclareVariable = (context: ConversionContext, path: NodePath): Node 
 };
 
 converters.DeclareFunction = (context: ConversionContext, path: NodePath): Node => {
-  return context.assumeGlobalDataProperty(id.node.name);
+  return context.assumeGlobalDataProperty(path.node.name);
 };
 
 converters.InterfaceDeclaration = (context: ConversionContext, path: NodePath): Node => {
