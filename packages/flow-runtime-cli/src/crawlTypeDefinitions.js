@@ -1,7 +1,5 @@
 /* @flow */
 
-import path from 'path';
-
 import findFiles from './findFiles';
 import parseFileWithFlow from './parseFileWithFlow';
 import {FlowModule} from './Graph';

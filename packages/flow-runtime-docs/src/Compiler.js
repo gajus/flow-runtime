@@ -1,4 +1,5 @@
 /* @flow */
+/* eslint-disable import/no-duplicates */
 import t from 'flow-runtime';
 import flowRuntimeMobx from 'flow-runtime-mobx';
 import * as flowConfigParser from 'flow-config-parser';
@@ -6,6 +7,7 @@ import * as validators from 'flow-runtime-validators';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {observable, computed} from 'mobx';
+import * as mobx from 'mobx';
 import * as mobxReact from 'mobx-react';
 
 const sharedState = observable({

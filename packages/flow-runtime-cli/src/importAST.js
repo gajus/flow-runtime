@@ -154,9 +154,6 @@ export default function importAST (graph: FlowModule, file: Node) {
 
     DeclareModule: {
       enter (path: NodePath) {
-        const id = path.get('id');
-        const name = id.isStringLiteral() ? id.node.value : id.node.name;
-
         const child = currentModule().registerModule(path);
         moduleStack.push(child);
       },

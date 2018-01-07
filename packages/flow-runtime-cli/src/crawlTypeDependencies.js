@@ -1,7 +1,5 @@
 /* @flow */
 
-import path from 'path';
-
 import findFiles from './findFiles';
 import parseFile from './parseFile';
 import collectExternalTypeReferences from './collectExternalTypeReferences';
