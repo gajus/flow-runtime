@@ -7,9 +7,7 @@
   "main": "flow-runtime-mobx.js",
   "scripts": {
     "prepublish": "npm run build",
-    "build": "babel -d ./lib ./src",
-    "test": "mocha",
-    "watch": "mocha --watch"
+    "build": "babel -d ./lib ./src"
   },
   "author": "Charles Pick <charles@codemix.com>",
   "license": "MIT",
@@ -24,7 +22,6 @@
     "babel-preset-stage-0": "^6.16.0",
     "flow-runtime": "^0.16.0",
     "mobx": "^3.0.0",
-    "mocha": "^3.1.2",
     "source-map-loader": "^0.1.6"
   },
   "peerDependencies": {

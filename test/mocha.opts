@@ -1,0 +1,5 @@
+--timeout=120000
+--reporter=dot
+--require ignore-styles
+--require ./test-polyfill.js
+packages/!(flow-runtime-docs)/src/**/*test.js

@@ -7,9 +7,7 @@
   "main": "flow-config-parser.js",
   "scripts": {
     "prepublish": "npm run build",
-    "build": "babel -d ./lib ./src",
-    "test": "mocha",
-    "watch": "mocha --watch"
+    "build": "babel -d ./lib ./src"
   },
   "author": "",
   "license": "MIT",
@@ -22,7 +20,6 @@
     "babel-preset-es2015-node": "^6.1.1",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
-    "mocha": "^3.1.2",
     "source-map-loader": "^0.1.6"
   },
   "dependencies": {}

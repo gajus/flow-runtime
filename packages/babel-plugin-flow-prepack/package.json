@@ -7,9 +7,7 @@
   "main": "babel-plugin-flow-prepack.js",
   "scripts": {
     "prepublish": "npm run build",
-    "build": "babel -d ./lib ./src",
-    "test": "mocha",
-    "watch": "mocha --watch"
+    "build": "babel -d ./lib ./src"
   },
   "author": "",
   "license": "MIT",
@@ -23,8 +21,7 @@
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
     "dedent": "^0.6.0",
-    "json-loader": "^0.5.4",
-    "mocha": "^3.1.2"
+    "json-loader": "^0.5.4"
   },
   "dependencies": {
     "babel-generator": "^6.21.0",

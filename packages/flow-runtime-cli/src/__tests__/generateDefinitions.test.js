@@ -1,5 +1,5 @@
 /* @flow */
-
+import '../typedefs';
 import {equal} from 'assert';
 import path from 'path';
 import generateDefinitions from '../generateDefinitions';

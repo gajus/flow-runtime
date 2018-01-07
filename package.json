@@ -3,7 +3,8 @@
   "repository": "https://github.com/codemix/flow-runtime.git",
   "scripts": {
     "clean": "rm -rf packages/*/node_modules packages/*/lib packages/*/dist packages/*/build node_modules *.log",
-    "test": "lerna run test",
+    "test": "mocha",
+    "test:watch": "mocha --watch",
     "lint": "eslint packages",
     "flow": "flow check --show-all-errors",
     "build": "lerna run build",
@@ -11,7 +12,15 @@
     "ci": "lerna bootstrap && lerna run build && yarn run lint && lerna run test"
   },
   "devDependencies": {
+    "babel-cli": "^6.16.0",
+    "babel-core": "^6.17.0",
     "babel-eslint": "^7.0.0",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-preset-env": "^1.1.4",
+    "babel-preset-es2015": "^6.16.0",
+    "babel-preset-es2015-node": "^6.1.1",
+    "babel-preset-react": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
     "eslint": "^3.8.1",
     "eslint-plugin-babel": "^3.3.0",
     "eslint-plugin-flowtype": "^2.20.0",
@@ -19,7 +28,9 @@
     "eslint-plugin-jsx-a11y": "^2.2.3",
     "eslint-plugin-react": "^6.4.1",
     "flow-bin": "0.52.0",
-    "lerna": "^2.5.1"
+    "ignore-styles": "^5.0.1",
+    "lerna": "^2.5.1",
+    "mocha": "^3.1.2"
   },
   "workspaces": [
     "packages/*"
