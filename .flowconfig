@@ -3,6 +3,7 @@
 # Ugh
 .*/node_modules/.*/src.*
 .*/node_modules/binary-extensions/.*
+.*/node_modules/fbjs/.*
 .*/node_modules/url-regex/.*
 .*/node_modules/spdx.*
 .*/node_modules/builtin-modules.*
@@ -12,9 +13,11 @@
 # Ignore tests
 .*/node_modules/.*/test/.*
 
+// TODO: not compatible with flow version yet
+packages/flow-runtime-docs
+
 [include]
 flow-typed
-flow-typed/npm
 
 [libs]
 

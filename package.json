@@ -2,12 +2,23 @@
   "private": true,
   "repository": "https://github.com/codemix/flow-runtime.git",
   "scripts": {
+    "clean": "rm -rf packages/*/node_modules packages/*/lib packages/*/dist packages/*/build node_modules *.log",
     "test": "lerna run test",
-    "lint": "lerna run lint",
+    "lint": "eslint packages",
+    "flow": "flow check --show-all-errors",
     "build": "lerna run build",
+    "bootstrap": "lerna bootstrap",
     "ci": "lerna bootstrap && lerna run build && lerna run test"
   },
   "devDependencies": {
+    "babel-eslint": "^7.0.0",
+    "eslint": "^3.8.1",
+    "eslint-plugin-babel": "^3.3.0",
+    "eslint-plugin-flowtype": "^2.20.0",
+    "eslint-plugin-import": "^2.0.1",
+    "eslint-plugin-jsx-a11y": "^2.2.3",
+    "eslint-plugin-react": "^6.4.1",
+    "flow-bin": "0.52.0",
     "lerna": "^2.5.1"
   },
   "workspaces": [
