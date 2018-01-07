@@ -24,16 +24,11 @@ First clone the repo:
 git clone https://github.com/codemix/flow-runtime.git
 ```
 
-Now install `lerna` globally:
-
-```sh
-npm install --global lerna
-```
-
 And bootstrap the project:
 
 ```sh
 cd flow-runtime
-lerna bootstrap
-npm test
+yarn
+yarn bootstrap
+yarn test
 ```

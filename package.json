@@ -5,6 +5,7 @@
     "test": "lerna run test",
     "lint": "lerna run lint",
     "build": "lerna run build",
+    "bootstrap": "lerna bootstrap",
     "ci": "lerna bootstrap && lerna run build && lerna run test"
   },
   "devDependencies": {
