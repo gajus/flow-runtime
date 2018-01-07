@@ -46,7 +46,7 @@ function defer <T> (): Deferred<T> {
   const deferred = {};
   deferred.promise = new Promise((resolve, reject) => {
     deferred.resolve = resolve;
-    deferred.reject = reject
+    deferred.reject = reject;
   });
   return deferred;
 }
@@ -104,7 +104,7 @@ function prepareLogItem (input: any): string {
       }
     }
     else if (props.length > 0) {
-      result = `{\n${indent(props.join(',\n'))}\n}`
+      result = `{\n${indent(props.join(',\n'))}\n}`;
     }
     else {
       result = '{}';
