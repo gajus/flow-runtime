@@ -762,12 +762,21 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
     [[], new Map(), new Map()]
   );
 
+  const isEmptyObjectTypeIndexer = (path: NodePath) => path.node.type === 'ObjectTypeIndexer'
+    && path.node.key.type === 'AnyTypeAnnotation'
+    && path.node.value.type === 'EmptyTypeAnnotation';
+
+  const indexers = path.get('indexers');
+
   const body = [
     ...path.get('callProperties'),
     ...properties,
-    ...path.get('indexers')
+    ...indexers.filter(path => !isEmptyObjectTypeIndexer(path))
   ];
-  return context.call(path.node.exact ? 'exactObject' : 'object', ...body.map(item => convert(context, item)));
+
+  const isExactObject = path.node.exact || indexers.some(path => isEmptyObjectTypeIndexer(path));
+
+  return context.call(isExactObject ? 'exactObject' : 'object', ...body.map(item => convert(context, item)));
 };
 
 converters.ObjectTypeSpreadProperty = (context: ConversionContext, path: NodePath): Node => {
