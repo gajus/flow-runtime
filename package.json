@@ -8,7 +8,7 @@
     "flow": "flow check --show-all-errors",
     "build": "lerna run build",
     "bootstrap": "lerna bootstrap",
-    "ci": "lerna bootstrap && lerna run build && lerna run test"
+    "ci": "lerna bootstrap && lerna run build && yarn run lint && lerna run test"
   },
   "devDependencies": {
     "babel-eslint": "^7.0.0",
