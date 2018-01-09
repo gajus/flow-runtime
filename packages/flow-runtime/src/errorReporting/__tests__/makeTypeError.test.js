@@ -1,5 +1,5 @@
 /* @flow */
-import {ok} from 'assert';
+import {ok, equal} from 'assert';
 
 import makeTypeError from '../makeTypeError';
 import t from '../../globalContext';
@@ -20,6 +20,14 @@ describe('makeTypeError', () => {
     const report = makeTypeError(validation);
     const err = report;
     ok(err instanceof TypeError);
+  });
+
+  it('should attach the validation errors to Error', () => {
+    const type = t.string();
+    const validation = t.validate(type, false);
+    const report = makeTypeError(validation);
+    const err = report;
+    equal(err.errors, validation.errors);
   });
 
   describe('Objects', () => {

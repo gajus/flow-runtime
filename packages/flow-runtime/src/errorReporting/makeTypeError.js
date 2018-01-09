@@ -11,9 +11,9 @@ export default function makeTypeError <T> (validation: Validation<T>) {
   if (!validation.hasErrors()) {
     return;
   }
-  const {prefix, input, context} = validation;
+  const {prefix, input, context, errors} = validation;
   const collected = [];
-  for (const [path, message, expectedType] of validation.errors) {
+  for (const [path, message, expectedType] of errors) {
     const expected = expectedType ? expectedType.toString() : "*";
     const actual = resolvePath(input, path);
     const actualType = context.typeOf(actual).toString();
@@ -31,10 +31,10 @@ export default function makeTypeError <T> (validation: Validation<T>) {
     }
   }
   if (prefix) {
-    return new RuntimeTypeError(`${prefix.trim()} ${collected.join(delimiter)}`);
+    return new RuntimeTypeError(`${prefix.trim()} ${collected.join(delimiter)}`, {errors});
   }
   else {
-    return new RuntimeTypeError(collected.join(delimiter));
+    return new RuntimeTypeError(collected.join(delimiter), {errors});
   }
 }
 
