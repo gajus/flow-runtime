@@ -139,6 +139,10 @@ export default class ObjectType<T: {}> extends Type {
 
 
     if (this.indexers.length > 0) {
+      if (input instanceof Object && Array.isArray(input)) {
+        yield[path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
+        return;
+      }
       yield* collectErrorsWithIndexers(this, validation, path, input);
     }
     else {
