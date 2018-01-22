@@ -2,9 +2,11 @@
   "private": true,
   "repository": "https://github.com/codemix/flow-runtime.git",
   "scripts": {
+    "clean": "rm -rf packages/*/node_modules packages/*/lib packages/*/dist packages/*/build node_modules *.log",
     "test": "lerna run test",
     "lint": "lerna run lint",
     "build": "lerna run build",
+    "bootstrap": "lerna bootstrap",
     "ci": "lerna bootstrap && lerna run build && lerna run test"
   },
   "devDependencies": {
