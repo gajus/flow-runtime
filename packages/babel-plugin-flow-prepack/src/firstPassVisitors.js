@@ -174,6 +174,7 @@ function hasTypeAnnotation (path: NodePath): boolean {
 /**
  * Ensure that the given class contains a constructor.
  */
+/* eslint-disable no-unused-vars */
 function ensureConstructor (path: NodePath) {
   let lastProperty;
   const [existing] = path.get('body.body').filter(

@@ -1,7 +1,6 @@
 /* @flow */
 import './typedefs';
 
-
 import minimist from 'minimist';
 import type {minimistOutput} from 'minimist';
 
@@ -17,7 +16,7 @@ const commands = {
   [listTypes.name]: listTypes
 };
 
-type Command = {
+export type Command = {
   name: string;
   description: string;
   help?: (argv: Argv) => string;

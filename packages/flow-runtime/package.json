@@ -8,21 +8,17 @@
   "module": "dist/flow-runtime.es2015.js",
   "browser": "dist/flow-runtime.umd.js",
   "scripts": {
-    "lint": "eslint ./src && flow check",
     "prepublish": "npm run build",
     "build": "npm run build-browser && npm run build-cjs && npm run build-es2015",
     "build-browser": "NODE_ENV=production rollup -c ./config/rollup.config.browser.js",
     "build-cjs": "NODE_ENV=production rollup -c ./config/rollup.config.commonjs.js",
-    "build-es2015": "NODE_ENV=production rollup -c ./config/rollup.config.es2015.js",
-    "test": "mocha",
-    "watch": "mocha --watch"
+    "build-es2015": "NODE_ENV=production rollup -c ./config/rollup.config.es2015.js"
   },
   "author": "Charles Pick <charles@codemix.com>",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.16.0",
     "babel-core": "^6.17.0",
-    "babel-eslint": "^7.0.0",
     "babel-plugin-external-helpers": "^6.18.0",
     "babel-plugin-flow-runtime": "^0.15.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
@@ -32,15 +28,6 @@
     "babel-preset-es2015-node": "^6.1.1",
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
-    "eslint": "^3.8.1",
-    "eslint-plugin-babel": "^3.3.0",
-    "eslint-plugin-flowtype": "^2.20.0",
-    "eslint-plugin-import": "^2.0.1",
-    "eslint-plugin-jsx-a11y": "^2.2.3",
-    "eslint-plugin-react": "^6.4.1",
-    "flow-bin": "^0.38.0",
-    "flow-typed": "^2.0.0",
-    "mocha": "^3.1.2",
     "react": "^15.5.4",
     "rollup": "^0.41.4",
     "rollup-plugin-babel": "^2.7.1",
@@ -48,8 +35,5 @@
     "rollup-plugin-uglify": "^1.0.1",
     "rollup-regenerator-runtime": "^6.23.1",
     "uglify-js": "git://github.com/mishoo/UglifyJS2.git#harmony"
-  },
-  "eslintConfig": {
-    "extends": "./config/eslint.js"
   }
 }

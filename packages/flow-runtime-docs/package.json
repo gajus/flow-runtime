@@ -114,8 +114,5 @@
     "moduleNameMapper": {
       "^react-native$": "react-native-web"
     }
-  },
-  "eslintConfig": {
-    "extends": "react-app"
   }
 }

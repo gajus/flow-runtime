@@ -147,7 +147,7 @@ function onProxyError(proxy) {
     res.end('Proxy error: Could not proxy request ' + req.url + ' from ' +
       host + ' to ' + proxy + ' (' + err.code + ').'
     );
-  }
+  };
 }
 
 function addMiddleware(devServer) {

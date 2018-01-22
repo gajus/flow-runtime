@@ -38,7 +38,7 @@ function checkType (context: TypeContext, expected: Type<*>, input: Function) {
 }
 
 
-export default class ClassType<T> extends Type {
+export default class ClassType extends Type {
   typeName: string = 'ClassType';
 
   instanceType: Type<*>;

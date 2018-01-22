@@ -2,9 +2,6 @@
 
 import * as t from 'babel-types';
 
-import getTypeParameters from './getTypeParameters';
-import typeAnnotationIterator from './typeAnnotationIterator';
-
 import type {Node, NodePath} from 'babel-traverse';
 
 import type ConversionContext from './ConversionContext';
@@ -158,7 +155,7 @@ converters.DeclareVariable = (context: ConversionContext, path: NodePath): Node 
 };
 
 converters.DeclareFunction = (context: ConversionContext, path: NodePath): Node => {
-  return context.assumeGlobalDataProperty(id.node.name);
+  return context.assumeGlobalDataProperty(path.node.name);
 };
 
 converters.InterfaceDeclaration = (context: ConversionContext, path: NodePath): Node => {
@@ -225,7 +222,6 @@ converters.DeclareClass = (context: ConversionContext, path: NodePath): Node => 
 
 converters.TypeAlias = (context: ConversionContext, path: NodePath): Node => {
   const name = path.node.id.name;
-  const typeParameters = getTypeParameters(path);
   let body = convert(context, path.get('right'));
   return t.variableDeclaration('const', [
     t.variableDeclarator(
@@ -309,7 +305,6 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   if (context.inTDZ(id.node)) {
     return;
   }
-  const typeParameters = getTypeParameters(path).map(item => convert(context, item));
   const entity = context.getEntity(name, path);
 
   if (!entity) {
@@ -342,7 +337,6 @@ converters.ObjectTypeSpreadProperty = (context: ConversionContext, path: NodePat
 
 
 converters.ObjectTypeProperty = (context: ConversionContext, path: NodePath): Node => {
-  let propName;
   if (path.node.optional) {
     // not supported.
     return;

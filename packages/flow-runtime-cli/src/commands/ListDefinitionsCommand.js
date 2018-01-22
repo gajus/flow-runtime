@@ -1,12 +1,8 @@
 /* @flow */
-import generate from 'babel-generator';
-import {format} from 'prettier';
 import path from 'path';
 
-import crawlTypeDependencies from '../crawlTypeDependencies';
 import crawlTypeDefinitions from '../crawlTypeDefinitions';
 import loadFlowConfig from '../loadFlowConfig';
-import buildProgram from '../buildProgram';
 
 import type {FlowConfig} from 'flow-config-parser';
 import type {Argv} from '../';

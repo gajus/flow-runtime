@@ -1,4 +1,5 @@
 /* @flow */
+/* eslint-disable import/no-duplicates */
 import t from 'flow-runtime';
 import flowRuntimeMobx from 'flow-runtime-mobx';
 import * as flowConfigParser from 'flow-config-parser';
@@ -46,7 +47,7 @@ function defer <T> (): Deferred<T> {
   const deferred = {};
   deferred.promise = new Promise((resolve, reject) => {
     deferred.resolve = resolve;
-    deferred.reject = reject
+    deferred.reject = reject;
   });
   return deferred;
 }
@@ -104,7 +105,7 @@ function prepareLogItem (input: any): string {
       }
     }
     else if (props.length > 0) {
-      result = `{\n${indent(props.join(',\n'))}\n}`
+      result = `{\n${indent(props.join(',\n'))}\n}`;
     }
     else {
       result = '{}';

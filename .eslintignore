@@ -1,0 +1,7 @@
+**/node_modules/**
+packages/*/build
+packages/*/lib
+packages/*/dist
+packages/*/test-polyfill.js
+packages/flow-runtime-cli/flow-builtins
+!.eslintrc.js

@@ -2,8 +2,6 @@
 
 import {equal} from 'assert';
 
-import fixtures from './fixtures';
-
 import transform from '../transform';
 
 import * as babylon from 'babylon';

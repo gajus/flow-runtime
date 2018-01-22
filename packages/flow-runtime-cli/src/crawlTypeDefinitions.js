@@ -1,7 +1,5 @@
 /* @flow */
 
-import path from 'path';
-
 import findFiles from './findFiles';
 import parseFileWithFlow from './parseFileWithFlow';
 import {FlowModule} from './Graph';
@@ -12,7 +10,7 @@ export default async function crawlTypeDefinitions (searchPaths: string[]): Prom
   const filenames = await findFiles(...searchPaths);
   const files = await Promise.all(filenames.map(parseFileWithFlow));
 
-  const graph = new FlowModule;
+  const graph = new FlowModule();
 
   for (const file of files) {
     importAST(graph, file);

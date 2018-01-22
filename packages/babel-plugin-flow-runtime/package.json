@@ -6,19 +6,15 @@
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
   "scripts": {
-    "lint": "eslint ./src && flow check",
     "prepublish": "npm run build",
     "build": "babel -d ./lib ./src && npm run makeFixturesJSON",
-    "makeFixturesJSON": "node tools/makeFixturesJSON.js > ./fixtures.json",
-    "test": "mocha",
-    "watch": "mocha --watch"
+    "makeFixturesJSON": "node tools/makeFixturesJSON.js > ./fixtures.json"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "babel-cli": "^6.16.0",
     "babel-core": "^6.17.0",
-    "babel-eslint": "^7.0.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-preset-env": "^1.1.4",
     "babel-preset-es2015": "^6.16.0",
@@ -26,16 +22,7 @@
     "babel-preset-react": "^6.16.0",
     "babel-preset-stage-0": "^6.16.0",
     "dedent": "^0.6.0",
-    "eslint": "^3.8.1",
-    "eslint-plugin-babel": "^3.3.0",
-    "eslint-plugin-flowtype": "^2.20.0",
-    "eslint-plugin-import": "^2.0.1",
-    "eslint-plugin-jsx-a11y": "^2.2.3",
-    "eslint-plugin-react": "^6.4.1",
-    "flow-bin": "0.52.0",
-    "flow-typed": "^2.0.0",
-    "json-loader": "^0.5.4",
-    "mocha": "^3.1.2"
+    "json-loader": "^0.5.4"
   },
   "dependencies": {
     "babel-generator": "^6.21.0",
@@ -44,8 +31,5 @@
     "babylon": "^6.16.1",
     "camelcase": "^3.0.0",
     "flow-config-parser": "^0.3.0"
-  },
-  "eslintConfig": {
-    "extends": "./config/eslint.js"
   }
 }
