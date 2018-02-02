@@ -11,11 +11,16 @@ export type Options = {
   suppressTypes?: string[];
   // deprecated
   decorate?: boolean;
+  moduleName?: string,
 };
 
 export default function createConversionContext (options: Options): ConversionContext {
 
   const context = new ConversionContext();
+
+  if (options.moduleName) {
+    context.libraryName = options.moduleName
+  }
 
   context.optInOnly = options.optInOnly ? true : false;
 
@@ -37,14 +42,14 @@ export default function createConversionContext (options: Options): ConversionCo
                          ? true
                          : Boolean(options.annotate)
                          ;
-  
+
   if ('suppressComments' in options && Array.isArray(options.suppressComments)) {
     context.suppressCommentPatterns = options.suppressComments.map(regexString => new RegExp(regexString));
   }
-  
+
   if ('suppressTypes' in options && Array.isArray(options.suppressTypes)) {
     context.suppressTypeNames = options.suppressTypes;
   }
-  
+
   return context;
 }
