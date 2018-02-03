@@ -19,7 +19,7 @@ export default function createConversionContext (options: Options): ConversionCo
   const context = new ConversionContext();
 
   if (options.flowRuntimePath) {
-    context.libraryName = options.flowRuntimePath
+    context.libraryName = options.flowRuntimePath;
   }
 
   context.optInOnly = options.optInOnly ? true : false;
