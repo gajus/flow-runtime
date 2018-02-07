@@ -23,3 +23,16 @@ export const expected = `
     t.property("value", t.ref(Demo))
   ));
 `;
+
+export const customRuntime = `
+  import { Demo as _Demo } from './simplestExportType';
+  import t from "./custom-flow-runtime";
+  const Demo = t.tdz(() => _Demo);
+
+  const Local = t.type("Local", t.number());
+
+  const Item = t.type("Item", t.object(
+    t.property("local", Local),
+    t.property("value", t.ref(Demo))
+  ));
+`;

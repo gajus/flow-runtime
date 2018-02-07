@@ -5,7 +5,7 @@ import fixtures from './fixtures';
 import testTransform from './testTransform';
 
 describe('transform', () => {
-  for (const [name, {input, expected, annotated, combined}] of fixtures) {
+  for (const [name, {input, expected, annotated, combined, customRuntime}] of fixtures) {
     it(`should transform ${name}`, () => {
       testTransform(input, {assert: true, annotate: false}, expected);
     });
@@ -17,6 +17,11 @@ describe('transform', () => {
     if (combined) {
       it(`should transform ${name} with decorations and assertions`, () => {
         testTransform(input, {assert: true, annotate: true}, combined);
+      });
+    }
+    if (customRuntime) {
+      it(`should transform ${name} with custom runtime path`, () => {
+        testTransform(input, {flowRuntimePath: './custom-flow-runtime'}, customRuntime);
       });
     }
   }

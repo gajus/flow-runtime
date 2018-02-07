@@ -15,3 +15,12 @@ export const expected = `
   const Demo = t.type("Demo", t.number());
   console.log(Demo);
 `;
+
+export const customRuntime = `
+  import { reify } from "flow-runtime";
+  import { Type as _Type } from "flow-runtime";
+  import t from "./custom-flow-runtime";
+  const Type = t.tdz(() => _Type);
+  const Demo = t.type("Demo", t.number());
+  console.log(Demo);
+`;

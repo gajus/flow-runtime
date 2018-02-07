@@ -14,3 +14,11 @@ export const expected = `
   const Demo = rt.type("Demo", rt.number());
   console.log(Demo);
 `;
+
+export const customRuntime = `
+  import rt, { reify } from "flow-runtime";
+  import { Type as _Type } from "flow-runtime";
+  const Type = rt.tdz(() => _Type);
+  const Demo = rt.type("Demo", rt.number());
+  console.log(Demo);
+`;

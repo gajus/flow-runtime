@@ -278,4 +278,3 @@ function ensureConstructor (path: NodePath) {
     path.get('body').unshiftContainer('body', constructorNode);
   }
 }
-
