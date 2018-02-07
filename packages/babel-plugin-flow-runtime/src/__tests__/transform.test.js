@@ -21,7 +21,7 @@ describe('transform', () => {
     }
     if (customRuntime) {
       it(`should transform ${name} with custom runtime path`, () => {
-        testTransform(input, {flowRuntimePath: './custom-flow-runtime'}, customRuntime);
+        testTransform(input, {libraryName: './custom-flow-runtime'}, customRuntime);
       });
     }
   }

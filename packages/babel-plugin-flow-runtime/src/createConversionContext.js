@@ -11,15 +11,15 @@ export type Options = {
   suppressTypes?: string[];
   // deprecated
   decorate?: boolean;
-  flowRuntimePath?: string,
+  libraryName?: string,
 };
 
 export default function createConversionContext (options: Options): ConversionContext {
 
   const context = new ConversionContext();
 
-  if (options.flowRuntimePath) {
-    context.libraryName = options.flowRuntimePath;
+  if (options.libraryName) {
+    context.libraryName = options.libraryName;
   }
 
   context.optInOnly = options.optInOnly ? true : false;

@@ -60,7 +60,7 @@ The plugin supports the following options:
 
 - `assert` - Boolean, indicates whether types should be asserted at runtime. Defaults to `true` if `process.env.NODE_ENV === 'development'`, otherwise `false`.
 - `annotate` - Boolean, indicates whether object or function values that have type annotations should be decorated with those types at runtime. Defaults to `true`.
-- `flowRuntimePath` - String, indicates which runtime to use. Defaults to `flow-runtime`
+- `libraryName` - String, indicates which runtime to use. Defaults to `flow-runtime`
 
 
 If `assert` is `true`, the following code:
