@@ -7338,9 +7338,9 @@ ua-parser-js@^0.7.9:
   version "0.7.17"
   resolved "https://registry.yarnpkg.com/ua-parser-js/-/ua-parser-js-0.7.17.tgz#e9ec5f9498b9ec910e7ae3ac626a805c4d09ecac"
 
-uglify-js@3.1.x:
+uglify-js@3.1.x, "uglify-js@git://github.com/mishoo/UglifyJS2.git#harmony":
   version "3.1.9"
-  resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.1.9.tgz#dffca799308cf327ec3ac77eeacb8e196ce3b452"
+  resolved "git://github.com/mishoo/UglifyJS2.git#9632f79e4692b3055ea3bb2580bca6f6a0412f7b"
   dependencies:
     commander "~2.11.0"
     source-map "~0.6.1"
@@ -7353,13 +7353,6 @@ uglify-js@^2.6, uglify-js@^2.6.1:
     yargs "~3.10.0"
   optionalDependencies:
     uglify-to-browserify "~1.0.0"
-
-"uglify-js@git://github.com/mishoo/UglifyJS2.git#harmony":
-  version "3.1.9"
-  resolved "git://github.com/mishoo/UglifyJS2.git#9632f79e4692b3055ea3bb2580bca6f6a0412f7b"
-  dependencies:
-    commander "~2.11.0"
-    source-map "~0.6.1"
 
 uglify-js@~2.7.3:
   version "2.7.5"
