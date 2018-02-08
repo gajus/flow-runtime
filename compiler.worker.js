@@ -19090,7 +19090,7 @@
 	  var options = collectOptionsFromPragma(context, node);
 	  if (!options) {
 	    // if we have no options, check to see whether flow is in use in this file
-	    return hasFlowNodes(node);
+	    return !context.optInOnly && hasFlowNodes(node);
 	  } else if (options.ignore) {
 	    return false;
 	  }
@@ -19230,6 +19230,12 @@
 	function createConversionContext(options) {
 	
 	  var context = new _ConversionContext2.default();
+	
+	  if (options.libraryName) {
+	    context.libraryName = options.libraryName;
+	  }
+	
+	  context.optInOnly = options.optInOnly ? true : false;
 	
 	  context.shouldAssert = options.assert === undefined ? ("production") === 'development' : Boolean(options.assert);
 	
@@ -21752,18 +21758,15 @@
 	var RuntimeTypeError = function (_TypeError) {
 	  inherits(RuntimeTypeError, _TypeError);
 	
-	  function RuntimeTypeError() {
-	    var _ref;
-	
-	    var _temp, _this, _ret;
-	
+	  function RuntimeTypeError(message, options) {
 	    classCallCheck(this, RuntimeTypeError);
 	
-	    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-	      args[_key] = arguments[_key];
-	    }
+	    var _this = possibleConstructorReturn(this, (RuntimeTypeError.__proto__ || Object.getPrototypeOf(RuntimeTypeError)).call(this, message));
 	
-	    return _ret = (_temp = (_this = possibleConstructorReturn(this, (_ref = RuntimeTypeError.__proto__ || Object.getPrototypeOf(RuntimeTypeError)).call.apply(_ref, [this].concat(args))), _this), _this.name = "RuntimeTypeError", _temp), possibleConstructorReturn(_this, _ret);
+	    _this.name = "RuntimeTypeError";
+	
+	    Object.assign(_this, options);
+	    return _this;
 	  }
 	
 	  return RuntimeTypeError;
@@ -21777,7 +21780,8 @@
 	  }
 	  var prefix = validation.prefix,
 	      input = validation.input,
-	      context = validation.context;
+	      context = validation.context,
+	      errors = validation.errors;
 	
 	  var collected = [];
 	  var _iteratorNormalCompletion = true;
@@ -21785,7 +21789,7 @@
 	  var _iteratorError = undefined;
 	
 	  try {
-	    for (var _iterator = validation.errors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	    for (var _iterator = errors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	      var _ref = _step.value;
 	
 	      var _ref2 = slicedToArray(_ref, 3);
@@ -21824,9 +21828,9 @@
 	  }
 	
 	  if (prefix) {
-	    return new RuntimeTypeError(prefix.trim() + ' ' + collected.join(delimiter));
+	    return new RuntimeTypeError(prefix.trim() + ' ' + collected.join(delimiter), { errors: errors });
 	  } else {
-	    return new RuntimeTypeError(collected.join(delimiter));
+	    return new RuntimeTypeError(collected.join(delimiter), { errors: errors });
 	  }
 	}
 	
@@ -26652,31 +26656,43 @@
 	              validation.startCycle(this, input);
 	
 	              if (!(this.indexers.length > 0)) {
-	                _context.next = 22;
+	                _context.next = 26;
 	                break;
 	              }
 	
-	              return _context.delegateYield(collectErrorsWithIndexers(this, validation, path, input), 't0', 20);
+	              if (!(input instanceof Object && Array.isArray(input))) {
+	                _context.next = 23;
+	                break;
+	              }
 	
-	            case 20:
-	              _context.next = 23;
-	              break;
+	              _context.next = 22;
+	              return [path, getErrorMessage('ERR_EXPECT_OBJECT'), this];
 	
 	            case 22:
-	              return _context.delegateYield(collectErrorsWithoutIndexers(this, validation, path, input), 't1', 23);
+	              return _context.abrupt('return');
 	
 	            case 23:
+	              return _context.delegateYield(collectErrorsWithIndexers(this, validation, path, input), 't0', 24);
+	
+	            case 24:
+	              _context.next = 27;
+	              break;
+	
+	            case 26:
+	              return _context.delegateYield(collectErrorsWithoutIndexers(this, validation, path, input), 't1', 27);
+	
+	            case 27:
 	              if (!this.exact) {
-	                _context.next = 25;
+	                _context.next = 29;
 	                break;
 	              }
 	
-	              return _context.delegateYield(collectErrorsExact(this, validation, path, input), 't2', 25);
+	              return _context.delegateYield(collectErrorsExact(this, validation, path, input), 't2', 29);
 	
-	            case 25:
+	            case 29:
 	              validation.endCycle(this, input);
 	
-	            case 26:
+	            case 30:
 	            case 'end':
 	              return _context.stop();
 	          }
@@ -113162,6 +113178,7 @@
 	    this.shouldAssert = true;
 	    this.shouldWarn = false;
 	    this.shouldAnnotate = true;
+	    this.optInOnly = false;
 	    this.isAnnotating = false;
 	    this.suppressCommentPatterns = [/\$FlowFixMe/];
 	    this.suppressTypeNames = ['$FlowFixMe'];
