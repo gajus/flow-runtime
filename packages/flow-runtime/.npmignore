@@ -9,5 +9,4 @@ npm-debug.log
 # files that require their own .flowconfig
 /config
 /flow-typed
-/src
 /test
