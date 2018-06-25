@@ -132,11 +132,20 @@ type Props = {
   name: string;
 };
 
-export class App extends React.Component<void, Props, void> {
+export class App extends React.Component<Props, void> {
   render () {
     return <h1>{this.props.name}</h1>;
   }
 }
+
+// or
+export class App extends React.Component<Props, void> {
+  props: Props
+  render () {
+    return <h1>{this.props.name}</h1>;
+  }
+}
+
 ```
 
 Becomes
