@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {Node, NodePath, Scope} from 'babel-traverse';
+import type {Node, NodePath, Scope} from '@babel/traverse';
 
 
 export type EntityType

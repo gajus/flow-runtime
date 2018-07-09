@@ -1,10 +1,10 @@
 /* @flow */
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
 import type ConversionContext from './ConversionContext';
 import convert from './convert';
 
-import type {NodePath} from 'babel-traverse';
+import type {NodePath} from '@babel/traverse';
 
 import hasTypeAnnotations from './hasTypeAnnotations';
 

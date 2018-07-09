@@ -1,12 +1,12 @@
 /* @flow */
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
-import generate from 'babel-generator';
+import generate from '@babel/generator';
 
 import type ConversionContext from './ConversionContext';
 import convert from './convert';
 
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 type SimplifiedParam = {
   path: NodePath;

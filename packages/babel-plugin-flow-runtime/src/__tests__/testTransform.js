@@ -7,9 +7,9 @@ import fixtures from './fixtures';
 import transform from '../transform';
 
 import * as babylon from 'babylon';
-import generate from 'babel-generator';
-import traverse from 'babel-traverse';
-import type {Node, NodePath} from 'babel-traverse';
+import generate from '@babel/generator';
+import traverse from '@babel/traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 import type {Options} from '../createConversionContext';
 
