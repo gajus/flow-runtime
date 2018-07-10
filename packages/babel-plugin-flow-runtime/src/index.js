@@ -18,7 +18,7 @@ import getTypeParameters from './getTypeParameters';
 import generate from '@babel/generator'
 
 export default function babelPluginFlowRuntime (api, opts, dirname) {
-  console.log('running babel-plugin-flow-runtime:', {opts, dirname})
+  //console.log('running babel-plugin-flow-runtime:', {opts, dirname})
 
   return {
     visitor: {
