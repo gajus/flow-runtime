@@ -26,6 +26,9 @@ export default function babelPluginFlowRuntime (api, opts, dirname) {
       Program (path: NodePath, state: Object) {
         const {opts} = state;
 
+        //console.log('start flow-runtime transpile', state.file.opts.filename)
+        //console.time(state.file.opts.filename)
+
         // Plugins will appear multiple times if using overrides.
         //console.log('---')
         //console.log(state.file.opts.filename)
@@ -59,6 +62,7 @@ export default function babelPluginFlowRuntime (api, opts, dirname) {
         //console.log(generate(path.node).code)
         //console.log('---------------------------------------------------------------------------')
         // --
+        //console.timeEnd(state.file.opts.filename)
 
       }
     }
