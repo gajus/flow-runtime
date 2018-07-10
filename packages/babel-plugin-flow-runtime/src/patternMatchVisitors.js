@@ -399,7 +399,7 @@ function inlineTest (context: ConversionContext, typeAnnotation: NodePath, repla
       t.stringLiteral(typeAnnotation.node.value)
     );
   }
-  else if (typeAnnotation.isNumericLiteralTypeAnnotation()) {
+  else if (typeAnnotation.isNumberLiteralTypeAnnotation()) {
     return t.binaryExpression(
       '===',
       replacement,

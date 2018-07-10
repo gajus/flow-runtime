@@ -63,6 +63,7 @@ export default function annotateVisitors (context: ConversionContext): Object {
         else if (path.isFunctionDeclaration() && path.parentPath.isExportDefaultDeclaration()) {
           // @fixme - this is not nice, we just turn the declaration into an expression.
           path.node.type = 'FunctionExpression';
+          // TODO(vjpr): BABEL7: https://babeljs.io/docs/en/next/v7-migration-api#expression-field-removed-from-arrowfunctionexpression
           path.node.expression = true;
           const replacement = t.exportDefaultDeclaration(
             context.call(

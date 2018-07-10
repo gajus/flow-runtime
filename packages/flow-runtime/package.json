@@ -1,5 +1,5 @@
 {
-  "name": "flow-runtime",
+  "name": "@vjpr/flow-runtime",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
   "version": "0.17.0",
@@ -51,5 +51,8 @@
   },
   "eslintConfig": {
     "extends": "./config/eslint.js"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.0.0-beta.52"
   }
 }

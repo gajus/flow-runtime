@@ -97,7 +97,7 @@ function foldComplexParamsIntoBody (path: NodePath) {
 function isSimple (path: NodePath): boolean {
   switch (path.type) {
     case 'NullLiteral':
-    case 'NumericLiteral':
+    case 'NumberLiteral':
     case 'StringLiteral':
     case 'BooleanLiteral':
     case 'RegExpLiteral':

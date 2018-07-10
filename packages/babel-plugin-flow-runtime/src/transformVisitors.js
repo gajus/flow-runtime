@@ -278,6 +278,16 @@ export default function transformVisitors (context: ConversionContext): Object {
           convert(context, id.get('typeAnnotation')),
           path.get('init').node
         );
+
+        // DEBUG: Print out before/after replacement.
+        //console.log(require('@babel/generator').default(path.node))
+        //console.log(require('@babel/generator').default(t.variableDeclarator(
+        //  t.identifier(name),
+        //  wrapped
+        //)))
+
+        // vjpr: We remove the scope.
+        path.scope.removeOwnBinding(name)
         context.replacePath(path, t.variableDeclarator(
           t.identifier(name),
           wrapped
@@ -308,6 +318,13 @@ export default function transformVisitors (context: ConversionContext): Object {
       ));
     },
     Function (path: NodePath) {
+
+      //const c = require('chalk')
+      //console.log(c.grey(require('@babel/generator').default(path.node).code))
+      //console.log(context.visited.has(path.node))
+      //console.log(context.visited)
+      //console.log('---')
+
       if (context.shouldSuppressPath(path)) {
         path.skip();
         return;

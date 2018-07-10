@@ -132,6 +132,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
             t.returnStatement(body.node)
           ]));
           body = path.get('body');
+          // BABEL7
           path.node.expression = false;
         }
 
