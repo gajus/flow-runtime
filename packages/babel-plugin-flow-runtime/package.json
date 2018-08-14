@@ -2,7 +2,7 @@
   "name": "@vjpr/babel-plugin-flow-runtime",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.17.0-vjpr.1",
+  "version": "0.17.0-vjpr.2",
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
   "scripts": {
@@ -16,7 +16,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@babel/helper-plugin-utils": "^7.0.0-beta.52",
+    "@babel/helper-plugin-utils": "7.0.0-rc.1",
     "babel-cli": "^6.16.0",
     "babel-core": "^6.17.0",
     "babel-eslint": "^7.0.0",
@@ -39,9 +39,9 @@
     "mocha": "^3.1.2"
   },
   "dependencies": {
-    "@babel/generator": "^7.0.0-beta.52",
-    "@babel/traverse": "^7.0.0-beta.52",
-    "@babel/types": "^7.0.0-beta.52",
+    "@babel/generator": "7.0.0-rc.1",
+    "@babel/traverse": "7.0.0-rc.1",
+    "@babel/types": "7.0.0-rc.1",
     "babylon": "^6.16.1",
     "camelcase": "^3.0.0",
     "flow-config-parser": "^0.3.0"

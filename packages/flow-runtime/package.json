@@ -2,7 +2,7 @@
   "name": "@vjpr/flow-runtime",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.17.0-vjpr.1",
+  "version": "0.17.0-vjpr.2",
   "description": "A flow compatible type system for JS.",
   "main": "dist/flow-runtime.js",
   "module": "dist/flow-runtime.es2015.js",
@@ -53,6 +53,6 @@
     "extends": "./config/eslint.js"
   },
   "dependencies": {
-    "@babel/runtime": "^7.0.0-beta.52"
+    "@babel/runtime": "^7.0.0-rc.1"
   }
 }
