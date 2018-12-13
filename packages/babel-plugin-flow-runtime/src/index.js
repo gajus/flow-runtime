@@ -18,23 +18,11 @@ import getTypeParameters from './getTypeParameters';
 import generate from '@babel/generator';
 
 export default function babelPluginFlowRuntime (api, opts, dirname) {
-  //console.log('running babel-plugin-flow-runtime:', {opts, dirname})
-
   return {
     visitor: {
 
       Program (path: NodePath, state: Object) {
         const {opts} = state;
-
-        //console.log('start flow-runtime transpile', state.file.opts.filename)
-        //console.time(state.file.opts.filename)
-
-        // Plugins will appear multiple times if using overrides.
-        //console.log('---')
-        //console.log(state.file.opts.filename)
-        //console.log(state.file.opts.plugins.map(k => k.key))
-        //console.log(state.file.opts.test)
-        //console.log(state)
 
         const context = createConversionContext(opts || {});
         if (!collectProgramOptions(context, path.node)) {
@@ -57,13 +45,6 @@ export default function babelPluginFlowRuntime (api, opts, dirname) {
         }
         path.traverse(preTransformVisitors(context));
         path.traverse(transformVisitors(context));
-
-        // DEBUG: Print result.
-        //console.log(generate(path.node).code)
-        //console.log('---------------------------------------------------------------------------')
-        // --
-        //console.timeEnd(state.file.opts.filename)
-
       }
     }
   };

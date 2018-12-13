@@ -212,7 +212,7 @@ function annotationToValue (context: ConversionContext, subject: NodePath): Node
     case 'BooleanLiteralTypeAnnotation':
       return t.booleanLiteral(subject.node.value);
     case 'NumberLiteralTypeAnnotation':
-      return t.numericLiteral(subject.node.value);
+      return t.NumericLiteral(subject.node.value);
     case 'StringLiteralTypeAnnotation':
       return t.stringLiteral(subject.node.value);
 
@@ -527,14 +527,13 @@ converters.NumberTypeAnnotation = (context: ConversionContext, {node}: NodePath)
   return context.call('number');
 };
 
-// BABEL7
-//converters.NumericLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
-//  return context.call('number', t.numericLiteral(node.value));
-//};
+converters.NumericLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
+ return context.call('number', t.NumericLiteral(node.value));
+};
 
 // Duplicated for compatibility with flow-parser.
 converters.NumberLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
-  return context.call('number', t.numericLiteral(node.value));
+  return context.call('number', t.NumericLiteral(node.value));
 };
 
 converters.BooleanTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
@@ -1352,5 +1351,3 @@ converters.AssignmentPattern = (context: ConversionContext, path: NodePath): Nod
 };
 
 export default convert;
-
-

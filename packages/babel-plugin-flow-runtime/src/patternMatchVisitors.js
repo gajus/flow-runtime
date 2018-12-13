@@ -218,7 +218,7 @@ function makePattern (context: ConversionContext, path: NodePath, collectedParam
           // take the first element of the param.
           replacement = t.memberExpression(
             t.identifier(name),
-            t.numericLiteral(0),
+            t.NumericLiteral(0),
             true
           );
           useBinding = true;
@@ -252,7 +252,7 @@ function makePattern (context: ConversionContext, path: NodePath, collectedParam
                     t.identifier(names[firstRest]),
                     t.identifier('slice')
                   ),
-                  [t.numericLiteral(relativeIndex)]
+                  [t.NumericLiteral(relativeIndex)]
                 )
               )
             ]));
@@ -262,7 +262,7 @@ function makePattern (context: ConversionContext, path: NodePath, collectedParam
           // take the nth member of the rest element.
           replacement = t.memberExpression(
             t.identifier(names[firstRest]),
-            t.numericLiteral(relativeIndex),
+            t.NumericLiteral(relativeIndex),
             true
           );
           useBinding = true;
@@ -403,7 +403,7 @@ function inlineTest (context: ConversionContext, typeAnnotation: NodePath, repla
     return t.binaryExpression(
       '===',
       replacement,
-      t.numberLiteral(typeAnnotation.node.value)
+      t.NumericLiteral(typeAnnotation.node.value)
     );
   }
   else if (typeAnnotation.isBooleanLiteralTypeAnnotation()) {
