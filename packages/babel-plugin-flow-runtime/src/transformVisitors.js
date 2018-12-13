@@ -287,7 +287,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         //)))
 
         // vjpr: We remove the scope.
-        path.scope.removeOwnBinding(name)
+        path.scope.removeOwnBinding(name);
         context.replacePath(path, t.variableDeclarator(
           t.identifier(name),
           wrapped
