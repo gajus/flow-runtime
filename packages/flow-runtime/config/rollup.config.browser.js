@@ -11,24 +11,25 @@ export default {
     babel({
       babelrc: false,
       presets: [
-        ['env', {
-          targets: {
-            browsers: ['last 2 versions']
+        ["@babel/preset-env", {
+          "targets": {
+            "browsers": ["last 2 versions"]
           },
-          modules: false
+          "exclude": [
+            "transform-regenerator"
+          ],
         }],
-        'stage-0',
-        'react'
+        "@babel/preset-react",
+        "@babel/preset-flow"
       ],
       plugins: [
-        'transform-decorators-legacy',
-        ['transform-runtime', {
+        "@babel/plugin-proposal-object-rest-spread",
+        ["@babel/plugin-proposal-decorators", { "legacy": true }],
+        ["@babel/plugin-proposal-class-properties", { "loose" : true }],
+        ['@babel/plugin-transform-runtime', {
           helpers: false,
-          polyfill: false,
           regenerator: true,
-          moduleName: 'rollup-regenerator-runtime'
-        }],
-        'external-helpers'
+        }]
       ]
     }),
     nodeResolve({

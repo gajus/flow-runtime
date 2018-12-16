@@ -11,21 +11,23 @@ export default {
     babel({
       babelrc: false,
       presets: [
-        ['env', {
+        ['@babel/preset-env', {
           targets: {
             node: 4
           },
           exclude: [
-            'transform-regenerator'
+            "transform-regenerator"
           ],
           modules: false
         }],
-        'stage-0',
-        'react'
+        "@babel/preset-react",
+        "@babel/preset-flow"
       ],
       plugins: [
-        'transform-decorators-legacy',
-        'external-helpers'
+        "@babel/plugin-proposal-object-rest-spread",
+        ["@babel/plugin-proposal-decorators", { "legacy": true }],
+        ["@babel/plugin-proposal-class-properties", { "loose" : true }],
+        '@babel/plugin-external-helpers'
       ]
     }),
     nodeResolve({

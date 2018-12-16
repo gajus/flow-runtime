@@ -1,5 +1,5 @@
 /* @flow */
-import type {NodePath} from 'babel-traverse';
+import type {NodePath} from '@babel/traverse';
 
 export default function findIdentifiers (path: NodePath | NodePath[], found: NodePath[] = []): NodePath[] {
   if (Array.isArray(path)) {

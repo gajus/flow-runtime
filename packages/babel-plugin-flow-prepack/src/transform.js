@@ -1,10 +1,10 @@
 /* @flow */
-import traverse from 'babel-traverse';
+import traverse from '@babel/traverse';
 
 import collectProgramOptions from './collectProgramOptions';
 import firstPassVisitors from './firstPassVisitors';
 import transformVisitors from './transformVisitors';
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 import createConversionContext from './createConversionContext';
 import type {Options} from './createConversionContext';

@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {NodePath} from 'babel-traverse';
+import type {NodePath} from '@babel/traverse';
 
 const visitors = {
   ArrayTypeAnnotation: ["elementType"],

@@ -1,7 +1,7 @@
 {
   "presets": [
     [
-      "env",
+      "@babel/preset-env",
       {
         "targets": {
           "node": 4
@@ -11,14 +11,18 @@
         ]
       }
     ],
-    "stage-0",
-    "react"
+    "@babel/preset-flow",
+    "@babel/preset-react"
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-object-rest-spread",
   ],
   "env": {
     "development": {
       "presets": [
         [
-          "env",
+          "@Babel/preset-env",
           {
             "targets": {
               "node": 4
@@ -28,12 +32,14 @@
             ]
           }
         ],
-        "stage-0",
-        "react"
+        "@babel/preset-flow",
+        "@babel/preset-react"
       ],
       "plugins": [
-        "transform-decorators-legacy",
-        ["flow-runtime", {
+        "@babel/plugin-proposal-class-properties",
+        "@babel/plugin-proposal-object-rest-spread",
+        ["@babel/proposal-decorators-legacy", {"legacy": true}],
+        ["babel-plugin-flow-runtime", {
           "warn": true,
           "annotate": true
         }]

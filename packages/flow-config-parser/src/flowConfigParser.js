@@ -31,6 +31,19 @@ const KNOWN_NUMERICS = {
   }
 };
 
+function checkFlowConfigSectionName(section: string): ?FlowConfigSectionName {
+  switch (section) {
+    case 'ignore':
+    case 'include':
+    case 'lib':
+    case 'options':
+    case 'version':
+      return section;
+    default:
+      return null;
+  }
+}
+
 /**
  * Parse a given flow configuration (supplied as a string), and return the parsed representation.
  */
@@ -49,8 +62,11 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
       continue;
     }
     const matchSection = /^\[(.+)\](\s*#(.*))?$/.exec(line);
-    if (matchSection) {
-      sectionName = matchSection[1].trim();
+    const matchedSectionName = matchSection
+      ? checkFlowConfigSectionName(matchSection[1].trim())
+      : null;
+    if (matchedSectionName) {
+      sectionName = matchedSectionName;
       section = [];
       (structure: any)[sectionName] = section;
     }
@@ -61,7 +77,7 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
       section.push(regexpify(line));
     }
     else {
-      const matchesKeyValue = /^([A-Za-z0-9_\.]+)=(.*)$/.exec(line);
+      const matchesKeyValue = /^([A-Za-z0-9_.]+)=(.*)$/.exec(line);
       if (matchesKeyValue) {
         const key = matchesKeyValue[1];
         let value = matchesKeyValue[2];
@@ -101,7 +117,7 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
 function regexpify (input: string, projectRoot: string = process.cwd()): RegExp {
   return new RegExp(
     input
-    .replace(/\\([\(\|\)])/g, (a, b) => b)
+    .replace(/\\([(|)])/g, (a, b) => b)
     .replace(/<PROJECT_ROOT>/g, projectRoot)
     .replace(/\//g, '\\/'));
 }

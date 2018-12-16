@@ -1,8 +1,8 @@
 {
-  "name": "@vjpr/babel-plugin-flow-runtime",
+  "name": "babel-plugin-flow-runtime",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.17.0-vjpr.2",
+  "version": "0.17.0",
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
   "scripts": {
@@ -22,6 +22,7 @@
     "@babel/plugin-proposal-class-properties": "^7.2.1",
     "@babel/plugin-proposal-decorators": "^7.2.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.2.0",
+    "@babel/plugin-transform-regenerator": "^7.0.0",
     "@babel/polyfill": "^7.0.0",
     "@babel/preset-env": "^7.2.0",
     "@babel/preset-flow": "^7.0.0",
