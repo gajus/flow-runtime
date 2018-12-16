@@ -4,6 +4,7 @@ import Type from './Type';
 import compareTypes from '../compareTypes';
 import FlowIntoType from "./FlowIntoType";
 import TypeAlias from './TypeAlias';
+import TypeParameterApplication from './TypeParameterApplication'
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
@@ -32,7 +33,7 @@ export default class TypeParameter<T> extends Type {
     const boundOrDefault = this.bound || this.default;
     const {recorded, context} = this;
 
-    if (boundOrDefault instanceof FlowIntoType || boundOrDefault instanceof TypeAlias) {
+    if (boundOrDefault instanceof FlowIntoType || boundOrDefault instanceof TypeAlias || boundOrDefault instanceof TypeParameterApplication) {
       // We defer to the other type parameter so that values from this
       // one can flow "upwards".
       yield* boundOrDefault.errors(validation, path, input);
@@ -65,7 +66,7 @@ export default class TypeParameter<T> extends Type {
   accepts (input: any): boolean {
     const boundOrDefault = this.bound || this.default;
     const {recorded, context} = this;
-    if (boundOrDefault instanceof FlowIntoType || boundOrDefault instanceof TypeAlias) {
+    if (boundOrDefault instanceof FlowIntoType || boundOrDefault instanceof TypeAlias || boundOrDefault instanceof TypeParameterApplication) {
       // We defer to the other type parameter so that values from this
       // one can flow "upwards".
       return boundOrDefault.accepts(input);
