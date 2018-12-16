@@ -12,6 +12,7 @@ export type Options = {
   // deprecated
   decorate?: boolean;
   libraryName?: string,
+  optInOnly?: boolean;
 };
 
 export default function createConversionContext (options: Options): ConversionContext {

@@ -145,7 +145,9 @@ export default class ConversionContext {
         // unvisited type aliases that override the entity we're looking at.
         return existingEntity.isGlobal
              ? this.hasForwardTypeDeclaration(name, path)
-             : this.hasForwardTypeDeclaration(name, path, existingEntity.path.findParent(filterBlockParent))
+             : existingEntity.path
+               ? this.hasForwardTypeDeclaration(name, path, existingEntity.path.findParent(filterBlockParent))
+               : false
              ;
       }
     }

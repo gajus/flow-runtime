@@ -715,7 +715,6 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
 
   const [properties] = path.get('properties').reduce(
     ([properties, seen, seenStatic], property) => {
-      const key = property.get('key');
       if (property.type === 'ObjectTypeSpreadProperty' || property.node.computed) {
         properties.push(property);
       }

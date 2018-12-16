@@ -7,8 +7,8 @@ export const fs: Object = Object.keys(_fs).reduce((memo, key) => {
   return memo;
 }, {});
 
-export function promisify (fn: Function) {
-  return function (...args: Array<any>) {
+export function promisify(fn: Function) {
+  return function (...args: Array<any>): Promise<any> {
     return new Promise(function (resolve, reject) {
       function callback (err, data) {
         if (err) return reject(err);

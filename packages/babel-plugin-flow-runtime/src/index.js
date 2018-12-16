@@ -15,9 +15,7 @@ import transform from './transform';
 import findIdentifiers from './findIdentifiers';
 import getTypeParameters from './getTypeParameters';
 
-import generate from '@babel/generator';
-
-export default function babelPluginFlowRuntime (api, opts, dirname) {
+export default function babelPluginFlowRuntime () {
   return {
     visitor: {
 

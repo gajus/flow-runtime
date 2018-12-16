@@ -56,7 +56,7 @@ function transformMatchCall (context: ConversionContext, path: NodePath) {
     return;
   }
 
-  const collected = collectClauses(context, clauses, true);
+  const collected = collectClauses(context, clauses);
   if (!collected) {
     return;
   }
