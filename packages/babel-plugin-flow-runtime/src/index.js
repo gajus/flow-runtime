@@ -9,7 +9,7 @@ import annotateVisitors from './annotateVisitors';
 import patternMatchVisitors from './patternMatchVisitors';
 import preTransformVisitors from './preTransformVisitors';
 import transformVisitors from './transformVisitors';
-import type {NodePath} from 'babel-traverse';
+import type {NodePath} from '@babel/traverse';
 
 import transform from './transform';
 import findIdentifiers from './findIdentifiers';
@@ -18,8 +18,10 @@ import getTypeParameters from './getTypeParameters';
 export default function babelPluginFlowRuntime () {
   return {
     visitor: {
+
       Program (path: NodePath, state: Object) {
         const {opts} = state;
+
         const context = createConversionContext(opts || {});
         if (!collectProgramOptions(context, path.node)) {
           return;
@@ -32,6 +34,7 @@ export default function babelPluginFlowRuntime () {
           attachImport(context, path);
         }
         path.traverse(patternMatchVisitors(context));
+
         if (context.shouldAnnotate) {
           context.isAnnotating = true;
           path.traverse(annotateVisitors(context));

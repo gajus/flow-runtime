@@ -1,10 +1,10 @@
 /* @flow */
 
 
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 import Entity from './Entity';
 import type {EntityType} from './Entity';
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 
 const tdzIdentifiers: WeakSet<Node> = new WeakSet();
@@ -145,7 +145,9 @@ export default class ConversionContext {
         // unvisited type aliases that override the entity we're looking at.
         return existingEntity.isGlobal
              ? this.hasForwardTypeDeclaration(name, path)
-             : this.hasForwardTypeDeclaration(name, path, existingEntity.path.findParent(filterBlockParent))
+             : existingEntity.path
+               ? this.hasForwardTypeDeclaration(name, path, existingEntity.path.findParent(filterBlockParent))
+               : false
              ;
       }
     }

@@ -1,6 +1,6 @@
 /* @flow */
-import * as t from 'babel-types';
-import type {Node} from 'babel-traverse';
+import * as t from '@babel/types';
+import type {Node} from '@babel/traverse';
 
 import type ConversionContext from './ConversionContext';
 import type {Options} from './createConversionContext';

@@ -14,7 +14,7 @@ export function pass(t: TypeContext) {
       Next = $Iterator.typeParameter("Next");
     return t.object(t.property(Symbol.iterator, t.function(t.return(t.ref($Iterator, Yield, Return, Next)))), t.property("next", t.function(t.param("value", Next, true), t.return(t.ref(IteratorResult, Yield, Return)))));
   });
-  const Iterator = t.type("Iterator", Iterator => {
+  t.type("Iterator", Iterator => {
     const T = Iterator.typeParameter("T");
     return t.ref($Iterator, T, t.void(), t.void());
   });

@@ -1,11 +1,11 @@
 /* @flow */
 
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
 import getTypeParameters from './getTypeParameters';
 import typeAnnotationIterator from './typeAnnotationIterator';
 
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 import type ConversionContext from './ConversionContext';
 
@@ -211,8 +211,8 @@ function annotationToValue (context: ConversionContext, subject: NodePath): Node
       return t.identifier('undefined');
     case 'BooleanLiteralTypeAnnotation':
       return t.booleanLiteral(subject.node.value);
-    case 'NumericLiteralTypeAnnotation':
-      return t.numericLiteral(subject.node.value);
+    case 'NumberLiteralTypeAnnotation':
+      return t.NumericLiteral(subject.node.value);
     case 'StringLiteralTypeAnnotation':
       return t.stringLiteral(subject.node.value);
 
@@ -528,12 +528,12 @@ converters.NumberTypeAnnotation = (context: ConversionContext, {node}: NodePath)
 };
 
 converters.NumericLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
-  return context.call('number', t.numericLiteral(node.value));
+ return context.call('number', t.NumericLiteral(node.value));
 };
 
 // Duplicated for compatibility with flow-parser.
 converters.NumberLiteralTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
-  return context.call('number', t.numericLiteral(node.value));
+  return context.call('number', t.NumericLiteral(node.value));
 };
 
 converters.BooleanTypeAnnotation = (context: ConversionContext, {node}: NodePath): Node => {
@@ -715,7 +715,6 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
 
   const [properties] = path.get('properties').reduce(
     ([properties, seen, seenStatic], property) => {
-      const key = property.get('key');
       if (property.type === 'ObjectTypeSpreadProperty' || property.node.computed) {
         properties.push(property);
       }
@@ -1351,5 +1350,3 @@ converters.AssignmentPattern = (context: ConversionContext, path: NodePath): Nod
 };
 
 export default convert;
-
-

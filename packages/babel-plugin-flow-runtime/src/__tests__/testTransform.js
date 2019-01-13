@@ -2,14 +2,12 @@
 
 import {equal} from 'assert';
 
-import fixtures from './fixtures';
-
 import transform from '../transform';
 
-import * as babylon from 'babylon';
-import generate from 'babel-generator';
-import traverse from 'babel-traverse';
-import type {Node, NodePath} from 'babel-traverse';
+import * as babylon from '@babel/parser';
+import generate from '@babel/generator';
+import traverse from '@babel/traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 import type {Options} from '../createConversionContext';
 
@@ -41,9 +39,10 @@ function parse (source: string): Node {
       'flow',
       'doExpressions',
       'objectRestSpread',
-      'decorators',
+      'decorators-legacy',
       'classProperties',
-      'exportExtensions',
+      'exportDefaultFrom',
+      'exportNamespaceFrom',
       'asyncGenerators',
       'functionBind',
       'functionSent'
