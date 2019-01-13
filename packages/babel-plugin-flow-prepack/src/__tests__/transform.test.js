@@ -77,7 +77,7 @@ function parse (source: string): Node {
       'flow',
       'doExpressions',
       'objectRestSpread',
-      'decorators',
+      'decorators-legacy',
       'classProperties',
       'exportExtensions',
       'asyncGenerators',
