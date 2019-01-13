@@ -6,9 +6,11 @@
   "description": "Transforms flow type annotations into flow-runtime types, optionally adds runtime type validation to annotated code.",
   "main": "babel-plugin-flow-runtime.js",
   "scripts": {
-    "lint": "eslint ./src && flow check",
-    "prepublishOnly": "npm run build",
-    "build": "babel -d ./lib ./src && npm run makeFixturesJSON",
+    "lint": "eslint ./src",
+    "lint-fix": "eslint --fix ./src",
+    "flow": "flow",
+    "prepublishOnly": "npm run lint && flow && npm run test && npm run build",
+    "build": "rm -rf ./lib && babel -d ./lib ./src && npm run makeFixturesJSON",
     "makeFixturesJSON": "node tools/makeFixturesJSON.js > ./fixtures.json",
     "test": "mocha",
     "watch": "mocha --watch"
