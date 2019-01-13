@@ -1,6 +1,6 @@
 /* @flow */
-import * as t from 'babel-types';
-import type {NodePath} from 'babel-traverse';
+import * as t from '@babel/types';
+import type {NodePath} from '@babel/traverse';
 
 import attachImport from './attachImport';
 import getTypeParameters from './getTypeParameters';
@@ -132,6 +132,7 @@ export default function firstPassVisitors (context: ConversionContext): Object {
             t.returnStatement(body.node)
           ]));
           body = path.get('body');
+          // BABEL7
           path.node.expression = false;
         }
 

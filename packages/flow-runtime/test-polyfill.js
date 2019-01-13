@@ -1,17 +1,17 @@
-require('babel-register')({
-  presets: [
-    ['env', {
-      targets: {
-        browsers: ['last 2 versions']
-      },
-      exclude: [
-        'transform-regenerator'
-      ],
+require('@babel/register')({
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+        "browsers": ["last 2 versions"]
+      }
     }],
-    'stage-0',
-    'react'
+    "@babel/preset-react",
+    "@babel/preset-flow"
   ],
-  plugins: [
-    'transform-decorators-legacy'
+  "plugins": [
+    "@babel/plugin-proposal-object-rest-spread",
+    ["@babel/plugin-proposal-decorators", { "legacy": true }],
+    ["@babel/plugin-proposal-class-properties", { "loose" : true }],
   ]
-});
+}
+);

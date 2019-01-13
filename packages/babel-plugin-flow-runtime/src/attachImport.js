@@ -1,8 +1,8 @@
 /* @flow */
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
 import type ConversionContext from './ConversionContext';
-import type {NodePath} from 'babel-traverse';
+import type {NodePath} from '@babel/traverse';
 
 export default function attachImport (context: ConversionContext, program: NodePath) {
 

@@ -1,12 +1,12 @@
 /* @flow */
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
-import generate from 'babel-generator';
+import generate from '@babel/generator';
 
 import type ConversionContext from './ConversionContext';
 import convert from './convert';
 
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 type SimplifiedParam = {
   path: NodePath;
@@ -56,7 +56,7 @@ function transformMatchCall (context: ConversionContext, path: NodePath) {
     return;
   }
 
-  const collected = collectClauses(context, clauses, true);
+  const collected = collectClauses(context, clauses);
   if (!collected) {
     return;
   }
@@ -218,7 +218,7 @@ function makePattern (context: ConversionContext, path: NodePath, collectedParam
           // take the first element of the param.
           replacement = t.memberExpression(
             t.identifier(name),
-            t.numericLiteral(0),
+            t.NumericLiteral(0),
             true
           );
           useBinding = true;
@@ -252,7 +252,7 @@ function makePattern (context: ConversionContext, path: NodePath, collectedParam
                     t.identifier(names[firstRest]),
                     t.identifier('slice')
                   ),
-                  [t.numericLiteral(relativeIndex)]
+                  [t.NumericLiteral(relativeIndex)]
                 )
               )
             ]));
@@ -262,7 +262,7 @@ function makePattern (context: ConversionContext, path: NodePath, collectedParam
           // take the nth member of the rest element.
           replacement = t.memberExpression(
             t.identifier(names[firstRest]),
-            t.numericLiteral(relativeIndex),
+            t.NumericLiteral(relativeIndex),
             true
           );
           useBinding = true;
@@ -399,11 +399,11 @@ function inlineTest (context: ConversionContext, typeAnnotation: NodePath, repla
       t.stringLiteral(typeAnnotation.node.value)
     );
   }
-  else if (typeAnnotation.isNumericLiteralTypeAnnotation()) {
+  else if (typeAnnotation.isNumberLiteralTypeAnnotation()) {
     return t.binaryExpression(
       '===',
       replacement,
-      t.numberLiteral(typeAnnotation.node.value)
+      t.NumericLiteral(typeAnnotation.node.value)
     );
   }
   else if (typeAnnotation.isBooleanLiteralTypeAnnotation()) {

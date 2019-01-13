@@ -63,7 +63,7 @@ import {
 import TypeContext from './TypeContext';
 
 function v (thing) {
-  return { value: thing }
+  return { value: thing };
 }
 
 if (typeof global !== 'undefined' && global.__FLOW_RUNTIME_GLOBAL_CONTEXT_DO_NOT_USE_THIS_VARIABLE__ !== globalContext) {
@@ -120,7 +120,7 @@ if (typeof global !== 'undefined' && global.__FLOW_RUNTIME_GLOBAL_CONTEXT_DO_NOT
     ClassDeclaration: v(ClassDeclaration),
     ParameterizedClassDeclaration: v(ParameterizedClassDeclaration),
     ExtendsDeclaration: v(ExtendsDeclaration),
-  })
+  });
 }
 
 export default globalContext;

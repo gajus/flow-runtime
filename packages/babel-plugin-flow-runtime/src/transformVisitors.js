@@ -1,5 +1,5 @@
 /* @flow */
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
 import typeAnnotationIterator from './typeAnnotationIterator';
 import type ConversionContext from './ConversionContext';
@@ -7,7 +7,7 @@ import convert from './convert';
 
 import getTypeParameters from './getTypeParameters';
 import {ok as invariant} from 'assert';
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 
 export default function transformVisitors (context: ConversionContext): Object {
@@ -278,6 +278,9 @@ export default function transformVisitors (context: ConversionContext): Object {
           convert(context, id.get('typeAnnotation')),
           path.get('init').node
         );
+
+        // vjpr: We remove the scope.
+        path.scope.removeOwnBinding(name);
         context.replacePath(path, t.variableDeclarator(
           t.identifier(name),
           wrapped
@@ -379,7 +382,7 @@ export default function transformVisitors (context: ConversionContext): Object {
 
           const ref = t.memberExpression(
             t.identifier('arguments'),
-            t.numericLiteral(argumentIndex),
+            t.NumericLiteral(argumentIndex),
             true
           );
 
@@ -628,7 +631,10 @@ export default function transformVisitors (context: ConversionContext): Object {
 
         const staticProp = t.classProperty(
           context.symbol('TypeParameters'),
-          t.identifier(typeParametersSymbolUid)
+          t.identifier(typeParametersSymbolUid),
+          null,
+          null,
+          true
         );
         staticProp.computed = true;
         staticProp.static = true;
@@ -672,7 +678,9 @@ export default function transformVisitors (context: ConversionContext): Object {
       const [constructor] = body.get('body').filter(
         item => item.node.kind === 'constructor'
       );
-      const typeParametersUid = t.identifier(context.getClassData(path, 'typeParametersUid'));
+      const typeParametersUid = hasTypeParameters
+        ? t.identifier(context.getClassData(path, 'typeParametersUid'))
+        : null;
 
 
       const thisTypeParameters = t.memberExpression(

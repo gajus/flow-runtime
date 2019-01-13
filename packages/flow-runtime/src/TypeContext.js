@@ -62,7 +62,6 @@ import {
   NullableType,
   ThisType,
   TupleType,
-  UnionType,
   IntersectionType,
   VoidType,
   RefinementType
@@ -1204,4 +1203,3 @@ export default class TypeContext {
     return target;
   }
 }
-

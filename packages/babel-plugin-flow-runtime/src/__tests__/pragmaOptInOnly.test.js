@@ -44,5 +44,5 @@ describe('optInOnly', () => {
     `;
 
     testTransform(input, {optInOnly: true}, expected); 
-  })
+  });
 });
