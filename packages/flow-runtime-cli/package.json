@@ -53,5 +53,8 @@
     "flow-runtime": "^0.17.0",
     "minimist": "^1.2.0",
     "prettier": "^0.11.0"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
   }
 }

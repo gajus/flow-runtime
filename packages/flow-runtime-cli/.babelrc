@@ -22,7 +22,7 @@
     "development": {
       "presets": [
         [
-          "@Babel/preset-env",
+          "@babel/preset-env",
           {
             "targets": {
               "node": 4
@@ -38,7 +38,7 @@
       "plugins": [
         "@babel/plugin-proposal-class-properties",
         "@babel/plugin-proposal-object-rest-spread",
-        ["@babel/proposal-decorators-legacy", {"legacy": true}],
+        ["@babel/proposal-decorators", {"legacy": true}],
         ["babel-plugin-flow-runtime", {
           "warn": true,
           "annotate": true
