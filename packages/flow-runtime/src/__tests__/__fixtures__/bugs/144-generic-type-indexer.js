@@ -46,7 +46,7 @@ export function pass (t: TypeContext) {
     invoice_id: "invoice-1"
   });
 
-  const PAYMENT_2 = Payment.assert({
+  Payment.assert({
     payment_id: "payment-2",
     invoice_id: "invoice-2"
   });

@@ -8,8 +8,10 @@
   "module": "dist/flow-runtime.es2015.js",
   "browser": "dist/flow-runtime.umd.js",
   "scripts": {
-    "lint": "eslint ./src && flow check",
-    "prepublishOnly": "npm run build",
+    "lint": "eslint ./src",
+    "lint-fix": "eslint --fix ./src",
+    "flow": "flow",
+    "prepublishOnly": "npm run lint && npm run test && npm run build",
     "build": "npm run build-browser && npm run build-cjs && npm run build-es2015",
     "build-browser": "NODE_ENV=production rollup -c ./config/rollup.config.browser.js",
     "build-cjs": "NODE_ENV=production rollup -c ./config/rollup.config.commonjs.js",

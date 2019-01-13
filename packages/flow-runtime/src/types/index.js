@@ -1,8 +1,5 @@
 /* @flow */
 
-import type TypeContext from '../TypeContext';
-import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
-
 export type TypeCreator <T> = (partial: PartialType<T>) => T;
 export type TypeRevealer <T> = () => ? Type<T> | Class<T>;
 
