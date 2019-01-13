@@ -4,9 +4,13 @@ import babel from 'rollup-plugin-babel';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
-  entry: 'src/index.cjs.js',
-  moduleName: 'flow-runtime',
-  sourceMap: true,
+  input: 'src/index.cjs.js',
+  output: {
+    name: 'flow-runtime',
+    sourceMap: true,
+    file: 'dist/flow-runtime.umd.js',
+    format: 'umd',
+  },
   plugins: [
     babel({
       babelrc: false,
@@ -37,7 +41,4 @@ export default {
       extensions: [ '.js', '.json' ]
     })
   ],
-  targets: [
-    { dest: 'dist/flow-runtime.umd.js', format: 'umd' },
-  ]
 };

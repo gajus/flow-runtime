@@ -4,9 +4,13 @@ import babel from 'rollup-plugin-babel';
 import nodeResolve from 'rollup-plugin-node-resolve';
 
 export default {
-  entry: 'src/index.js',
-  moduleName: 'flow-runtime',
-  sourceMap: true,
+  input: 'src/index.js',
+  output: {
+    name: 'flow-runtime',
+    sourceMap: true,
+    file: 'dist/flow-runtime.es2015.js',
+    format: 'es',
+  },
   plugins: [
     babel({
       babelrc: false,
@@ -35,7 +39,4 @@ export default {
       extensions: [ '.js', '.json' ]
     })
   ],
-  targets: [
-    { dest: 'dist/flow-runtime.es2015.js', format: 'es' },
-  ]
 };
