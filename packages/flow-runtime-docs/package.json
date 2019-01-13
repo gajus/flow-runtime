@@ -55,6 +55,7 @@
     "promise": "7.1.1",
     "react-dev-utils": "^0.4.2",
     "recursive-readdir": "2.1.0",
+    "rimraf": "^2.6.3",
     "sass-loader": "^4.1.1",
     "scss-loader": "^0.0.1",
     "source-map-loader": "^0.1.6",
@@ -88,6 +89,8 @@
   },
   "scripts": {
     "lint": "eslint ./src && flow check",
+    "lint-fix": "eslint --fix ./src",
+    "flow": "flow",
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "echo \"no tests for flow-runtime-docs yet!\"",
