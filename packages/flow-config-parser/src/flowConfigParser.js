@@ -84,7 +84,10 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
         if (KNOWN_REGEXPS[sectionName] && KNOWN_REGEXPS[sectionName][key]) {
           const matchesMapper = /^\s*'(.*)'\s*->\s*'(.*)'$/.exec(value);
           if (matchesMapper) {
-            value = [regexpify(matchesMapper[1]), matchesMapper[2]];
+            value = [
+              regexpify(matchesMapper[1]),
+              matchesMapper[2].replace(/\\(\d)/g, '$$$1').replace(/<PROJECT_ROOT>/g, process.cwd()),
+            ];
           }
           else {
             value = regexpify(value);
@@ -170,7 +173,7 @@ export class FlowConfig {
     const mappers = this.get('module.name_mapper');
     for (const [pattern, redirect] of mappers) {
       if (pattern.test(name)) {
-        return redirect;
+        return name.replace(pattern, redirect);
       }
     }
     return name;
