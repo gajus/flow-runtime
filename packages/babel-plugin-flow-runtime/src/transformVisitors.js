@@ -4,11 +4,13 @@ import * as t from '@babel/types';
 import typeAnnotationIterator from './typeAnnotationIterator';
 import type ConversionContext from './ConversionContext';
 import convert from './convert';
+import loadFlowConfig from './loadFlowConfig';
 
 import getTypeParameters from './getTypeParameters';
 import {ok as invariant} from 'assert';
 import type {Node, NodePath} from '@babel/traverse';
 
+const flowConfig = loadFlowConfig();
 
 export default function transformVisitors (context: ConversionContext): Object {
   const shouldCheck = context.shouldAssert || context.shouldWarn;
@@ -73,14 +75,26 @@ export default function transformVisitors (context: ConversionContext): Object {
       },
       exit (path: NodePath) {
         if (path.node.importKind !== 'type') {
+          let remapModule = false;
           for (const specifier of path.get('specifiers')) {
             if (specifier.node.importKind === 'type') {
               specifier.node.importKind = null;
+              remapModule = true;
+            }
+          }
+          if (remapModule) {
+            if (flowConfig) {
+              const importPath = flowConfig.remapModule(path.node.source.value);
+              path.node.source.value = importPath;
             }
           }
           return;
         }
         path.node.importKind = 'value';
+        if (flowConfig) {
+          const importPath = flowConfig.remapModule(path.node.source.value);
+          path.node.source.value = importPath;
+        }
       }
     },
     ExportDeclaration: {
