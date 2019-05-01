@@ -3,6 +3,7 @@
 import {equal} from 'assert';
 
 import transform from '../transform';
+import * as babel from '@babel/core';
 
 import * as babylon from '@babel/parser';
 import generate from '@babel/generator';
@@ -67,9 +68,14 @@ function normalize (input: string): string {
     ;
 }
 
-export default function testTransform(input: string, options: Options, expected: string) {
+export default function testTransform(input: string, options: Options, expected: string, integration?: Object) {
   const parsed = parse(input);
-  const transformed = stripFlowTypes(transform(parsed, options));
-  const generated = generate(transformed).code;
+  let generated;
+  if (integration) {
+    generated = babel.transform(input, integration).code;
+  } else {
+    const transformed = stripFlowTypes(transform(parsed, options));
+    generated = generate(transformed).code;
+  }
   equal(normalize(generated), normalize(expected));
 }
