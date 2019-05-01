@@ -10,7 +10,7 @@ export const integration = {
 
 export const input = `
   class Model {
-    static init({a: [b, {d, e}], f: {g: [h], i}}: {a: [number, {d: string, e: number}], f: {g: [string], i: number}}) {
+    static init({a: [b, {d, e}], f: {g: [h, ...k], i}, ...j}: {a: [number, {d: string, e: number}], f: {g: [string], i: number}}) {
 
     }
   }
@@ -30,10 +30,9 @@ let {
 a: [b, {
 d, e
 }], f: {
-g: [h], i
-}
+g: [h, ...k], i
+}, ...j
 } = _arg;
-
 }
 }
 `;
