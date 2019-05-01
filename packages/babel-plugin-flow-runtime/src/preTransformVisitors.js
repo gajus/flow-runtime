@@ -18,10 +18,14 @@ export default function preTransformVisitors (context: ConversionContext): Objec
 function removePatternBindings(path: NodePath) {
   if (path.isIdentifier()) {
     path.scope.removeBinding(path.node.name);
+  } else if (path.isRestElement()) {
+    removePatternBindings(path.get('argument'));
+  } else if (path.isObjectProperty()) {
+    removePatternBindings(path.get('value'));
   } else if (path.isObjectPattern()) {
     const properties = path.get('properties');
     for (let i = 0; i < properties.length; i++) {
-      removePatternBindings(properties[i].get('value'));
+      removePatternBindings(properties[i]);
     }
   } else if (path.isArrayPattern()) {
     const elements = path.get('elements');
