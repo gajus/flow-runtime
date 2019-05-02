@@ -264,13 +264,11 @@ export default function transformVisitors (context: ConversionContext): Object {
             path.get('init').node
           );
 
+          path.scope.removeOwnBinding(name);
           context.replacePath(path, t.variableDeclarator(
             t.identifier(name),
             wrapped
           ));
-        }
-        else {
-          context.replacePath(id, t.identifier(name));
         }
       }
       else if (shouldCheck) {
@@ -279,15 +277,11 @@ export default function transformVisitors (context: ConversionContext): Object {
           path.get('init').node
         );
 
-        // vjpr: We remove the scope.
         path.scope.removeOwnBinding(name);
         context.replacePath(path, t.variableDeclarator(
           t.identifier(name),
           wrapped
         ));
-      }
-      else {
-        context.replacePath(id, t.identifier(name));
       }
     },
     AssignmentExpression (path: NodePath) {
