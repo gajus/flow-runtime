@@ -43,6 +43,7 @@ export type Fixture = {
   annotated?: string;
   combined?: string;
   customRuntime?: string;
+  integration?: boolean;
 };
 
 const fixtures: Map<string, Fixture> = new Map(files.filter(filterIncluded).map(filename => {

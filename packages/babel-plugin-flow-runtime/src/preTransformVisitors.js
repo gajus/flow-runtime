@@ -15,6 +15,26 @@ export default function preTransformVisitors (context: ConversionContext): Objec
   };
 }
 
+function removePatternBindings(path: NodePath) {
+  if (path.isIdentifier()) {
+    path.scope.removeBinding(path.node.name);
+  } else if (path.isRestElement()) {
+    removePatternBindings(path.get('argument'));
+  } else if (path.isObjectProperty()) {
+    removePatternBindings(path.get('value'));
+  } else if (path.isObjectPattern()) {
+    const properties = path.get('properties');
+    for (let i = 0; i < properties.length; i++) {
+      removePatternBindings(properties[i]);
+    }
+  } else if (path.isArrayPattern()) {
+    const elements = path.get('elements');
+    for (let i = 0; i < elements.length; i++) {
+      removePatternBindings(elements[i]);
+    }
+  }
+}
+
 function foldComplexParamsIntoBody (path: NodePath) {
   let body = path.get('body');
   const params = path.get('params');
@@ -39,6 +59,7 @@ function foldComplexParamsIntoBody (path: NodePath) {
         body = path.get('body');
         path.node.expression = false;
       }
+      removePatternBindings(param);
       const cloned = t.cloneDeep(param.node);
       const uid = body.scope.generateUidIdentifier(`arg${params[i].key}`);
       uid.__flowRuntime__wasParam = true;
