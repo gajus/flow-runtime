@@ -1,9 +1,9 @@
 # Flow Runtime
-[![Build Status](https://travis-ci.org/codemix/flow-runtime.svg?branch=master)](https://travis-ci.org/codemix/flow-runtime)
+[![Build Status](https://travis-ci.org/codemix/flow-runtime.svg?branch=master)](https://travis-ci.org/gajus/flow-runtime)
 
 A runtime type system for JavaScript with full [Flow](https://flowtype.org/) compatibility.
 
-[See the website for more information](https://codemix.github.io/flow-runtime/).
+[See the website for more information](https://gajus.github.io/flow-runtime/).
 
 ---
 
@@ -21,7 +21,7 @@ This is a [lerna](https://github.com/lerna/lerna) powered mono-repo, composed of
 First clone the repo:
 
 ```sh
-git clone https://github.com/codemix/flow-runtime.git
+git clone https://github.com/gajus/flow-runtime.git
 ```
 
 And bootstrap the project:
