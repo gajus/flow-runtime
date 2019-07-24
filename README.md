@@ -1,5 +1,5 @@
 # Flow Runtime
-[![Build Status](https://travis-ci.org/codemix/flow-runtime.svg?branch=master)](https://travis-ci.org/gajus/flow-runtime)
+[![Build Status](https://travis-ci.org/gajus/flow-runtime.svg?branch=master)](https://travis-ci.org/gajus/flow-runtime)
 
 A runtime type system for JavaScript with full [Flow](https://flowtype.org/) compatibility.
 
