@@ -1,9 +1,9 @@
 /* @flow */
 
-import Type from './Type';
-import TupleType from './TupleType';
+import Type from '../types/Type';
+import TupleType from '../types/TupleType';
+import ArrayType from '../types/ArrayType';
 import compareTypes from '../compareTypes';
-
 import getErrorMessage from '../getErrorMessage';
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
@@ -16,8 +16,8 @@ import {
   endToStringCycle,
 } from '../cyclic';
 
-export default class ArrayType<T> extends Type<Array<T>> {
-  typeName: string = 'ArrayType';
+export default class $ReadOnlyArrayType<T> extends Type<$ReadOnlyArray<T>> {
+  typeName: string = '$ReadOnlyArrayType';
   elementType: Type<T>;
 
   *errors(
@@ -40,6 +40,7 @@ export default class ArrayType<T> extends Type<Array<T>> {
     for (let i = 0; i < length; i++) {
       yield* elementType.errors(validation, path.concat(i), input[i]);
     }
+    Object.freeze(input);
     validation.endCycle(this, input);
   }
 
@@ -86,13 +87,13 @@ export default class ArrayType<T> extends Type<Array<T>> {
     const {elementType} = this;
     if (inToStringCycle(this)) {
       if (typeof elementType.name === 'string') {
-        return `Array<$Cycle<${elementType.name}>>`;
+        return `$ReadOnlyArray<$Cycle<${elementType.name}>>`;
       } else {
-        return `Array<$Cycle<Object>>`;
+        return `$ReadOnlyArray<$Cycle<Object>>`;
       }
     }
     startToStringCycle(this);
-    const output = `Array<${elementType.toString()}>`;
+    const output = `$ReadOnlyArray<${elementType.toString()}>`;
     endToStringCycle(this);
     return output;
   }

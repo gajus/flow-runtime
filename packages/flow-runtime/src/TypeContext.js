@@ -43,6 +43,7 @@ import {
   SymbolLiteralType,
   StringType,
   StringLiteralType,
+  $ReadOnlyArrayType,
   ArrayType,
   ObjectType,
   ObjectTypeCallProperty,
@@ -222,7 +223,7 @@ export default class TypeContext {
     }
     // @flowIssue 252
     const inferrer = this[InferrerSymbol];
-    (inferrer: TypeInferrer);
+    /*:: (inferrer: TypeInferrer); */
 
     return inferrer.infer(input);
   }
@@ -903,6 +904,12 @@ export default class TypeContext {
         }
       }
     }
+    return target;
+  }
+
+  $readOnlyArray <T> (elementType?: Type<T>): $ReadOnlyArrayType<T> {
+    const target = new $ReadOnlyArrayType(this);
+    target.elementType = elementType || this.any();
     return target;
   }
 
