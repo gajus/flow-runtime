@@ -49,4 +49,22 @@ describe('Flow Config Parser', function () {
 
     deepEqual(result.get('version'), ['0.23.1']);
   });
+
+  it('should allow replacements to work correctly in name_mapper', () => {
+    const result = parse(`
+      [ignore]
+
+      [include]
+
+      [lib]
+
+      [options]
+      module.name_mapper='some/matching/(.*)/group' -> 'replaced/\\1/group'
+    `);
+
+    equal(
+      result.remapModule('some/matching/test/group'),
+      'replaced/test/group',
+    );
+  });
 });
