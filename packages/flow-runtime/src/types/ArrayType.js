@@ -26,7 +26,7 @@ export default class ArrayType<T> extends Type<Array<T>> {
     input: any,
   ): Generator<ErrorTuple, void, void> {
     const {context} = this;
-    if (!context.checkPredicate('Array', input)) {
+    if (!context.checkPredicate('Array', input) || context.checkPredicate('$ReadOnlyArray', input)) {
       yield [path, getErrorMessage('ERR_EXPECT_ARRAY'), this];
       return;
     }
