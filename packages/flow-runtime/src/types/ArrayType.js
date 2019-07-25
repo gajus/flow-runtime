@@ -2,6 +2,7 @@
 
 import Type from './Type';
 import TupleType from './TupleType';
+import $ReadOnlyArrayType from './$ReadOnlyArrayType';
 import compareTypes from '../compareTypes';
 
 import getErrorMessage from '../getErrorMessage';
@@ -76,6 +77,8 @@ export default class ArrayType<T> extends Type<Array<T>> {
       }
       return 1;
     } else if (input instanceof ArrayType) {
+      return compareTypes(elementType, input.elementType);
+    } else if (input instanceof $ReadOnlyArrayType) {
       return compareTypes(elementType, input.elementType);
     } else {
       return -1;
