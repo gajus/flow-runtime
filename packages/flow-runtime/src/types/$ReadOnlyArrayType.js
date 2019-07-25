@@ -40,7 +40,11 @@ export default class $ReadOnlyArrayType<T> extends Type<$ReadOnlyArray<T>> {
     for (let i = 0; i < length; i++) {
       yield* elementType.errors(validation, path.concat(i), input[i]);
     }
-    Object.freeze(input);
+    if (context.mode === 'assert') {
+      Object.freeze(input);
+    } else {
+      // TODO: support warning mode somehow
+    }
     validation.endCycle(this, input);
   }
 
