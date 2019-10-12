@@ -26,7 +26,7 @@ Which concerns:
   If this is a bug report or question, please include example code wherever possible.
   If your code is private and you can't share it, please create a sanitized version
   which reproduces the issue. You may find the online demo useful for this:
-  https://codemix.github.io/flow-runtime/#/try
+  https://gajus.github.io/flow-runtime/#/try
 
   NOTE: It is **extremely** difficult to fix bugs without examples!
 -->
