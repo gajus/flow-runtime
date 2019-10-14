@@ -49,10 +49,14 @@ export default function transformVisitors (context: ConversionContext): Object {
           declarations.push(t.variableDeclaration('const', [
             t.variableDeclarator(
               t.identifier(name),
-              context.call('tdz', t.arrowFunctionExpression(
-                [],
-                replacement
-              ))
+              t.addComment(
+                context.call('tdz', t.arrowFunctionExpression(
+                  [],
+                  replacement
+                )),
+                'leading',
+                '@__PURE__'
+              )
             )
           ]));
         }
