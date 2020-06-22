@@ -8,6 +8,10 @@ import type {ApplicableType} from './';
 
 import type ObjectTypeProperty from './ObjectTypeProperty';
 
+import ParameterizedClassDeclaration from "../declarations/ParameterizedClassDeclaration";
+
+import {TypeParametersSymbol, TypeSymbol} from "../symbols";
+
 /**
  * # TypeParameterApplication
  *
@@ -19,6 +23,29 @@ export default class TypeParameterApplication<X, T> extends Type {
 
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {parent, typeInstances} = this;
+
+    // explicitly set recorded type parameter in TypeParameter
+    if (parent && parent.impl && parent.impl[TypeSymbol] && input) {
+      const parentType : Type = parent.impl[TypeSymbol];
+
+      if (parentType instanceof ParameterizedClassDeclaration) {
+        const declTypeParameters = parentType.typeParameters;
+        const parentTypeParameters : Symbol = parent.impl[TypeParametersSymbol];
+        const inputTypeParameters = input[parentTypeParameters];
+
+        if (declTypeParameters && inputTypeParameters
+            && declTypeParameters.length !== 0
+            && declTypeParameters.length === this.typeInstances.length) {
+          declTypeParameters.forEach( (declTypeParameter : TypeParameter, index : number) => {
+            const inputTypeParameter : TypeParameter = inputTypeParameters[declTypeParameter.id];
+            if (inputTypeParameter) {
+              inputTypeParameter.recorded = this.typeInstances[index];
+            }
+          } );
+        }
+      }
+    }
+
     yield* parent.errors(validation, path, input, ...typeInstances);
   }
 
