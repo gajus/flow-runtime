@@ -147,9 +147,11 @@ export default class ObjectType<T: {}> extends Type {
     }
     else {
       yield* collectErrorsWithoutIndexers(this, validation, path, input);
-    }
-    if (this.exact) {
-      yield* collectErrorsExact(this, validation, path, input);
+
+      // exact with indexer is same as non-exact
+      if (this.exact) {
+        yield* collectErrorsExact(this, validation, path, input);
+      }
     }
     validation.endCycle(this, input);
   }
