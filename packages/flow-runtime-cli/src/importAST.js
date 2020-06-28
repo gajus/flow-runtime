@@ -1,11 +1,11 @@
 /* @flow */
 
-import traverse from 'babel-traverse';
-import * as t from 'babel-types';
+import traverse from '@babel/traverse';
+import * as t from '@babel/types';
 import {findIdentifiers, getTypeParameters} from 'babel-plugin-flow-runtime';
 import shouldIgnoreType from './shouldIgnoreType';
 
-import type {NodePath, Scope} from 'babel-traverse';
+import type {NodePath, Scope} from '@babel/traverse';
 import type {FlowModule, FlowEntity} from './Graph';
 
 type Node = {
@@ -141,8 +141,7 @@ export default function importAST (graph: FlowModule, file: Node) {
             }
           }
           if (candidate) {
-            const replacement = t.declareModuleExports();
-            replacement.typeAnnotation = path.node.id.typeAnnotation;
+            const replacement = t.declareModuleExports(path.node.id.typeAnnotation);
             path.replaceWith(replacement);
             return;
           }

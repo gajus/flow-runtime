@@ -1,7 +1,7 @@
 {
   "presets": [
     [
-      "env",
+      "@babel/preset-env",
       {
         "targets": {
           "node": 4
@@ -11,14 +11,13 @@
         ]
       }
     ],
-    "stage-0",
-    "react"
+    "@babel/preset-react"
   ],
   "env": {
     "development": {
       "presets": [
         [
-          "env",
+          "@babel/env",
           {
             "targets": {
               "node": 4
@@ -28,11 +27,12 @@
             ]
           }
         ],
-        "stage-0",
-        "react"
+        "@babel/preset-flow",
+        "@babel/preset-react"
       ],
       "plugins": [
-        "transform-decorators-legacy",
+        [ '@babel/plugin-proposal-decorators', { legacy: true } ],
+        [ '@babel/plugin-proposal-class-properties', { loose: true } ],
         ["flow-runtime", {
           "warn": true,
           "annotate": true

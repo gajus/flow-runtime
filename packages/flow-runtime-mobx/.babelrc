@@ -1,6 +1,6 @@
 {
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
       "targets": {
         "browsers": ["last 2 versions"]
       },
@@ -8,8 +8,8 @@
         "transform-regenerator"
       ]
     }],
-    "stage-0",
-    "react"
+    "@babel/preset-flow",
+    "@babel/preset-react"
   ],
   "plugins": []
 }

@@ -1,6 +1,6 @@
 {
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
       "targets": {
         "browsers": ["last 2 versions"]
       },
@@ -8,11 +8,12 @@
         "transform-regenerator"
       ]
     }],
-    "stage-0",
-    "react"
+    "@babel/preset-flow",
+    "@babel/preset-react"
   ],
   "plugins": [
-    "transform-decorators-legacy",
+    [ '@babel/plugin-proposal-decorators', { legacy: true } ],
+    [ '@babel/plugin-proposal-class-properties', { loose: true } ],
     ["flow-runtime", {warn: true, annotate: true}]
   ]
 }

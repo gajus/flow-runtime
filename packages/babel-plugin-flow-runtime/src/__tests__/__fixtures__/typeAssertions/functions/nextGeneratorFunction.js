@@ -13,7 +13,7 @@ export const expected = `
     const _yieldType = t.string();
     const _nextType = t.number();
     const _returnType = t.return(t.boolean());
-    const result = _nextType.assert((yield* t.wrapIterator(_yieldType)("hello world")));
+    const result = _nextType.assert(yield* t.wrapIterator(_yieldType)("hello world"));
     return _returnType.assert(result > 2 ? true : false);
   }
 

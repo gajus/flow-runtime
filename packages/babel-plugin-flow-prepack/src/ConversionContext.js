@@ -1,10 +1,10 @@
 /* @flow */
 
 
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 import Entity from './Entity';
 import type {EntityType} from './Entity';
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 
 const tdzIdentifiers: WeakSet<Node> = new WeakSet();
