@@ -12,8 +12,8 @@
     "prepublishOnly": "npm run lint && flow && npm run test && npm run build",
     "build": "rimraf ./lib && babel -d ./lib ./src && npm run makeFixturesJSON",
     "makeFixturesJSON": "node tools/makeFixturesJSON.js > ./fixtures.json",
-    "test": "mocha",
-    "watch": "mocha --watch"
+    "test": "mocha --timeout 10000",
+    "watch": "mocha --timeout 10000 --watch"
   },
   "author": "",
   "license": "MIT",

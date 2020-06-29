@@ -1,5 +1,5 @@
 /* @flow */
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 import Deque from 'double-ended-queue';
 
 type Node = {

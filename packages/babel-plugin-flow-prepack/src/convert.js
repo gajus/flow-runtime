@@ -1,11 +1,11 @@
 /* @flow */
 
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
 import getTypeParameters from './getTypeParameters';
 import typeAnnotationIterator from './typeAnnotationIterator';
 
-import type {Node, NodePath} from 'babel-traverse';
+import type {Node, NodePath} from '@babel/traverse';
 
 import type ConversionContext from './ConversionContext';
 
@@ -171,9 +171,9 @@ converters.InterfaceDeclaration = (context: ConversionContext, path: NodePath): 
         path.get('extends')
         .map(item => convert(context, item))
         .filter(Boolean)
-        .map(item => t.spreadProperty(item))
+        .map(item => t.spreadElement(item))
       ),
-      t.spreadProperty(body)
+      t.spreadElement(body)
     ]);
   }
 
@@ -202,11 +202,11 @@ converters.DeclareClass = (context: ConversionContext, path: NodePath): Node => 
   let body = convert(context, path.get('body'));
 
   if (path.has('extends')) {
-    const parents = path.get('extends').map(item => t.spreadProperty(convert(context, item)));
+    const parents = path.get('extends').map(item => t.spreadElement(convert(context, item)));
 
     body = context.abstract(t.objectExpression(
       ...parents,
-      t.spreadProperty(body)
+      t.spreadElement(body)
     ));
   }
   else {
@@ -336,7 +336,7 @@ converters.ObjectTypeAnnotation = (context: ConversionContext, path: NodePath): 
 converters.ObjectTypeSpreadProperty = (context: ConversionContext, path: NodePath): Node => {
   const arg = convert(context, path.get('argument'));
   if (arg) {
-    return t.spreadProperty(arg);
+    return t.spreadElement(arg);
   }
 };
 
@@ -355,5 +355,3 @@ converters.ObjectTypeProperty = (context: ConversionContext, path: NodePath): No
 };
 
 export default convert;
-
-

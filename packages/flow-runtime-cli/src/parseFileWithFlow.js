@@ -2,7 +2,7 @@
 
 import {parse} from 'flow-parser';
 import path from 'path';
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 
 import fastTraverse from './fastTraverse';
 

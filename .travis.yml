@@ -6,9 +6,9 @@ cache:
   yarn: true
 
 node_js:
-  - 9
-  - 8
-  - 7
+  - 10
+  - 12
+  - node
 
 script: yarn run ci
 

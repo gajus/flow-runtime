@@ -1,5 +1,5 @@
 /* @flow */
-import * as t from 'babel-types';
+import * as t from '@babel/types';
 import {transform} from 'babel-plugin-flow-runtime';
 
 import type {DependencyDict, ModuleDependencyDict, CrawledDependencies} from './crawlTypeDependencies';

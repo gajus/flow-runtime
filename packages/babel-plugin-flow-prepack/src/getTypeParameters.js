@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {NodePath} from 'babel-traverse';
+import type {NodePath} from '@babel/traverse';
 
 /**
  * Get an array of type parameters from the given path.

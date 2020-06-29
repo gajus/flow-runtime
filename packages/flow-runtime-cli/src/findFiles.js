@@ -6,7 +6,11 @@ import path from 'path';
 export default async function findFiles (...input: string[]): Promise<string[]> {
   const found = [];
   for (const item of input) {
-    await collectFiles(item, found);
+    try {
+      await collectFiles(item, found);
+    } catch ( err ) {
+      console.error(`Ignore files from ${item}: ${err}`);
+    }
   }
   return found;
 }

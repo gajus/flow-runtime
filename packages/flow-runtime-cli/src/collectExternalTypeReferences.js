@@ -1,10 +1,10 @@
 /* @flow */
 
-import traverse from 'babel-traverse';
+import traverse from '@babel/traverse';
 import {findIdentifiers, getTypeParameters} from 'babel-plugin-flow-runtime';
 
 import shouldIgnoreType from './shouldIgnoreType';
-import type {NodePath, Scope} from 'babel-traverse';
+import type {NodePath, Scope} from '@babel/traverse';
 
 type Node = {
   type: string;

@@ -5,7 +5,7 @@ import createConversionContext from './createConversionContext';
 import collectProgramOptions from './collectProgramOptions';
 import firstPassVisitors from './firstPassVisitors';
 import transformVisitors from './transformVisitors';
-import type {NodePath} from 'babel-traverse';
+import type {NodePath} from '@babel/traverse';
 
 import transform from './transform';
 import findIdentifiers from './findIdentifiers';
