@@ -36,7 +36,7 @@ export default class FlowRuntimePage extends Component {
             <p className="lead">A runtime type system for JavaScript with full  <a href="https://flowtype.org/" target="_blank">Flow</a> compatibility.
             </p>
             <a href="https://github.com/codemix/flow-runtime/tree/master/packages/flow-runtime" className="btn btn-primary">
-              <i className="fa fa-github" />
+              <i className="fab fa-github" />
               {' '}
               flow-runtime on github
             </a>

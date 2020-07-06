@@ -66,7 +66,7 @@ export default class BabelPluginFlowRuntimePage extends Component {
             <p className="lead">A babel plugin which transforms <a href="https://flowtype.org/" target="_blank">Flow</a> annotations into <code>Type</code> instances available at runtime, and optionally checks values against those types.
             </p>
             <a href="https://github.com/codemix/flow-runtime/tree/master/packages/babel-plugin-flow-runtime" className="btn btn-primary">
-              <i className="fa fa-github" />
+              <i className="fab fa-github" />
               {' '}
               babel-plugin-flow-runtime on github
             </a>

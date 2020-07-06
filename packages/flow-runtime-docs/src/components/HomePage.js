@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 import {observer} from 'mobx-react';
-import logo from '../../assets/logo.png';
+import logo from './assets/logo.png';
 import {Link} from 'react-router';
 
 import Example from './Example';
@@ -128,4 +128,3 @@ export default class HomePage extends Component {
     );
   }
 }
-

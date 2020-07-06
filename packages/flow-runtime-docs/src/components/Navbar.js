@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import {observer} from 'mobx-react';
 import {Link, IndexLink} from 'react-router';
-import logo from '../../assets/logo.png';
+import logo from './assets/logo.png';
 
 
 @observer
@@ -24,7 +24,7 @@ export default class Navbar extends Component {
           <ul className="nav navbar-nav float-sm-right hidden-xs-down">
             <li className="nav-item">
               <a href="https://github.com/codemix/flow-runtime" className="nav-link">
-                <i className="fa fa-github" />
+                <i className="fab fa-github" />
                 {' '}
                 <span className="hidden-sm-down">flow-runtime on</span>
                 {' '}
@@ -37,4 +37,3 @@ export default class Navbar extends Component {
     );
   }
 }
-
