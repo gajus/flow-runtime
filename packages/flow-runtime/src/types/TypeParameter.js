@@ -4,7 +4,7 @@ import Type from './Type';
 import compareTypes from '../compareTypes';
 import FlowIntoType from "./FlowIntoType";
 import TypeAlias from './TypeAlias';
-import TypeParameterApplication from './TypeParameterApplication'
+import TypeParameterApplication from './TypeParameterApplication';
 
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
