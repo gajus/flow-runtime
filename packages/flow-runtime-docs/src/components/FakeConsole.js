@@ -40,11 +40,11 @@ export default class FakeConsole extends Component<Props, void> {
             let className, icon;
             if (type === 'warn') {
               className = 'text-warning';
-              icon = <i className="fa fa-exclamation-triangle" />;
+              icon = <i className="fas fa-exclamation-triangle" />;
             }
             else if (type === 'error') {
               className = 'text-danger';
-              icon = <i className="fa fa-times-circle" />;
+              icon = <i className="fas fa-times-circle" />;
             }
             else if (type !== 'react') {
               className = 'text-muted';
@@ -63,4 +63,3 @@ export default class FakeConsole extends Component<Props, void> {
     );
   }
 }
-

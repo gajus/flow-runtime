@@ -1,7 +1,8 @@
 /* @flow */
 
-import 'regenerator-runtime/runtime';
-import './typedefs';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '@fortawesome/fontawesome-free/css/all.css';
+import './components/index.css';
 
 import t from 'flow-runtime';
 import * as mobx from 'mobx';
@@ -12,9 +13,6 @@ flowRuntimeMobx(t, mobx);
 import React from 'react';
 import ReactDOM from 'react-dom';
 import EntryPoint from './components/EntryPoint';
-import './components/index.css';
-
-import '../assets/common.scss';
 
 global.t = t;
 

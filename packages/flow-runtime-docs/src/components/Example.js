@@ -54,7 +54,7 @@ export default class Example extends Component<Props, void> {
         <CodeMirror value={compiler.transformed} readOnly />
         <br />
         <button className="btn btn-primary" onClick={this.runCode} disabled={!compiler.isReady}>
-          {!compiler.isReady && <i className="fa fa-spinner fa-pulse" />}
+          {!compiler.isReady && <i className="fas fa-spinner fa-pulse" />}
           {!compiler.isReady ? ' Starting compiler...' : 'Run'}
         </button>
       </div>
@@ -67,7 +67,7 @@ export default class Example extends Component<Props, void> {
           {!hideOutput && output}
           {hideOutput && (
             <button className="btn btn-primary" onClick={this.runCode} disabled={!compiler.isReady}>
-              {!compiler.isReady && <i className="fa fa-spinner fa-pulse" />}
+              {!compiler.isReady && <i className="fas fa-spinner fa-pulse" />}
               {!compiler.isReady ? ' Starting compiler...' : 'Run'}
             </button>
           )}
@@ -93,4 +93,3 @@ export default class Example extends Component<Props, void> {
     );
   }
 }
-

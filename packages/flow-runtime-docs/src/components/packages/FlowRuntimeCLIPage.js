@@ -63,7 +63,7 @@ export default class FlowRuntimeCLIPage extends Component {
                 A command line utility for working with flow and flow-runtime.
             </p>
             <a href="https://github.com/codemix/flow-runtime/tree/master/packages/flow-runtime-cli" className="btn btn-primary">
-              <i className="fa fa-github" />
+              <i className="fab fa-github" />
               {' '}
               flow-runtime-cli on github
             </a>

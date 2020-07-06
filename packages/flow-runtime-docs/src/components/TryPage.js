@@ -93,7 +93,7 @@ export default class TryPage extends Component<Props, void> {
                 {compiler.shouldAnnotate ? 'Disable Annotations' : 'Enable Annotations'}
               </button>
               <button className="btn btn-primary" onClick={this.runCode} disabled={!compiler.isReady}>
-                {!compiler.isReady && <i className="fa fa-spinner fa-pulse" />}
+                {!compiler.isReady && <i className="fas fa-spinner fa-pulse" />}
                 {!compiler.isReady ? ' Starting compiler...' : 'Run'}
               </button>
             </div>
@@ -135,4 +135,3 @@ export default class TryPage extends Component<Props, void> {
     );
   }
 }
-
