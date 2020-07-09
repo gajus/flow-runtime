@@ -2,24 +2,29 @@
 
 import React from 'react';
 
-import CodeMirror from 'react-codemirror';
+import {UnControlled as CodeMirror} from 'react-codemirror2';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/lib/codemirror.css';
 
 type Props = {
-  value: string;
+  value: string,
 };
 
 export default class CodeOutput extends React.Component<Props, void> {
-  render () {
+  render() {
     const options = {
       lineNumbers: true,
       mode: 'javascript',
       tabSize: 2,
-      readOnly: true
+      readOnly: true,
     };
     return (
-        <CodeMirror value={this.props.value} options={options} />
+      <CodeMirror
+        value={this.props.value}
+        options={options}
+        autoCursor={false}
+        autoScroll={false}
+      />
     );
   }
 }
