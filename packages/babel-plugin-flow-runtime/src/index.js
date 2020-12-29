@@ -18,7 +18,6 @@ import getTypeParameters from './getTypeParameters';
 export default function babelPluginFlowRuntime () {
   return {
     visitor: {
-
       Program (path: NodePath, state: Object) {
         const {opts} = state;
 

@@ -97,6 +97,8 @@ export default function firstPassVisitors (context: ConversionContext): Object {
           }
         }
       }
+
+      context.lastImportDeclaration = path;
     },
     VariableDeclarator (path: NodePath) {
       for (const id of findIdentifiers(path.get('id'))) {

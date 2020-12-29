@@ -36,6 +36,7 @@ export default class ConversionContext {
   isAnnotating: boolean = false;
   suppressCommentPatterns: RegExp[] = [/\$FlowFixMe/];
   suppressTypeNames: string[] = ['$FlowFixMe'];
+  lastImportDeclaration: ?NodePath = null;
 
   /**
    * A set of nodes that have already been visited.

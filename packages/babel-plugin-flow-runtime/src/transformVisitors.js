@@ -57,17 +57,8 @@ export default function transformVisitors (context: ConversionContext): Object {
           ]));
         }
         if (declarations.length !== 0) {
-          let target = path;
+          let target = context.lastImportDeclaration || path;
 
-          const container = path.parentPath.get(path.listKey);
-          for (let i = path.key; i < container.length; i++) {
-            const item = container[i];
-            if (item.isImportDeclaration()) {
-              target = item;
-              continue;
-            }
-            break;
-          }
           for (let i = declarations.length - 1; i >= 0; i--) {
             target.insertAfter(declarations[i]);
           }
