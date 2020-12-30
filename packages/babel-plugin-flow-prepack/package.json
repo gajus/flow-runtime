@@ -2,7 +2,7 @@
   "name": "babel-plugin-flow-prepack",
   "homepage": "https://codemix.github.io/flow-runtime",
   "repository": "https://github.com/codemix/flow-runtime.git",
-  "version": "0.13.0",
+  "version": "0.20.0",
   "description": "Transforms flow type annotations into prepack __assumeDataProperty() and __abstract() calls.",
   "main": "babel-plugin-flow-prepack.js",
   "scripts": {
