@@ -21,6 +21,7 @@ const FLOW_TYPENAMES = {
   $Supertype: '$supertype',
   $TupleMap: '$tupleMap',
   $Values: '$values',
+  $ReadOnlyArray: '$readOnlyArray',
   Class: 'Class'
 };
 

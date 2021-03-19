@@ -1,10 +1,9 @@
 /* @flow */
 
-import Type from './Type';
-import TupleType from './TupleType';
-import $ReadOnlyArrayType from './$ReadOnlyArrayType';
+import Type from '../types/Type';
+import TupleType from '../types/TupleType';
+import ArrayType from '../types/ArrayType';
 import compareTypes from '../compareTypes';
-
 import getErrorMessage from '../getErrorMessage';
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
 
@@ -17,8 +16,8 @@ import {
   endToStringCycle,
 } from '../cyclic';
 
-export default class ArrayType<T> extends Type<Array<T>> {
-  typeName: string = 'ArrayType';
+export default class $ReadOnlyArrayType<T> extends Type<$ReadOnlyArray<T>> {
+  typeName: string = '$ReadOnlyArrayType';
   elementType: Type<T>;
 
   *errors(
@@ -27,7 +26,7 @@ export default class ArrayType<T> extends Type<Array<T>> {
     input: any,
   ): Generator<ErrorTuple, void, void> {
     const {context} = this;
-    if (!context.checkPredicate('Array', input) || context.checkPredicate('$ReadOnlyArray', input)) {
+    if (!context.checkPredicate('Array', input)) {
       yield [path, getErrorMessage('ERR_EXPECT_ARRAY'), this];
       return;
     }
@@ -40,6 +39,11 @@ export default class ArrayType<T> extends Type<Array<T>> {
 
     for (let i = 0; i < length; i++) {
       yield* elementType.errors(validation, path.concat(i), input[i]);
+    }
+    if (context.mode === 'assert') {
+      Object.freeze(input);
+    } else {
+      // TODO: support warning mode somehow
     }
     validation.endCycle(this, input);
   }
@@ -78,8 +82,6 @@ export default class ArrayType<T> extends Type<Array<T>> {
       return 1;
     } else if (input instanceof ArrayType) {
       return compareTypes(elementType, input.elementType);
-    } else if (input instanceof $ReadOnlyArrayType) {
-      return compareTypes(elementType, input.elementType);
     } else {
       return -1;
     }
@@ -89,13 +91,13 @@ export default class ArrayType<T> extends Type<Array<T>> {
     const {elementType} = this;
     if (inToStringCycle(this)) {
       if (typeof elementType.name === 'string') {
-        return `Array<$Cycle<${elementType.name}>>`;
+        return `$ReadOnlyArray<$Cycle<${elementType.name}>>`;
       } else {
-        return `Array<$Cycle<Object>>`;
+        return `$ReadOnlyArray<$Cycle<Object>>`;
       }
     }
     startToStringCycle(this);
-    const output = `Array<${elementType.toString()}>`;
+    const output = `$ReadOnlyArray<${elementType.toString()}>`;
     endToStringCycle(this);
     return output;
   }

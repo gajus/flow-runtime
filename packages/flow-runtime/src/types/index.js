@@ -1,38 +1,37 @@
 /* @flow */
 
-export type TypeCreator <T> = (partial: PartialType<T>) => T;
-export type TypeRevealer <T> = () => ? Type<T> | Class<T>;
+export type TypeCreator<T> = (partial: PartialType<T>) => T;
+export type TypeRevealer<T> = () => ?Type<T> | Class<T>;
 
-export type FunctionBodyCreator <X, P, R> = (
-  partial: PartialType<(...params: P[]) => R>
+export type FunctionBodyCreator<X, P, R> = (
+  partial: PartialType<(...params: P[]) => R>,
 ) => Array<ValidFunctionBody<X, P, R>>;
 
-export type ValidFunctionBody<X, P, R>
- = TypeParameter<X>
- | FunctionTypeParam<X | P>
- | FunctionTypeRestParam<X | P>
- | FunctionTypeReturn<R>
- ;
+export type ValidFunctionBody<X, P, R> =
+  | TypeParameter<X>
+  | FunctionTypeParam<X | P>
+  | FunctionTypeRestParam<X | P>
+  | FunctionTypeReturn<R>;
 
 export type ObjectPropertyDict<T> = $ObjMap<T, <V>(v: Type<V>) => V>;
 
-export type ValidObjectBody<O: {}>
- = ObjectTypeCallProperty<any>
- | ObjectTypeProperty<$Keys<O>, $ObjMap<O, <V>(v: Type<V>) => V>>
- | ObjectTypeIndexer<*, *>
- ;
+export type ValidObjectBody<O: {}> =
+  | ObjectTypeCallProperty<any>
+  | ObjectTypeProperty<$Keys<O>, $ObjMap<O, <V>(v: Type<V>) => V>>
+  | ObjectTypeIndexer<*, *>;
 
-export type TypeConstraint = (input: any) => ? string;
+export type TypeConstraint = (input: any) => ?string;
 
 export type ApplicableType<T> = Type<T> & {
-  name: string;
-  apply <P> (...typeParameters: Type<P>[]): TypeParameterApplication<P, T>;
+  name: string,
+  apply<P>(...typeParameters: Type<P>[]): TypeParameterApplication<P, T>,
 };
 
 export type Constructor<T> = Class<T>;
 
 import AnyType from './AnyType';
 import ArrayType from './ArrayType';
+import $ReadOnlyArrayType from './$ReadOnlyArrayType';
 import BooleanLiteralType from './BooleanLiteralType';
 import BooleanType from './BooleanType';
 import EmptyType from './EmptyType';
@@ -78,6 +77,7 @@ import VoidType from './VoidType';
 export {
   AnyType,
   ArrayType,
+  $ReadOnlyArrayType,
   BooleanLiteralType,
   BooleanType,
   EmptyType,
@@ -118,5 +118,5 @@ export {
   TypeReference,
   TypeTDZ,
   UnionType,
-  VoidType
+  VoidType,
 };

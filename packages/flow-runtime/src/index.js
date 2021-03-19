@@ -2,12 +2,10 @@
 
 import globalContext from './globalContext';
 
-import {
-  TypeParametersSymbol,
-  TypeSymbol
-} from './symbols';
+import { TypeParametersSymbol, TypeSymbol } from './symbols';
 
 import AnyType from './types/AnyType';
+import $ReadOnlyArrayType from './types/$ReadOnlyArrayType';
 import ArrayType from './types/ArrayType';
 import BooleanLiteralType from './types/BooleanLiteralType';
 import BooleanType from './types/BooleanType';
@@ -64,6 +62,7 @@ export default globalContext;
 
 export {
   AnyType,
+  $ReadOnlyArrayType,
   ArrayType,
   BooleanLiteralType,
   BooleanType,
@@ -106,7 +105,6 @@ export {
   TypeTDZ,
   UnionType,
   VoidType,
-
   Declaration,
   TypeDeclaration,
   VarDeclaration,
@@ -115,7 +113,6 @@ export {
   ClassDeclaration,
   ParameterizedClassDeclaration,
   ExtendsDeclaration,
-
   TypeParametersSymbol,
-  TypeSymbol
+  TypeSymbol,
 };
