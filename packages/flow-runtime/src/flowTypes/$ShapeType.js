@@ -26,7 +26,10 @@ export default class $ShapeType<T> extends Type<$Shape<T>> {
     }
 
     type = type.unwrap();
-    invariant(typeof type.getProperty === 'function', 'Can only $Shape<T> object types.');
+    if (typeof type.getProperty !== 'function') {
+      yield [path, 'Can only $Shape<T> object types.', this];
+      return;
+    }
 
     for (const key in input) { // eslint-disable-line guard-for-in
       const property = type.getProperty(key);
