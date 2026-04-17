@@ -457,6 +457,36 @@ describe('Typed API', () => {
 
   });
 
+  it('should warn instead of throwing for invalid $Shape types in warn mode', () => {
+    const input = {foo: 'bar'};
+    const messages = [];
+    const originalMode = t.mode;
+    const originalEmitWarningMessage = t.emitWarningMessage;
+
+    t.mode = 'warn';
+    t.emitWarningMessage = (message) => {
+      messages.push(message);
+    };
+
+    try {
+      const invalidShape = t.$shape(t.string());
+      equal(t.check(invalidShape, input), input);
+      equal(messages.length, 1);
+      ok(messages[0].includes('Can only $Shape<T> object types.'));
+    }
+    finally {
+      t.mode = originalMode;
+      t.emitWarningMessage = originalEmitWarningMessage;
+    }
+  });
+
+  it('should still throw for invalid $Shape types in assert mode', () => {
+    const invalidShape = t.$shape(t.string());
+    throws(() => {
+      t.assert(invalidShape, {foo: 'bar'});
+    }, /Can only \$Shape<T> object types\./);
+  });
+
   it('should $Keys<A>', () => {
     const A = t.object(
       t.property('name', t.string()),
