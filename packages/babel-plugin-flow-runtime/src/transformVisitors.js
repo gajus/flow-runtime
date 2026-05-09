@@ -216,16 +216,17 @@ export default function transformVisitors (context: ConversionContext): Object {
       if (!id.has('typeAnnotation')) {
         return;
       }
+      if (!shouldCheck) {
+        return;
+      }
       if (!id.isIdentifier()) {
         invariant(id.isArrayPattern() || id.isObjectPattern());
         const init = path.get('init');
         let wrapped = init.node;
-        if (shouldCheck) {
-          wrapped = context.assert(
-            convert(context, id.get('typeAnnotation')),
-            wrapped
-          );
-        }
+        wrapped = context.assert(
+          convert(context, id.get('typeAnnotation')),
+          wrapped
+        );
         if (wrapped !== init.node) {
           context.replacePath(init, wrapped);
         }
