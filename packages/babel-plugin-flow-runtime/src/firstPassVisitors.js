@@ -101,6 +101,20 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       context.lastImportDeclaration = path;
     },
     VariableDeclarator (path: NodePath) {
+      const init = path.get('init');
+      const idPath = path.get('id');
+
+      if (
+        context.libraryImport === 'require' &&
+        idPath.isIdentifier() &&
+        init.isCallExpression() &&
+        init.get('callee').isIdentifier({name: 'require'}) &&
+        init.get('arguments.0').isStringLiteral({value: context.libraryName})
+      ) {
+        context.shouldImport = false;
+        context.libraryId = idPath.node.name;
+      }
+
       for (const id of findIdentifiers(path.get('id'))) {
         const {name} = id.node;
         context.defineValue(name, path);

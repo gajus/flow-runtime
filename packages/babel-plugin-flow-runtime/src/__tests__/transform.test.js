@@ -25,4 +25,55 @@ describe('transform', () => {
       });
     }
   }
+
+  it('should support requiring the runtime library', () => {
+    testTransform(`
+      type User = {
+        id: number;
+        name: string;
+      };
+    `, {assert: true, annotate: false, libraryImport: 'require'}, `
+      const t = require("flow-runtime");
+
+      const User = t.type("User", t.object(
+        t.property("id", t.number()),
+        t.property("name", t.string())
+      ));
+    `);
+  });
+
+  it('should support requiring a custom runtime library', () => {
+    testTransform(`
+      type User = {
+        id: number;
+      };
+    `, {
+      assert: true,
+      annotate: false,
+      libraryName: './custom-flow-runtime',
+      libraryImport: 'require'
+    }, `
+      const t = require("./custom-flow-runtime");
+
+      const User = t.type("User", t.object(
+        t.property("id", t.number())
+      ));
+    `);
+  });
+
+  it('should reuse an existing required runtime binding', () => {
+    testTransform(`
+      const rt = require("flow-runtime");
+
+      type User = {
+        id: number;
+      };
+    `, {assert: true, annotate: false, libraryImport: 'require'}, `
+      const rt = require("flow-runtime");
+
+      const User = rt.type("User", rt.object(
+        rt.property("id", rt.number())
+      ));
+    `);
+  });
 });

@@ -12,6 +12,7 @@ export type Options = {
   // deprecated
   decorate?: boolean;
   libraryName?: string,
+  libraryImport?: string,
   optInOnly?: boolean;
 };
 
@@ -21,6 +22,10 @@ export default function createConversionContext (options: Options): ConversionCo
 
   if (options.libraryName) {
     context.libraryName = options.libraryName;
+  }
+
+  if (options.libraryImport) {
+    context.libraryImport = options.libraryImport;
   }
 
   context.optInOnly = options.optInOnly ? true : false;

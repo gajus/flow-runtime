@@ -6,12 +6,21 @@ import type {NodePath} from '@babel/traverse';
 
 export default function attachImport (context: ConversionContext, program: NodePath) {
 
-  const importDeclaration = t.importDeclaration(
-    [t.importDefaultSpecifier(t.identifier(context.libraryId))],
-    t.stringLiteral(context.libraryName)
-  );
+  const importDeclaration = context.libraryImport === 'require'
+    ? t.variableDeclaration('const', [
+      t.variableDeclarator(
+        t.identifier(context.libraryId),
+        t.callExpression(t.identifier('require'), [t.stringLiteral(context.libraryName)])
+      )
+    ])
+    : t.importDeclaration(
+      [t.importDefaultSpecifier(t.identifier(context.libraryId))],
+      t.stringLiteral(context.libraryName)
+    );
 
-  importDeclaration.importKind = 'value';
+  if (t.isImportDeclaration(importDeclaration)) {
+    importDeclaration.importKind = 'value';
+  }
 
   context.shouldImport = false;
 
