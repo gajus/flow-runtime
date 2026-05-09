@@ -11,6 +11,12 @@ import {ok as invariant} from 'assert';
 import type {Node, NodePath} from '@babel/traverse';
 
 const flowConfig = loadFlowConfig();
+const VALUE_REFERENCE_TYPE_CONSTRUCTORS = new Set([
+  'Date',
+  'Map',
+  'Promise',
+  'Set'
+]);
 
 export default function transformVisitors (context: ConversionContext): Object {
   const shouldCheck = context.shouldAssert || context.shouldWarn;
@@ -813,7 +819,7 @@ export default function transformVisitors (context: ConversionContext): Object {
             null,
             [],
             t.blockStatement([
-              t.returnStatement(convert(context, typeAnnotation))
+              t.returnStatement(convertClassPropertyDecoratorType(context, typeAnnotation))
             ])
           )
         ];
@@ -827,12 +833,12 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       else if (context.shouldWarn) {
         decorator = t.decorator(
-          context.call('decorate', convert(context, typeAnnotation), t.booleanLiteral(false))
+          context.call('decorate', convertClassPropertyDecoratorType(context, typeAnnotation), t.booleanLiteral(false))
         );
       }
       else {
         decorator = t.decorator(
-          context.call('decorate', convert(context, typeAnnotation))
+          context.call('decorate', convertClassPropertyDecoratorType(context, typeAnnotation))
         );
       }
       if (!path.has('decorators')) {
@@ -841,6 +847,44 @@ export default function transformVisitors (context: ConversionContext): Object {
       path.unshiftContainer('decorators', decorator);
     }
   };
+}
+
+function convertClassPropertyDecoratorType (context: ConversionContext, path: NodePath): Node {
+  const converted = convert(context, path);
+  rewriteValueReferenceTypeConstructors(context, converted);
+  return converted;
+}
+
+function rewriteValueReferenceTypeConstructors (context: ConversionContext, node: any) {
+  if (!node || typeof node !== 'object') {
+    return;
+  }
+
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      rewriteValueReferenceTypeConstructors(context, item);
+    }
+    return;
+  }
+
+  if (
+    t.isCallExpression(node) &&
+    t.isMemberExpression(node.callee) &&
+    !node.callee.computed &&
+    t.isIdentifier(node.callee.object, {name: context.libraryId}) &&
+    t.isIdentifier(node.callee.property, {name: 'ref'}) &&
+    t.isStringLiteral(node.arguments[0]) &&
+    VALUE_REFERENCE_TYPE_CONSTRUCTORS.has(node.arguments[0].value)
+  ) {
+    node.arguments[0] = t.identifier(node.arguments[0].value);
+  }
+
+  for (const key of Object.keys(node)) {
+    if (key === 'loc' || key === 'start' || key === 'end') {
+      continue;
+    }
+    rewriteValueReferenceTypeConstructors(context, node[key]);
+  }
 }
 
 function isReactComponentClass (path: NodePath): boolean {
