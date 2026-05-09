@@ -1,0 +1,5 @@
+declare module 'fixture-package' {
+  declare class ExternalUser {
+    name: string;
+  }
+}
