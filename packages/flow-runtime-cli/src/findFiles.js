@@ -22,8 +22,12 @@ async function collectFiles (fileOrDir: string, collected: string[]): Promise<st
       await collectFiles(path.join(fileOrDir, item), collected);
     }
   }
-  else if (collected.indexOf(fileOrDir) === -1 && /\.js(x|m)?$/.test(fileOrDir)) {
+  else if (collected.indexOf(fileOrDir) === -1 && isJavaScriptFile(fileOrDir)) {
     collected.push(fileOrDir);
   }
   return collected;
+}
+
+function isJavaScriptFile (filename: string): boolean {
+  return /\.js(x|m)?$/.test(filename) || /\.js\.flow$/.test(filename);
 }
