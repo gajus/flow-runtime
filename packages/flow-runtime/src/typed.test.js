@@ -457,6 +457,19 @@ describe('Typed API', () => {
 
   });
 
+  it('should warn instead of throwing when validation throws', () => {
+    const context = t.createContext();
+    const type = context.$shape(context.string());
+    let warning;
+    const input = {};
+    context.emitWarningMessage = (message) => {
+      warning = message;
+    };
+
+    equal(context.warn(type, input), input);
+    ok(warning.indexOf('Can only $Shape<T> object types.') !== -1);
+  });
+
   it('should $Keys<A>', () => {
     const A = t.object(
       t.property('name', t.string()),
