@@ -3,6 +3,8 @@ import {ok, equal, throws} from 'assert';
 
 import t from './globalContext';
 
+const BabelRuntimeMap: any = require('babel-runtime/core-js/map').default; // eslint-disable-line import/no-extraneous-dependencies
+
 const no = (input: any): any => equal(Boolean(input), false);
 
 describe('Typed API', () => {
@@ -257,6 +259,22 @@ describe('Typed API', () => {
       ['notvalid', false]
     ])));
 
+  });
+
+  it('should accept a babel-runtime Map<string, number>', () => {
+    const RuntimeMap = BabelRuntimeMap;
+    const type = t.ref(Map, t.string(), t.number());
+
+    const valid = new RuntimeMap([
+      ['valid', 123]
+    ]);
+    ok(type.accepts(valid));
+
+    const invalid = new RuntimeMap([
+      ['valid', 123],
+      ['notvalid', false]
+    ]);
+    no(type.accepts(invalid));
   });
 
   it('should make a simple function type', () => {
