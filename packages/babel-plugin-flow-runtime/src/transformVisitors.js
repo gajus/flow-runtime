@@ -233,6 +233,10 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       const {name} = id.node;
 
+      if (!shouldCheck) {
+        return;
+      }
+
       if (!path.has('init') || path.parentPath.node.kind !== 'const') {
         const valueUid = path.scope.generateUidIdentifier(`${name}Type`);
         path.scope.setData(`valueUid:${name}`, valueUid);
@@ -263,7 +267,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           ));
         }
 
-        if (shouldCheck && path.has('init')) {
+        if (path.has('init')) {
           const wrapped = context.assert(
             valueUid,
             path.get('init').node
@@ -276,7 +280,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           ));
         }
       }
-      else if (shouldCheck) {
+      else {
         const wrapped = context.assert(
           convert(context, id.get('typeAnnotation')),
           path.get('init').node
