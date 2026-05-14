@@ -5,13 +5,27 @@ import type ConversionContext from './ConversionContext';
 import type {NodePath} from '@babel/traverse';
 
 export default function attachImport (context: ConversionContext, program: NodePath) {
+  const declaration = context.importType === 'require'
+    ? t.variableDeclaration(
+      'const',
+      [
+        t.variableDeclarator(
+          t.identifier(context.libraryId),
+          t.callExpression(
+            t.identifier('require'),
+            [t.stringLiteral(context.libraryName)]
+          )
+        )
+      ]
+    )
+    : t.importDeclaration(
+      [t.importDefaultSpecifier(t.identifier(context.libraryId))],
+      t.stringLiteral(context.libraryName)
+    );
 
-  const importDeclaration = t.importDeclaration(
-    [t.importDefaultSpecifier(t.identifier(context.libraryId))],
-    t.stringLiteral(context.libraryName)
-  );
-
-  importDeclaration.importKind = 'value';
+  if (declaration.type === 'ImportDeclaration') {
+    declaration.importKind = 'value';
+  }
 
   context.shouldImport = false;
 
@@ -22,14 +36,14 @@ export default function attachImport (context: ConversionContext, program: NodeP
       continue;
     }
 
-    item.insertBefore(importDeclaration);
+    item.insertBefore(declaration);
     return;
   }
 
   if (last) {
-    last.insertAfter(importDeclaration);
+    last.insertAfter(declaration);
   }
   else {
-    program.get('body').unshiftContainer('body', importDeclaration);
+    program.get('body').unshiftContainer('body', declaration);
   }
 }

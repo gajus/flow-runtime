@@ -28,6 +28,7 @@ export default class ConversionContext {
 
   libraryName: string = 'flow-runtime';
   libraryId: string = 't';
+  importType: 'import' | 'require' = 'import';
   shouldImport: boolean = true;
   shouldAssert: boolean = true;
   shouldWarn: boolean = false;

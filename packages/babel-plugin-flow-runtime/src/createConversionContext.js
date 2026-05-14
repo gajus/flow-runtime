@@ -12,6 +12,7 @@ export type Options = {
   // deprecated
   decorate?: boolean;
   libraryName?: string,
+  importType?: 'import' | 'require',
   optInOnly?: boolean;
 };
 
@@ -21,6 +22,9 @@ export default function createConversionContext (options: Options): ConversionCo
 
   if (options.libraryName) {
     context.libraryName = options.libraryName;
+  }
+  if (options.importType === 'require' || options.importType === 'import') {
+    context.importType = options.importType;
   }
 
   context.optInOnly = options.optInOnly ? true : false;
