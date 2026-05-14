@@ -43,6 +43,7 @@ export type Fixture = {
   annotated?: string;
   combined?: string;
   customRuntime?: string;
+  requireRuntime?: string;
   integration?: boolean;
 };
 

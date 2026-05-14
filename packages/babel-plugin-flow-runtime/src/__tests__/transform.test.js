@@ -5,7 +5,7 @@ import fixtures from './fixtures';
 import testTransform from './testTransform';
 
 describe('transform', () => {
-  for (const [name, {input, expected, annotated, combined, customRuntime, integration}] of fixtures) {
+  for (const [name, {input, expected, annotated, combined, customRuntime, requireRuntime, integration}] of fixtures) {
     it(`should transform ${name}`, () => {
       testTransform(input, {assert: true, annotate: false}, expected, integration);
     });
@@ -22,6 +22,11 @@ describe('transform', () => {
     if (customRuntime) {
       it(`should transform ${name} with custom runtime path`, () => {
         testTransform(input, {libraryName: './custom-flow-runtime'}, customRuntime, integration);
+      });
+    }
+    if (requireRuntime) {
+      it(`should transform ${name} with require runtime import`, () => {
+        testTransform(input, {importType: 'require'}, requireRuntime, integration);
       });
     }
   }

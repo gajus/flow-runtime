@@ -61,6 +61,7 @@ The plugin supports the following options:
 - `assert` - Boolean, indicates whether types should be asserted at runtime. Defaults to `true` if `process.env.NODE_ENV === 'development'`, otherwise `false`.
 - `annotate` - Boolean, indicates whether object or function values that have type annotations should be decorated with those types at runtime. Defaults to `true`.
 - `libraryName` - String, indicates which runtime to use. Defaults to `flow-runtime`
+- `importType` - String, controls how the runtime is referenced. Defaults to `import`. Allowed values: `import`, `require`.
 
 
 If `assert` is `true`, the following code:
@@ -115,6 +116,26 @@ type User = {
 turns into:
 ```js
 import t from 'flow-runtime';
+const User = t.type('User', t.object(
+  t.property('id', t.number()),
+  t.property('name', t.string())
+));
+```
+
+If you need CommonJS output without adding another module transform step, use:
+
+```json
+{
+  "plugins": [["flow-runtime", {
+    "importType": "require"
+  }]]
+}
+```
+
+which emits:
+
+```js
+const t = require('flow-runtime');
 const User = t.type('User', t.object(
   t.property('id', t.number()),
   t.property('name', t.string())
