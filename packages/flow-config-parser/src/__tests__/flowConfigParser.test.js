@@ -38,6 +38,7 @@ describe('Flow Config Parser', function () {
 
     equal(result.remapModule('bluebird'), 'bluebird');
     equal(result.remapModule('image!abc'), 'ImageStub');
+    equal(result.remapModule('styles/main.css'), `${process.cwd()}/CSSFlowStub.js.flow`);
 
     equal(result.get('munge_underscores'), true);
 
@@ -65,6 +66,24 @@ describe('Flow Config Parser', function () {
     equal(
       result.remapModule('some/matching/test/group'),
       'replaced/test/group',
+    );
+  });
+
+  it('should support module.name_mapper.extension shorthand', () => {
+    const result = parse(`
+      [ignore]
+
+      [include]
+
+      [lib]
+
+      [options]
+      module.name_mapper.extension='png' -> 'assets/\\1.stub'
+    `);
+
+    equal(
+      result.remapModule('icons/check.png'),
+      'assets/icons/check.stub',
     );
   });
 });

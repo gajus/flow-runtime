@@ -12,7 +12,8 @@ const KNOWN_REGEXPS = {
   ignore: true,
   options: {
     'suppress_comment': true,
-    'module.name_mapper': true
+    'module.name_mapper': true,
+    'module.name_mapper.extension': true
   }
 };
 
@@ -81,7 +82,22 @@ export default function parseFlowConfig (input: string, projectRoot: string = pr
       if (matchesKeyValue) {
         const key = matchesKeyValue[1];
         let value = matchesKeyValue[2];
-        if (KNOWN_REGEXPS[sectionName] && KNOWN_REGEXPS[sectionName][key]) {
+        if (key === 'module.name_mapper.extension') {
+          const matchesMapper = /^\s*'(.*)'\s*->\s*'(.*)'$/.exec(value);
+          if (matchesMapper) {
+            const extension = escapeRegExp(matchesMapper[1]);
+            value = [
+              regexpify(`^(.*)\\.${extension}$`),
+              matchesMapper[2]
+                .replace(/\\(\d)/g, '$$$1')
+                .replace(/<PROJECT_ROOT>/g, process.cwd()),
+            ];
+          }
+          else {
+            value = regexpify(value);
+          }
+        }
+        else if (KNOWN_REGEXPS[sectionName] && KNOWN_REGEXPS[sectionName][key]) {
           const matchesMapper = /^\s*'(.*)'\s*->\s*'(.*)'$/.exec(value);
           if (matchesMapper) {
             value = [
@@ -123,6 +139,10 @@ function regexpify (input: string, projectRoot: string = process.cwd()): RegExp 
     .replace(/\\([(|)])/g, (a, b) => b)
     .replace(/<PROJECT_ROOT>/g, projectRoot)
     .replace(/\//g, '\\/'));
+}
+
+function escapeRegExp (input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 
@@ -172,6 +192,12 @@ export class FlowConfig {
   remapModule (name: string): string {
     const mappers = this.get('module.name_mapper');
     for (const [pattern, redirect] of mappers) {
+      if (pattern.test(name)) {
+        return name.replace(pattern, redirect);
+      }
+    }
+    const extensionMappers = this.get('module.name_mapper.extension');
+    for (const [pattern, redirect] of extensionMappers) {
       if (pattern.test(name)) {
         return name.replace(pattern, redirect);
       }
