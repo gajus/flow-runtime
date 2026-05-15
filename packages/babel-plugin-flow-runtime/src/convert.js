@@ -606,6 +606,10 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
       return context.call("object");
     } else if (name === "Symbol") {
       return context.call("symbol");
+    } else if (name === "Map") {
+      // Use value reference for Map so later transforms (e.g. transform-runtime)
+      // can rewrite both constructor usage and type reference consistently.
+      return context.call("ref", t.identifier(name), ...typeParameters);
     }
   }
 
