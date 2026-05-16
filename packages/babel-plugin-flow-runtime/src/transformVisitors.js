@@ -504,7 +504,7 @@ export default function transformVisitors (context: ConversionContext): Object {
             if (body.node.body
               // do not add if last statement is return one
               && (body.node.body.length === 0
-                || !body.node.body[ body.node.body.length - 1].type === "ReturnStatement")
+                || body.node.body[ body.node.body.length - 1].type !== "ReturnStatement")
             ) {
               // we do not add arguments here
               // only "return;"
