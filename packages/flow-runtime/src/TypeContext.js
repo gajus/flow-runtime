@@ -1027,7 +1027,19 @@ export default class TypeContext {
   }
 
   warn <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
-    const validation = this.validate(type, input, prefix, path);
+    let validation;
+    try {
+      validation = this.validate(type, input, prefix, path);
+    }
+    catch (error) {
+      if (error instanceof Error) {
+        this.emitWarningMessage(error.message);
+      }
+      else {
+        this.emitWarningMessage(String(error));
+      }
+      return input;
+    }
     const message = makeWarningMessage(validation);
     if (typeof message === 'string') {
       this.emitWarningMessage(message);
