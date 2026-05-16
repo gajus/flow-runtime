@@ -600,6 +600,10 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
   if (!entity) {
     if (name === "Array") {
       return context.call("array", ...typeParameters);
+    } else if (name === "$ReadOnlyArray") {
+      // Flow treats $ReadOnlyArray<T> as an array view with read-only semantics.
+      // Runtime representation is still an array type assertion.
+      return context.call("array", ...typeParameters);
     } else if (name === "Function") {
       return context.call("function");
     } else if (name === "Object") {
