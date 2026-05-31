@@ -2,7 +2,7 @@
 
 A babel plugin which transforms [Flow](https://flowtype.org/) annotations into `Type` instances available at runtime, and optionally checks values against those types.
 
-Supports all of flow's syntax, aims for full compatibilty with flow, found a bug? Please [report it](https://github.com/codemix/flow-runtime/issues).
+Supports all of flow's syntax, aims for full compatibility with flow, found a bug? Please [report it](https://github.com/codemix/flow-runtime/issues).
 
 
 ## What?
