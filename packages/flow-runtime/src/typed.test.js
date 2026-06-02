@@ -6,6 +6,21 @@ import t from './globalContext';
 const no = (input: any): any => equal(Boolean(input), false);
 
 describe('Typed API', () => {
+  it('should warn instead of throwing validation-time invariant errors', () => {
+    const context = t.createContext();
+    const type = context.$shape(context.string());
+    const input = {foo: 'bar'};
+    const messages = [];
+
+    context.emitWarningMessage = message => {
+      messages.push(message);
+    };
+
+    equal(context.warn(type, input), input);
+    equal(messages.length, 1);
+    ok(/Can only \$Shape<T> object types\./.test(messages[0]));
+  });
+
   it('should check a string', () => {
     const type = t.string();
     ok(type.accepts('helo world'));
