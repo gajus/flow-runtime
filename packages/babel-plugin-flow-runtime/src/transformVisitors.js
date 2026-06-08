@@ -501,15 +501,18 @@ export default function transformVisitors (context: ConversionContext): Object {
 
             // explicit check as last statement for implicit function returns
             // like in function test() : string { /*NOOP*/ }
-            if (body.node.body
-              // do not add if last statement is return one
-              && (body.node.body.length === 0
-                || !body.node.body[ body.node.body.length - 1].type === "ReturnStatement")
-            ) {
-              // we do not add arguments here
-              // only "return;"
-              // assertion will be added later by code below
-              body.node.body.push( t.ReturnStatement() );
+            if (!path.node.generator) {
+              const statements = body.node.body;
+              if (statements
+                // do not add if last statement is return one
+                && (statements.length === 0
+                  || statements[statements.length - 1].type !== 'ReturnStatement')
+              ) {
+                // we do not add arguments here
+                // only "return;"
+                // assertion will be added later by code below
+                statements.push(t.ReturnStatement());
+              }
             }
           }
         }
