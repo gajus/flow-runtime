@@ -22,8 +22,47 @@ async function collectFiles (fileOrDir: string, collected: string[]): Promise<st
       await collectFiles(path.join(fileOrDir, item), collected);
     }
   }
-  else if (collected.indexOf(fileOrDir) === -1 && /\.js(x|m)?$/.test(fileOrDir)) {
-    collected.push(fileOrDir);
+  else if (isJavaScriptFile(fileOrDir)) {
+    await addJavaScriptFile(fileOrDir, collected);
   }
   return collected;
+}
+
+async function addJavaScriptFile (filename: string, collected: string[]) {
+  if (isFlowDefinitionFile(filename)) {
+    const runtimeFile = filename.replace(/\.flow$/, '');
+    const runtimeIndex = collected.indexOf(runtimeFile);
+    if (runtimeIndex !== -1) {
+      collected.splice(runtimeIndex, 1);
+    }
+    if (collected.indexOf(filename) === -1) {
+      collected.push(filename);
+    }
+    return;
+  }
+
+  if (await hasFlowDefinitionFile(filename)) {
+    return;
+  }
+  else if (collected.indexOf(filename) === -1) {
+    collected.push(filename);
+  }
+}
+
+function isJavaScriptFile (filename: string): boolean {
+  return /\.js(x|m)?$/.test(filename) || isFlowDefinitionFile(filename);
+}
+
+function isFlowDefinitionFile (filename: string): boolean {
+  return /\.js\.flow$/.test(filename);
+}
+
+async function hasFlowDefinitionFile (filename: string): Promise<boolean> {
+  try {
+    await fs.statAsync(`${filename}.flow`);
+    return true;
+  }
+  catch (e) {
+    return false;
+  }
 }

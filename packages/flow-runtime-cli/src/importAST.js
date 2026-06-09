@@ -6,17 +6,26 @@ import {findIdentifiers, getTypeParameters} from 'babel-plugin-flow-runtime';
 import shouldIgnoreType from './shouldIgnoreType';
 
 import type {NodePath, Scope} from '@babel/traverse';
-import type {FlowModule, FlowEntity} from './Graph';
+import {FlowModule} from './Graph';
+import type {FlowEntity} from './Graph';
 
 type Node = {
   type: string;
+  filename?: string;
+  program?: {
+    body: Object[];
+  };
 };
 
 
 export default function importAST (graph: FlowModule, file: Node) {
   const nodeTypeParameters = new WeakMap();
+  const implicitModuleName = getImplicitModuleName(file);
 
   const moduleStack = [graph];
+  if (implicitModuleName && !hasExplicitDeclaredModule(file)) {
+    moduleStack.push(getOrCreateModule(graph, implicitModuleName));
+  }
 
   function currentModule (): FlowModule {
     return moduleStack[moduleStack.length - 1];
@@ -108,6 +117,12 @@ export default function importAST (graph: FlowModule, file: Node) {
       }
     },
     ExportNamedDeclaration (path: NodePath) {
+      if (implicitModuleName && path.has('declaration')) {
+        const declaration = path.get('declaration');
+        if (declaration.isTypeAlias()) {
+          declaration.node.type = 'DeclareTypeAlias';
+        }
+      }
       if (path.node.declare) {
         // this is not a real export, it's a DeclareExportDeclaration
         // which babylon doesn't support
@@ -243,6 +258,36 @@ export default function importAST (graph: FlowModule, file: Node) {
   });
 
   return graph;
+}
+
+function getImplicitModuleName (file: Node): ?string {
+  const {filename} = file;
+  if (!filename) {
+    return;
+  }
+  const normalized = filename.replace(/\\/g, '/');
+  const match = /\/node_modules\/((?:@[^/]+\/)?[^/]+)\/index\.js\.flow$/.exec(normalized);
+  return match && match[1];
+}
+
+function hasExplicitDeclaredModule (file: Node): boolean {
+  const program = file.program;
+  if (!program) {
+    return false;
+  }
+  return program.body.some(item => item.type === 'DeclareModule');
+}
+
+function getOrCreateModule (graph: FlowModule, name: string): FlowModule {
+  const existing = graph.modules[name];
+  if (existing) {
+    return existing;
+  }
+  const child = new FlowModule();
+  child.name = name;
+  child.parent = graph;
+  graph.modules[name] = child;
+  return child;
 }
 
 function findContainingPath (path: NodePath): ? NodePath {
