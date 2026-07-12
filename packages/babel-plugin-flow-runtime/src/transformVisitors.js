@@ -813,7 +813,7 @@ export default function transformVisitors (context: ConversionContext): Object {
             null,
             [],
             t.blockStatement([
-              t.returnStatement(convert(context, typeAnnotation))
+              t.returnStatement(convertClassPropertyAnnotation(context, typeAnnotation))
             ])
           )
         ];
@@ -827,12 +827,12 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       else if (context.shouldWarn) {
         decorator = t.decorator(
-          context.call('decorate', convert(context, typeAnnotation), t.booleanLiteral(false))
+          context.call('decorate', convertClassPropertyAnnotation(context, typeAnnotation), t.booleanLiteral(false))
         );
       }
       else {
         decorator = t.decorator(
-          context.call('decorate', convert(context, typeAnnotation))
+          context.call('decorate', convertClassPropertyAnnotation(context, typeAnnotation))
         );
       }
       if (!path.has('decorators')) {
@@ -864,6 +864,17 @@ function isReactComponentClass (path: NodePath): boolean {
   }
   else {
     return false;
+  }
+}
+
+function convertClassPropertyAnnotation (context: ConversionContext, typeAnnotation: NodePath): Node {
+  const previous = context.shouldReferenceGlobalTypeValues;
+  context.shouldReferenceGlobalTypeValues = true;
+  try {
+    return convert(context, typeAnnotation);
+  }
+  finally {
+    context.shouldReferenceGlobalTypeValues = previous;
   }
 }
 

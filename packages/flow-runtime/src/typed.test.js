@@ -1,5 +1,6 @@
 /* @flow */
 import {ok, equal, throws} from 'assert';
+import {runInNewContext} from 'vm';
 
 import t from './globalContext';
 
@@ -257,6 +258,13 @@ describe('Typed API', () => {
       ['notvalid', false]
     ])));
 
+  });
+
+  it('should accept a Map from another realm', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const map = runInNewContext('new Map([["valid", 123]])');
+
+    ok(type.accepts(map));
   });
 
   it('should make a simple function type', () => {
