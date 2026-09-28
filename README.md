@@ -30,6 +30,7 @@ Flow and `flow-runtime` heavily in the long term.
 This is a [lerna](https://github.com/lerna/lerna) powered mono-repo, composed of the following projects:
 
   - [flow-runtime](./packages/flow-runtime): The core runtime type system.
+  - [flow-runtime-loader](./packages/flow-runtime-loader): A Webpack loader for importing runtime validators from Flow source and `.js.flow` library declarations.
   - [babel-plugin-flow-runtime](./packages/babel-plugin-flow-runtime): A babel plugin which transforms Flow type annotations into `flow-runtime` invocations.
   - [flow-runtime-validators](./packages/flow-runtime-validators): A collection of common validators for use with flow-runtime.
   - [flow-config-parser](./packages/flow-config-parser): Parses flow configuration files.
