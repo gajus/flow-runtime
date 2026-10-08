@@ -1,5 +1,6 @@
 /* @flow */
 import {ok, equal, throws} from 'assert';
+import {runInNewContext} from 'vm';
 
 import t from './globalContext';
 
@@ -257,6 +258,80 @@ describe('Typed API', () => {
       ['notvalid', false]
     ])));
 
+  });
+
+  it('should accept a Map from another realm', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const map = runInNewContext('new Map([["valid", 123]])');
+
+    ok(type.accepts(map));
+  });
+
+  it('should reject a spoofed Map toStringTag without Map behavior', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = {[Symbol.toStringTag]: 'Map'};
+
+    no(type.accepts(fake));
+  });
+
+  it('should reject an object that only inherits Map.prototype', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = Object.create(Map.prototype);
+
+    no(type.accepts(fake));
+  });
+
+  it('should reject a Proxy wrapper that lacks directly accessible Map slots', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const wrapped = new Proxy(new Map([['valid', 123]]), {});
+
+    no(type.accepts(wrapped));
+  });
+
+  it('should allow an iterable Map polyfill that implements map operations', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const underlying = new Map([['valid', 123]]);
+    const polyfilled = {
+      [Symbol.toStringTag]: 'Map',
+      get: key => underlying.get(key),
+      has: key => underlying.has(key),
+      entries: () => underlying.entries(),
+      [Symbol.iterator]: () => underlying.entries()
+    };
+
+    ok(type.accepts(polyfilled));
+  });
+
+  it('should reject a Map-shaped object with a throwing toStringTag getter', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = {};
+    Object.defineProperty(fake, Symbol.toStringTag, {
+      get() {
+        throw new Error('attacker-supplied tag accessor');
+      }
+    });
+
+    no(type.accepts(fake));
+  });
+
+  it('should reject a Map polyfill with throwing method accessors', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const fake = {
+      [Symbol.toStringTag]: 'Map',
+      get get() {
+        throw new Error('attacker-supplied method accessor');
+      }
+    };
+
+    no(type.accepts(fake));
+  });
+
+  it('should reject a revoked Map Proxy without throwing from accepts', () => {
+    const type = t.ref(Map, t.string(), t.number());
+    const wrapped = Proxy.revocable(new Map([['valid', 123]]), {});
+    wrapped.revoke();
+
+    no(type.accepts(wrapped.proxy));
   });
 
   it('should make a simple function type', () => {

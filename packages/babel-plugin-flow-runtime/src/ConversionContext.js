@@ -32,6 +32,7 @@ export default class ConversionContext {
   shouldAssert: boolean = true;
   shouldWarn: boolean = false;
   shouldAnnotate: boolean = true;
+  shouldReferenceGlobalTypeValues: boolean = false;
   optInOnly: boolean = false;
   isAnnotating: boolean = false;
   suppressCommentPatterns: RegExp[] = [/\$FlowFixMe/];

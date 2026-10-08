@@ -13,6 +13,8 @@ export type Converter = (context: ConversionContext, path: NodePath) => Node;
 export type ConverterDict = {[name: string]: Converter};
 
 const converters: ConverterDict = {};
+// Map must retain its registered key/value validator, including for polyfills.
+const GLOBAL_TYPE_VALUE_REFS = ['Date', 'Promise', 'Set'];
 
 function getPropertyName(path: NodePath): string {
   if (path.get('key').isIdentifier()) return path.node.key.name;
@@ -638,6 +640,12 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
     const flowTypeName = context.getFlowTypeName(name);
     if (flowTypeName) {
       return context.call(flowTypeName, ...typeParameters);
+    }
+    else if (
+      context.shouldReferenceGlobalTypeValues &&
+      GLOBAL_TYPE_VALUE_REFS.indexOf(name) !== -1
+    ) {
+      return context.call('ref', subject, ...typeParameters);
     }
     else {
       return context.call('ref', t.stringLiteral(name), ...typeParameters);
