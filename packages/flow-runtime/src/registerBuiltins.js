@@ -69,8 +69,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
     *errors (validation: Validation<any>, path: IdentifierPath, input: any, keyType?: Type<any>, valueType?: Type<any>): Generator<ErrorTuple, void, void> {
       invariant(keyType, 'Must specify two type parameters for Map.');
       invariant(valueType, 'Must specify two type parameters for Map.');
-      const {context} = this;
-      if (!context.checkPredicate('Map', input)) {
+      const {context, impl} = this;
+      if (!(impl === Map ? context.checkPredicate('Map', input) : typeof impl === 'function' && input instanceof impl)) {
         yield [path, getErrorMessage('ERR_EXPECT_INSTANCEOF', 'Map'), this];
         return;
       }
@@ -83,8 +83,8 @@ export default function registerBuiltinTypeConstructors (t: TypeContext): TypeCo
       }
     },
     accepts (input, keyType: Type<any>, valueType: Type<any>): boolean {
-      const {context} = this;
-      if (!context.checkPredicate('Map', input)) {
+      const {context, impl} = this;
+      if (!(impl === Map ? context.checkPredicate('Map', input) : typeof impl === 'function' && input instanceof impl)) {
         return false;
       }
       for (const [key, value] of input) {
