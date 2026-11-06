@@ -34,6 +34,7 @@ This is a [lerna](https://github.com/lerna/lerna) powered mono-repo, composed of
   - [flow-runtime-validators](./packages/flow-runtime-validators): A collection of common validators for use with flow-runtime.
   - [flow-config-parser](./packages/flow-config-parser): Parses flow configuration files.
   - [flow-runtime-mobx](./packages/flow-runtime-mobx): Adds mobx support to flow-runtime.
+  - [flow-runtime-loader](./packages/flow-runtime-loader): Webpack integration for runtime validators from Flow modules and declaration files.
   - [flow-runtime-docs](./packages/flow-runtime-docs): React powered documentation site.
 
 ### Getting started
