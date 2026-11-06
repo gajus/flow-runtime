@@ -606,6 +606,12 @@ converters.GenericTypeAnnotation = (context: ConversionContext, path: NodePath):
       return context.call("object");
     } else if (name === "Symbol") {
       return context.call("symbol");
+    } else if (name === "Map" && id.isIdentifier() && !annotationParentHasTypeParameter(path, name)) {
+      return context.call('map',
+        typeParameters[0] || context.call('any'),
+        typeParameters[1] || context.call('any'),
+        subject
+      );
     }
   }
 

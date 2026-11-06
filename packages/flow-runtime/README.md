@@ -10,6 +10,25 @@ Provides a rich API for defining, inspecting and verifying data types in JavaScr
 
 [See the docs for more information](https://codemix.github.io/flow-runtime/#/docs).
 
+## Constructor-bound Maps
+
+`t.map(keyType, valueType, implementation = Map)` retains the registered Map
+key/value validator while checking instances of the selected constructor:
+
+```js
+const names = t.map(t.string(), t.number(), Map);
+names.assert(new Map([['Alice', 1]]));
+// names.assert(new Map([['Alice', 'bad']])) throws.
+```
+
+The converter uses this factory for an unshadowed global `Map` annotation so
+that Babel's `transform-runtime` can rewrite the constructor reference together
+with `new Map()`. It does not overwrite the global Map predicate/registration.
+The updated converter requires the matching runtime containing this factory;
+older published runtimes do not provide it. Local/imported types named Map are
+not automatically treated as this builtin. The implementation argument must
+be a Map-compatible constructor, not an arbitrary duck-typed object.
+
 ## Usage
 
 ```js

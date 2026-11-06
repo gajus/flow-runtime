@@ -106,6 +106,7 @@ import {
 } from './symbols';
 
 import type {
+  Constructor,
   TypeConstraint,
   TypeCreator,
   TypeRevealer,
@@ -916,6 +917,22 @@ export default class TypeContext {
     const target = new ArrayType(this);
     target.elementType = elementType || this.any();
     return target;
+  }
+
+  map <K, V> (keyType: Type<K>, valueType: Type<V>, implementation: Constructor<Map<K, V>> = Map): Type<Map<K, V>> {
+    invariant(typeof implementation === 'function', 'Map implementation must be a constructor.');
+    const registered = this.get('Map');
+    invariant(registered instanceof TypeConstructor && registered.typeName === 'MapType', 'Map type constructor is not registered.');
+    // Reuse the registered key/value validator without changing its global predicate.
+    const target = new TypeConstructor(this);
+    target.name = registered.name;
+    target.typeName = registered.typeName;
+    target.impl = implementation;
+    target.errors = registered.errors;
+    target.accepts = registered.accepts;
+    target.compareWith = registered.compareWith;
+    target.inferTypeParameters = registered.inferTypeParameters;
+    return target.apply(keyType, valueType);
   }
 
   union <T> (...types: Type<T>[]): Type<T> {
