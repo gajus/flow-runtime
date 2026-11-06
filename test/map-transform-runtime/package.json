@@ -2,7 +2,9 @@
   "private": true,
   "scripts": {
     "test": "node run.js",
-    "test:focused": "node run.js --focused"
+    "test:focused": "node run.js --focused",
+    "test:legacy": "node run.js --legacy",
+    "test:legacy:focused": "node run.js --legacy --focused"
   },
   "devDependencies": {
     "@babel/core": "^7.12.0",

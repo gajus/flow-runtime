@@ -49,5 +49,23 @@ test name. These are explicit selections, not full-suite success.
 
 This runner checks current source API behavior, not the official Rollup build,
 all monorepo tests, every Babel/core-js version, or the original Babel 6
-toolchain. Two existing compiler fixtures are exercised through their original
+toolchain's historical published runtime. Two existing compiler fixtures are exercised through their original
 comparison helper, with the expected Map output updated for the new factory.
+
+## Original Babel 6 Input Toolchain
+
+The same regression cases also run through Babel 6, its legacy decorators,
+class properties, transform-runtime and the official core-js 2 pure Map.
+This is opt-in because those historical packages have known critical audit
+findings and must not be used as production dependencies:
+
+```sh
+npm install --prefix legacy --ignore-scripts --workspaces=false --package-lock=false
+npm run test:legacy:focused
+```
+
+`npm run test:legacy` runs the complete characterization, including the known
+same-name type-parameter failure rather than pretending that it passes.
+The runtime/converter under test are the current source build, not a patched
+historical npm release. The default test dependency installation does not
+install this historical toolchain; no forced upgrades are performed.

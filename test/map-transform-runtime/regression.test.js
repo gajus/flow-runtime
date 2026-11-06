@@ -4,7 +4,9 @@ const assert = require('node:assert/strict');
 const {test} = require('node:test');
 const path = require('node:path');
 const Module = require('node:module');
+const legacyRequire = Module.createRequire(path.join(__dirname, 'legacy/package.json'));
 const babel = require('@babel/core');
+const legacy = process.env.FLOW_MAP_BABEL_VERSION === '6';
 const root = process.env.FLOW_MAP_TEST_ROOT;
 const runtime = require(path.join(root, 'node_modules/flow-runtime')).default;
 const plugin = require(path.join(root, 'node_modules/babel-plugin-flow-runtime')).default;
@@ -14,14 +16,25 @@ try {
   // Exercise the real core-js fallback without changing the application global.
   // The mutation is limited to this isolated test process and always restored.
   global.Map = undefined;
-  PolyfillMap = require('@babel/runtime-corejs3/core-js-stable/map');
+  const imported = legacy ? legacyRequire('babel-runtime/core-js/map') : require('@babel/runtime-corejs3/core-js-stable/map');
+  PolyfillMap = imported.default || imported;
 }
 finally {
   global.Map = NativeMap;
 }
 
 function compile (source, polyfill = true) {
-  const result = babel.transformSync('// @flow\n// @flow-runtime assert, annotate\n' + source, {
+  const input = '// @flow\n// @flow-runtime assert, annotate\n' + source;
+  const result = legacy ? legacyRequire('babel-core').transform(input, {
+    filename: path.join(root, 'case.js'), babelrc: false,
+    presets: [[legacyRequire.resolve('babel-preset-env'), {targets: {node: 'current'}}], legacyRequire.resolve('babel-preset-flow')],
+    plugins: [
+      legacyRequire.resolve('babel-plugin-transform-decorators-legacy'),
+      [plugin, {assert: false, annotate: false}],
+      ...(polyfill ? [legacyRequire.resolve('babel-plugin-transform-runtime')] : []),
+      legacyRequire.resolve('babel-plugin-transform-class-properties')
+    ]
+  }) : babel.transformSync(input, {
     filename: path.join(root, 'case.js'), babelrc: false, configFile: false,
     presets: [require.resolve('@babel/preset-flow')],
     plugins: [
@@ -54,8 +67,9 @@ test('the official core-js Map fallback has a distinct constructor', () => {
 
 test('the actual transformed class accepts its own polyfilled Map', () => {
   const result = makeClass();
-  assert.match(result.code, /runtime-corejs3/);
+  assert.match(result.code, legacy ? /babel-runtime\/core-js\/map/ : /runtime-corejs3/);
   const instance = new result.exports.default();
+  assert.ok(instance.bar instanceof PolyfillMap);
   assert.equal(instance.getValue('hello'), 1);
 });
 

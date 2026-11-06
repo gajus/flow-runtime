@@ -53,9 +53,14 @@ async function build (source, target) {
       : process.env.FLOW_MAP_TEST_PATTERN;
     if (pattern) args.push('--test-name-pattern', pattern);
     args.push(path.join(__dirname, 'regression.test.js'));
+    const babelVersion = process.argv.includes('--legacy') ? '6' : (process.env.FLOW_MAP_BABEL_VERSION || '7');
+    const dependencies = babelVersion === '6'
+      ? [path.join(__dirname, 'legacy/node_modules'), path.join(__dirname, 'node_modules')]
+      : [path.join(__dirname, 'node_modules')];
     const result = spawnSync(process.execPath, args, {
       env: {...process.env, FLOW_MAP_TEST_ROOT: root,
-        NODE_PATH: [path.join(root, 'node_modules'), path.join(__dirname, 'node_modules')].join(path.delimiter)},
+        FLOW_MAP_BABEL_VERSION: babelVersion,
+        NODE_PATH: [path.join(root, 'node_modules'), ...dependencies].join(path.delimiter)},
       windowsHide: true, encoding: 'utf8', timeout: 120000
     });
     process.stdout.write(result.stdout || '');
