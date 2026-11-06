@@ -58,9 +58,12 @@ module without validators. Source maps retain the original Flow source.
   explicitly rather than silently rerouting executable imports.
 - Value imports remain normal webpack imports; compilation/bundling is not
   a sandbox for untrusted packages or source files.
-- Tests exercise the published converter 0.19 and runtime 0.17 because the
-  repository's 0.20 development versions are not published. Whole-monorepo
-  bootstrap/build/test is not covered by these integration tests.
+- The default suite exercises published converter 0.19 and runtime 0.17.
+  `npm run test:monorepo` also builds the repository's current 0.20 converter,
+  runtime and Flow-config parser production sources into a temporary directory
+  and runs the same suite against those modules on both webpack versions.
+  This uses Babel Flow removal/CommonJS conversion for the test process,
+  not the official Rollup release pipeline or whole-monorepo bootstrap/tests.
 - Webpack 4 is legacy software. Its test dependency tree has known audit
   findings; this loader does not remediate those dependencies. Modern Node
   needs a process-local `NODE_OPTIONS=--openssl-legacy-provider` for Webpack 4.
@@ -80,3 +83,10 @@ and DraftJS 0.11.7. Set `WEBPACK_VERSION=4` to run the same suite against the
 Webpack 4 development alias. No server, cloud account or credentials are
 required. This package is a proposed addition, not an already published npm
 release.
+
+The source compatibility runner requires a repository checkout, not an npm
+tarball. Its preload redirects package entries to the actual source-built
+modules; it does not substitute fake converter/runtime implementations. It
+does not edit installed packages or repository build output, and removes its
+own temporary directory after success or failure. Production source files,
+not legacy package tests/fixtures, are compiled for this compatibility check.
