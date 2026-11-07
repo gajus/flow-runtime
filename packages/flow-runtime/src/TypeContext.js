@@ -1027,8 +1027,20 @@ export default class TypeContext {
   }
 
   warn <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
-    const validation = this.validate(type, input, prefix, path);
-    const message = makeWarningMessage(validation);
+    let message;
+    try {
+      const validation = this.validate(type, input, prefix, path);
+      message = makeWarningMessage(validation);
+    }
+    catch (error) {
+      message = 'Warning: Validation could not be completed.';
+      try {
+        message += ` ${String(error)}`;
+      }
+      catch (stringifyError) {
+        // Thrown values can have a toString method which also throws.
+      }
+    }
     if (typeof message === 'string') {
       this.emitWarningMessage(message);
     }
