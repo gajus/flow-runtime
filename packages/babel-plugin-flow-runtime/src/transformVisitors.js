@@ -212,6 +212,10 @@ export default function transformVisitors (context: ConversionContext): Object {
         path.skip();
         return;
       }
+      // These bindings only support assignment checks, not function annotations.
+      if (!shouldCheck) {
+        return;
+      }
       const id = path.get('id');
       if (!id.has('typeAnnotation')) {
         return;
