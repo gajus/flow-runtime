@@ -61,6 +61,7 @@ The plugin supports the following options:
 - `assert` - Boolean, indicates whether types should be asserted at runtime. Defaults to `true` if `process.env.NODE_ENV === 'development'`, otherwise `false`.
 - `annotate` - Boolean, indicates whether object or function values that have type annotations should be decorated with those types at runtime. Defaults to `true`.
 - `libraryName` - String, indicates which runtime to use. Defaults to `flow-runtime`
+- `useRequire` - Boolean, defaults to `false`. When `true`, the generated runtime binding is `const t = require('flow-runtime')` (using `libraryName` when configured), so CommonJS input needs no additional module transform for this binding. The runtime must expose the CommonJS API directly. Existing user-authored imports and exports are not converted; they still need their normal module pipeline. A top-level binding that shadows `require` produces a compile error when a runtime load is needed.
 
 
 If `assert` is `true`, the following code:

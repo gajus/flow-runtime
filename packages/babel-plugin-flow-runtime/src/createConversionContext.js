@@ -12,12 +12,14 @@ export type Options = {
   // deprecated
   decorate?: boolean;
   libraryName?: string,
+  useRequire?: boolean;
   optInOnly?: boolean;
 };
 
 export default function createConversionContext (options: Options): ConversionContext {
 
   const context = new ConversionContext();
+  context.useRequire = options.useRequire === true;
 
   if (options.libraryName) {
     context.libraryName = options.libraryName;
