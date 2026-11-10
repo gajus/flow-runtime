@@ -14,11 +14,12 @@ export default async function generateDefinitions (searchPaths: string[]) {
 
   const config = await loadFlowConfig();
   const definitionFolders = getDefinitionFolders(config);
+  const dependencies = await crawlTypeDependencies(searchPaths);
 
   const prog = buildProgram(
     config,
-    await crawlTypeDependencies(searchPaths),
-    await crawlTypeDefinitions(definitionFolders)
+    dependencies,
+    await crawlTypeDefinitions(definitionFolders, dependencies.packageDefinitions)
   );
 
   const {code} = generate(prog);

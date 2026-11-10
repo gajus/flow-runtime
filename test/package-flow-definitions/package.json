@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "scripts": {"test": "node regression.cjs"},
+  "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-flow": "^7.28.0",
+    "@babel/plugin-transform-modules-commonjs": "^7.28.0",
+    "babylon": "^6.18.0",
+    "babel-generator": "^6.26.1",
+    "double-ended-queue": "^2.1.0-0",
+    "flow-parser": "0.38.0",
+    "prettier": "0.11.0"
+  }
+}
