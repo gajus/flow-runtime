@@ -8,6 +8,9 @@ import loadFlowConfig from './loadFlowConfig';
 
 import getTypeParameters from './getTypeParameters';
 import {ok as invariant} from 'assert';
+import {existsSync} from 'fs';
+import {createRequire} from 'module';
+import pathUtil from 'path';
 import type {Node, NodePath} from '@babel/traverse';
 
 const flowConfig = loadFlowConfig();
@@ -36,6 +39,7 @@ export default function transformVisitors (context: ConversionContext): Object {
         }
 
         const isImportType = path.node.importKind === 'type';
+        const source = path.node.source.value;
         const declarations = [];
 
         for (const specifier of path.get('specifiers')) {
@@ -44,6 +48,24 @@ export default function transformVisitors (context: ConversionContext): Object {
           }
           const local = specifier.get('local');
           const {name} = local.node;
+          const filename = path.hub && path.hub.file && path.hub.file.opts.filename;
+          let resolveType;
+          if (specifier.isImportSpecifier() && filename && !source.startsWith('.') && !pathUtil.isAbsolute(source)) {
+            let shadow;
+            try {
+              shadow = `${createRequire(filename).resolve(source)}.flow`;
+            }
+            catch (error) {
+              if (error.code !== 'MODULE_NOT_FOUND' && error.code !== 'ERR_PACKAGE_PATH_NOT_EXPORTED') throw error;
+            }
+            if (shadow && existsSync(shadow)) {
+              const module = context.call('import', t.stringLiteral(source));
+              const entry = path.scope.generateUidIdentifier('module');
+              const get = t.callExpression(t.memberExpression(entry, t.identifier('get')), [t.stringLiteral(specifier.node.imported.name)]);
+              resolveType = t.callExpression(t.arrowFunctionExpression([entry],
+                t.logicalExpression('&&', entry, get)), [module]);
+            }
+          }
           const replacement = path.scope.generateUidIdentifier(name);
           local.node.name = replacement.name;
           declarations.push(t.variableDeclaration('const', [
@@ -51,7 +73,7 @@ export default function transformVisitors (context: ConversionContext): Object {
               t.identifier(name),
               context.call('tdz', t.arrowFunctionExpression(
                 [],
-                replacement
+                resolveType ? t.logicalExpression('||', resolveType, replacement) : replacement
               ))
             )
           ]));
