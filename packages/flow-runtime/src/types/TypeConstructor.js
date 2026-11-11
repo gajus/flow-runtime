@@ -2,7 +2,7 @@
 
 import Type from './Type';
 import type Validation, {ErrorTuple, IdentifierPath} from '../Validation';
-import type {Constructor} from './';
+import type {Constructor} from './TypeParameterApplication';
 
 import TypeParameterApplication from './TypeParameterApplication';
 
