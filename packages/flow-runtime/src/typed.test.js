@@ -1,5 +1,5 @@
 /* @flow */
-import {ok, equal, throws} from 'assert';
+import {ok, equal, notEqual, throws} from 'assert';
 
 import t from './globalContext';
 
@@ -557,5 +557,34 @@ describe('Typed API', () => {
         ))
       ))
     );
+  });
+
+  it('should check a read-only array', () => {
+    const type = t.$readOnlyArray(t.string());
+
+    ok(type.accepts([]));
+    ok(type.accepts(['a', 'b']));
+    no(type.accepts(['a', 1]));
+    no(type.accepts('nope'));
+  });
+
+  it('should freeze a copy when asserting a read-only array', () => {
+    const type = t.$readOnlyArray(t.string());
+    const input = ['a', 'b'];
+
+    const output = type.assert(input);
+
+    ok(Object.isFrozen(output));
+    notEqual(output, input);
+    throws(() => {
+      output.push('c');
+    });
+    // The caller's array keeps working.
+    input.push('c');
+    equal(input.length, 3);
+  });
+
+  it('should render a read-only array type', () => {
+    equal(t.$readOnlyArray(t.string()).toString(), '$ReadOnlyArray<string>');
   });
 });

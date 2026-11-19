@@ -85,6 +85,7 @@ import {
   $ObjMapiType,
   $ObjMapType,
   $PropertyType as _$PropertyType,
+  $ReadOnlyArrayType as _$ReadOnlyArrayType,
   $ShapeType,
   $SubType,
   $SuperType,
@@ -1163,6 +1164,12 @@ export default class TypeContext {
     else {
       target.property = property;
     }
+    return target;
+  }
+
+  $readOnlyArray <T> (elementType?: Type<T>): _$ReadOnlyArrayType<T> {
+    const target = new _$ReadOnlyArrayType(this);
+    target.elementType = elementType || this.any();
     return target;
   }
 
