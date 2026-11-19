@@ -25,6 +25,10 @@ export default class NullableType<T> extends Type<T> {
     }
   }
 
+  assertValue (input: any): any {
+    return input == null ? input : this.type.assertValue(input);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     if (input instanceof NullLiteralType || input instanceof VoidType) {
       return 1;

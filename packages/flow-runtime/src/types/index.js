@@ -33,6 +33,7 @@ export type Constructor<T> = Class<T>;
 
 import AnyType from './AnyType';
 import ArrayType from './ArrayType';
+import ReadOnlyArrayType from './ReadOnlyArrayType';
 import BooleanLiteralType from './BooleanLiteralType';
 import BooleanType from './BooleanType';
 import EmptyType from './EmptyType';
@@ -78,6 +79,7 @@ import VoidType from './VoidType';
 export {
   AnyType,
   ArrayType,
+  ReadOnlyArrayType,
   BooleanLiteralType,
   BooleanType,
   EmptyType,

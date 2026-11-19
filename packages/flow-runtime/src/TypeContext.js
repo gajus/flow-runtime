@@ -44,6 +44,7 @@ import {
   StringType,
   StringLiteralType,
   ArrayType,
+  ReadOnlyArrayType,
   ObjectType,
   ObjectTypeCallProperty,
   ObjectTypeIndexer,
@@ -918,6 +919,12 @@ export default class TypeContext {
     return target;
   }
 
+  readOnlyArray <T> (elementType?: Type<T>): ReadOnlyArrayType<T> {
+    const target = new ReadOnlyArrayType(this);
+    target.elementType = elementType || this.any();
+    return target;
+  }
+
   union <T> (...types: Type<T>[]): Type<T> {
     return makeUnion(this, types);
   }
@@ -1023,7 +1030,7 @@ export default class TypeContext {
     if (error) {
       throw error;
     }
-    return input;
+    return type.assertValue(input);
   }
 
   warn <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {

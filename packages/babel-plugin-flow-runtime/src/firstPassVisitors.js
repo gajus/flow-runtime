@@ -49,6 +49,9 @@ export default function firstPassVisitors (context: ConversionContext): Object {
       }
     },
     TypeAlias (path: NodePath) {
+      path.scope.setData(`readOnlyAlias:${path.node.id.name}`, {
+        node: t.cloneNode(path.node.right, true), scope: path.scope
+      });
       context.defineTypeAlias(path.node.id.name, path);
     },
     InterfaceDeclaration (path: NodePath) {

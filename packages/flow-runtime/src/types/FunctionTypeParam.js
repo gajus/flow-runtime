@@ -32,6 +32,10 @@ export default class FunctionTypeParam<T> extends Type {
     }
   }
 
+  assertValue (input: any): any {
+    return this.optional && input === undefined ? input : this.type.assertValue(input);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     if (input instanceof FunctionTypeParam || input instanceof FunctionTypeRestParam) {
       return compareTypes(this.type, input.type);

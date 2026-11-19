@@ -10,6 +10,11 @@ import type Validation, {ErrorTuple, IdentifierPath} from './Validation';
 
 export default function registerBuiltinTypeConstructors (t: TypeContext): TypeContext {
 
+  t.declare(t.type('$ReadOnlyArray', partial => {
+    const elementType = partial.typeParameter('T');
+    return t.readOnlyArray(t.flowInto(elementType));
+  }));
+
   t.declareTypeConstructor({
     name: 'Date',
     impl: Date,
