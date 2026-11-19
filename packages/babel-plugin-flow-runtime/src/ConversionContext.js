@@ -16,6 +16,7 @@ const FLOW_TYPENAMES = {
   $ObjMapi: '$objMapi',
   $ObjMap: '$objMap',
   $PropertyType: '$propertyType',
+  $ReadOnlyArray: '$readOnlyArray',
   $Shape: '$shape',
   $Subtype: '$subtype',
   $Supertype: '$supertype',

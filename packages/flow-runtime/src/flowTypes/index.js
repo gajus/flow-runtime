@@ -6,6 +6,7 @@ import $KeysType from './$KeysType';
 import $ObjMapiType from './$ObjMapiType';
 import $ObjMapType from './$ObjMapType';
 import $PropertyType from './$PropertyType';
+import $ReadOnlyArrayType from './$ReadOnlyArrayType';
 import $ShapeType from './$ShapeType';
 import $SubType from './$SubType';
 import $SuperType from './$SuperType';
@@ -20,6 +21,7 @@ export {
   $ObjMapiType,
   $ObjMapType,
   $PropertyType,
+  $ReadOnlyArrayType,
   $ShapeType,
   $SubType,
   $SuperType,
