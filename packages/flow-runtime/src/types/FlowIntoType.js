@@ -17,6 +17,10 @@ export default class FlowIntoType<T: any> extends Type {
 
   typeParameter: TypeParameter<T>;
 
+  assertValue (input: any): any {
+    return this.typeParameter.assertValue(input);
+  }
+
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {typeParameter, context} = this;
 

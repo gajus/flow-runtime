@@ -57,12 +57,7 @@ export default class Type <T> {
   }
 
   assertValue (input: any): any {
-    // Validation has already succeeded; preserve nullable wrapper semantics.
-    if (input == null) {
-      return input;
-    }
-    const type = this.unwrap();
-    return type === this ? input : type.assertValue(input);
+    return input;
   }
 
   /**

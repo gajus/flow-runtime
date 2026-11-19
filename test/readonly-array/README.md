@@ -8,6 +8,8 @@ the public CommonJS runtime entry point. It does not test a published package.
 `--fixtures` additionally runs the existing compiler fixture matrix.
 `--runtime` runs the runtime unit tests, excluding the separate runtime fixture
 matrix (which needs the historical React build toolchain).
+`--runtime-fixtures` includes that runtime fixture matrix, with the isolated
+React and JSX dependencies declared in this test directory.
 `FLOW_199_DEPS` can point to an existing dependency directory and
 `FLOW_199_SOURCE` to an unchanged checkout for a baseline comparison.
 

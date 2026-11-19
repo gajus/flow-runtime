@@ -54,6 +54,10 @@ export default class TypeParameterApplication<X, T> extends Type {
     return parent.accepts(input, ...typeInstances);
   }
 
+  assertValue (input: any): any {
+    return this.parent.assertValue(input, ...this.typeInstances);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     return this.parent.compareWith(input, ...this.typeInstances);
   }

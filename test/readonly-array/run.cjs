@@ -14,14 +14,16 @@ Module._initPaths();
 function build(source, target, includeTests = false) {
   fs.mkdirSync(target, {recursive: true});
   for (const entry of fs.readdirSync(source, {withFileTypes: true})) {
-    if (includeTests && source.includes('flow-runtime') && !source.includes('babel-plugin-flow-runtime') &&
+    if (includeTests && !process.argv.includes('--runtime-fixtures') &&
+        source.includes('flow-runtime') && !source.includes('babel-plugin-flow-runtime') &&
         (entry.name === '__fixtures__' || entry.name === 'fixtures.test.js')) continue;
     if (!includeTests && (entry.name.startsWith('__') || entry.name.endsWith('.test.js'))) continue;
     const input = path.join(source, entry.name), output = path.join(target, entry.name);
     if (entry.isDirectory()) build(input, output, includeTests);
     else if (entry.name.endsWith('.js')) {
       const result = babel.transformFileSync(input, {babelrc: false, configFile: false,
-        presets: [load.resolve('@babel/preset-flow')],
+        presets: [load.resolve('@babel/preset-flow'),
+          ...(process.argv.includes('--runtime-fixtures') ? [load.resolve('@babel/preset-react')] : [])],
         plugins: [
           ...(includeTests ? [[load.resolve('@babel/plugin-proposal-decorators'), {legacy: true}],
             [load.resolve('@babel/plugin-transform-class-properties'), {loose: true}]] : []),
@@ -140,6 +142,24 @@ const cases = [
     const invalid = execute('module.exports = function(a: $ReadOnlyArray<number>) { a = [false]; return a; };');
     assert.throws(() => invalid([1]));
   }],
+  ['nominal intersections do not invoke structural unwrapping', () => {
+    class Item { constructor(value) { this.value = value; } }
+    const type = runtime.type('ItemWithValue', runtime.intersection(runtime.ref(Item),
+      runtime.object(runtime.property('value', runtime.number(1)))));
+    const item = new Item(1);
+    assert.equal(type.assert(item), item); assert.equal(runtime.assert(type, item), item);
+    assert.throws(() => type.assert(new Item(2)));
+  }],
+  ['explicit aliases, references, boxes and return wrappers preserve snapshots', () => {
+    const type = runtime.readOnlyArray(runtime.number());
+    const alias = runtime.type('ReadOnlyNumbers', type);
+    const declaration = runtime.declare(alias);
+    for (const wrapper of [alias, declaration, runtime.ref('ReadOnlyNumbers'),
+      runtime.box(() => alias), runtime.tdz(() => alias), runtime.return(alias)]) {
+      const input = [1], output = wrapper.assert(input);
+      assert(Object.isFrozen(output)); assert.notEqual(input, output); assert(!Object.isFrozen(input));
+    }
+  }],
 ];
 let failed = 0;
 for (const [name, run] of cases) {
@@ -169,7 +189,7 @@ if (process.argv.includes('--fixtures')) {
   console.log(JSON.stringify({fixturePassed: passed, fixtureFailed}));
 }
 process.exitCode = failed ? 1 : 0;
-if (process.argv.includes('--runtime')) {
+if (process.argv.includes('--runtime') || process.argv.includes('--runtime-fixtures')) {
   const target = path.join(root, 'node_modules/flow-runtime');
   build(path.join(project, 'packages/flow-runtime/src'), target, true);
   const Mocha = load('mocha');

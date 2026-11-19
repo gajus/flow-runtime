@@ -53,6 +53,10 @@ export default class TypeAlias<T> extends Type {
     }
   }
 
+  assertValue (input: any): any {
+    return this.type.assertValue(input);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     if (input === this) {
       return 0; // should never need this because it's taken care of by compareTypes.
