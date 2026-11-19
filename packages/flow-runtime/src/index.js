@@ -9,6 +9,7 @@ import {
 
 import AnyType from './types/AnyType';
 import ArrayType from './types/ArrayType';
+import ReadOnlyArrayType from './types/ReadOnlyArrayType';
 import BooleanLiteralType from './types/BooleanLiteralType';
 import BooleanType from './types/BooleanType';
 import EmptyType from './types/EmptyType';
@@ -65,6 +66,7 @@ export default globalContext;
 export {
   AnyType,
   ArrayType,
+  ReadOnlyArrayType,
   BooleanLiteralType,
   BooleanType,
   EmptyType,

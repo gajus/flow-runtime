@@ -44,6 +44,10 @@ export default class TypeTDZ<T: any> extends Type {
     return getRevealed(this).accepts(input);
   }
 
+  assertValue (input: any): any {
+    return getRevealed(this).assertValue(input);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     return compareTypes(getRevealed(this), input);
   }

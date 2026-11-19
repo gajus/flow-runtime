@@ -7,6 +7,7 @@ import convert from './convert';
 import loadFlowConfig from './loadFlowConfig';
 
 import getTypeParameters from './getTypeParameters';
+import hasReadOnlyArrayAnnotation from './hasReadOnlyArrayAnnotation';
 import {ok as invariant} from 'assert';
 import type {Node, NodePath} from '@babel/traverse';
 
@@ -290,6 +291,9 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
     },
     AssignmentExpression (path: NodePath) {
+      if (context.visited.has(path.node)) {
+        return;
+      }
       if (context.shouldSuppressPath(path)) {
         path.skip();
         return;
@@ -429,12 +433,14 @@ export default function transformVisitors (context: ConversionContext): Object {
           if (param.has('optional')) {
             args.push(t.booleanLiteral(true));
           }
-          invocations.push(t.expressionStatement(
-            context.assert(
-              context.call(methodName, ...args),
-              t.identifier(name)
-            )
-          ));
+          const assertion = context.assert(context.call(methodName, ...args), t.identifier(name));
+          const preservesReadOnlyResult = !context.shouldWarn &&
+            hasReadOnlyArrayAnnotation(typeAnnotation.node, param.scope);
+          const checkedValue = preservesReadOnlyResult
+            ? t.assignmentExpression('=', t.identifier(name), assertion)
+            : assertion;
+          context.visited.add(checkedValue);
+          invocations.push(t.expressionStatement(checkedValue));
         }
       }
 

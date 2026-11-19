@@ -49,6 +49,10 @@ export default class ParameterizedTypeAlias <T: Type> extends TypeAlias {
     }
   }
 
+  assertValue (input: any, ...typeInstances: Type<any>[]): any {
+    return getPartial(this, ...typeInstances).assertValue(input);
+  }
+
   hasProperty (name: string, ...typeInstances: Type<any>[]): boolean {
     const inner = this.unwrap(...typeInstances);
     if (inner && typeof inner.hasProperty === 'function') {

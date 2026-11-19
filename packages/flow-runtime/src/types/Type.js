@@ -53,6 +53,10 @@ export default class Type <T> {
       }
       throw error;
     }
+    return this.assertValue(input);
+  }
+
+  assertValue (input: any): any {
     return input;
   }
 

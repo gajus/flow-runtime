@@ -43,6 +43,10 @@ export default class TypeBox<T: any> extends Type {
     return this.type.accepts(input);
   }
 
+  assertValue (input: any): any {
+    return this.type.assertValue(input);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     return compareTypes(this.type, input);
   }

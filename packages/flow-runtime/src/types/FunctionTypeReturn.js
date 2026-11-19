@@ -20,6 +20,10 @@ export default class FunctionTypeReturn<T> extends Type {
     return type.accepts(input);
   }
 
+  assertValue (input: any): any {
+    return this.type.assertValue(input);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     if (input instanceof FunctionTypeReturn) {
       return compareTypes(this.type, input.type);

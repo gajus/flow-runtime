@@ -40,6 +40,10 @@ export default class TypeDeclaration<T> extends Declaration {
     return this.typeAlias.accepts(input);
   }
 
+  assertValue (input: any): any {
+    return this.typeAlias.assertValue(input);
+  }
+
   compareWith (input: Type<any>): -1 | 0 | 1 {
     return compareTypes(this.typeAlias, input);
   }

@@ -106,6 +106,11 @@ export default class TypeParameter<T> extends Type {
     }
   }
 
+  assertValue (input: any): any {
+    const type = this.bound || this.default || this.recorded;
+    return type ? type.assertValue(input) : input;
+  }
+
   /**
    * Get the inner type or value.
    */

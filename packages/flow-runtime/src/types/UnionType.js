@@ -10,6 +10,13 @@ export default class UnionType<T> extends Type {
   typeName: string = 'UnionType';
   types: Type<T>[] = [];
 
+  assertValue (input: any): any {
+    for (const type of this.types) {
+      if (type.accepts(input)) return type.assertValue(input);
+    }
+    return input;
+  }
+
   *errors (validation: Validation<any>, path: IdentifierPath, input: any): Generator<ErrorTuple, void, void> {
     const {types} = this;
     const {length} = types;
