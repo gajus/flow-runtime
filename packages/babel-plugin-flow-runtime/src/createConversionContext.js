@@ -13,6 +13,7 @@ export type Options = {
   decorate?: boolean;
   libraryName?: string,
   optInOnly?: boolean;
+  useESModules?: boolean;
 };
 
 export default function createConversionContext (options: Options): ConversionContext {
@@ -21,6 +22,10 @@ export default function createConversionContext (options: Options): ConversionCo
 
   if (options.libraryName) {
     context.libraryName = options.libraryName;
+  }
+
+  if (options.useESModules !== undefined) {
+    context.useESModules = Boolean(options.useESModules);
   }
 
   context.optInOnly = options.optInOnly ? true : false;

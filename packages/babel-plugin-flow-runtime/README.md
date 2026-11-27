@@ -61,6 +61,7 @@ The plugin supports the following options:
 - `assert` - Boolean, indicates whether types should be asserted at runtime. Defaults to `true` if `process.env.NODE_ENV === 'development'`, otherwise `false`.
 - `annotate` - Boolean, indicates whether object or function values that have type annotations should be decorated with those types at runtime. Defaults to `true`.
 - `libraryName` - String, indicates which runtime to use. Defaults to `flow-runtime`
+- `useESModules` - Boolean, indicates whether the runtime is imported with an ES module `import` statement. Defaults to `true`. When `false`, the plugin emits `var t = require('flow-runtime')` instead, for environments where the generated import statements are not transpiled.
 
 
 If `assert` is `true`, the following code:
