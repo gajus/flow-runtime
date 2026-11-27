@@ -27,6 +27,7 @@ const FLOW_TYPENAMES = {
 export default class ConversionContext {
 
   libraryName: string = 'flow-runtime';
+  useESModules: boolean = true;
   libraryId: string = 't';
   shouldImport: boolean = true;
   shouldAssert: boolean = true;
