@@ -1,0 +1,11 @@
+// @flow
+
+declare export type User = {
+  id: number,
+  name?: string
+};
+
+declare export type Team = {
+  members: Array<User>,
+  size: number
+};
