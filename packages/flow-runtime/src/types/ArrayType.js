@@ -73,6 +73,10 @@ export default class ArrayType <T> extends Type {
       return 1;
     }
     else if (input instanceof ArrayType) {
+      if (input.typeName === 'ReadOnlyArrayType') {
+        // a read-only array cannot flow into a mutable array.
+        return -1;
+      }
       return compareTypes(elementType, input.elementType);
     }
     else {
