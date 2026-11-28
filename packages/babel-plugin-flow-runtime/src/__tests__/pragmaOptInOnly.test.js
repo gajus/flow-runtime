@@ -20,7 +20,6 @@ describe('optInOnly', () => {
     /* @flow */
     /* @flow-runtime enable */
     const Demo = t.type("Demo", t.number(123));
-    let _undefinedType = Demo;
     "nope";
     const demo = (_arg) => {
     let [foo] = _arg;

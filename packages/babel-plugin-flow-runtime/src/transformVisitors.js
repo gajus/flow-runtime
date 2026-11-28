@@ -180,6 +180,14 @@ export default function transformVisitors (context: ConversionContext): Object {
         return;
       }
 
+      if (!shouldCheck) {
+        // the type variable only exists to support assertions, without
+        // them it would be dead code referencing possibly undeclared
+        // type parameter names.
+        context.replacePath(path, expression.node);
+        return;
+      }
+
       let valueUid = path.scope.getData(`valueUid:${name}`);
       if (!valueUid) {
         valueUid = path.scope.generateUidIdentifier(`${name}Type`);
@@ -200,12 +208,7 @@ export default function transformVisitors (context: ConversionContext): Object {
           )
         ));
       }
-      if (shouldCheck) {
-        context.replacePath(path, context.assert(valueUid, expression.node));
-      }
-      else {
-        context.replacePath(path, expression.node);
-      }
+      context.replacePath(path, context.assert(valueUid, expression.node));
     },
     VariableDeclarator (path: NodePath) {
       if (context.shouldSuppressPath(path)) {
@@ -233,7 +236,7 @@ export default function transformVisitors (context: ConversionContext): Object {
       }
       const {name} = id.node;
 
-      if (!path.has('init') || path.parentPath.node.kind !== 'const') {
+      if (shouldCheck && (!path.has('init') || path.parentPath.node.kind !== 'const')) {
         const valueUid = path.scope.generateUidIdentifier(`${name}Type`);
         path.scope.setData(`valueUid:${name}`, valueUid);
 
