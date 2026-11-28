@@ -1027,7 +1027,17 @@ export default class TypeContext {
   }
 
   warn <T, V: T | any> (type: Type<T>, input: V, prefix: string = '', path?: string[]): V {
-    const validation = this.validate(type, input, prefix, path);
+    let validation;
+    try {
+      validation = this.validate(type, input, prefix, path);
+    }
+    catch (error) {
+      // Some type invariants throw hard errors during validation instead of
+      // reporting validation errors (e.g. `$Shape` of a non-object type).
+      // In warn mode these must surface as warnings rather than escaping.
+      this.emitWarningMessage(error.message);
+      return input;
+    }
     const message = makeWarningMessage(validation);
     if (typeof message === 'string') {
       this.emitWarningMessage(message);
