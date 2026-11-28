@@ -11,6 +11,7 @@ const tdzIdentifiers: WeakSet<Node> = new WeakSet();
 
 const FLOW_TYPENAMES = {
   $Exact: '$exact',
+  $ReadOnlyArray: '$readOnlyArray',
   $Diff: '$diff',
   $Keys: '$keys',
   $ObjMapi: '$objMapi',

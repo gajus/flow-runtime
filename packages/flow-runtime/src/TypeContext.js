@@ -60,6 +60,7 @@ import {
   MixedType,
   EmptyType,
   NullableType,
+  ReadOnlyArrayType,
   ThisType,
   TupleType,
   IntersectionType,
@@ -914,6 +915,12 @@ export default class TypeContext {
 
   array <T> (elementType?: Type<T>): ArrayType<T> {
     const target = new ArrayType(this);
+    target.elementType = elementType || this.any();
+    return target;
+  }
+
+  $readOnlyArray <T> (elementType?: Type<T>): ReadOnlyArrayType<T> {
+    const target = new ReadOnlyArrayType(this);
     target.elementType = elementType || this.any();
     return target;
   }

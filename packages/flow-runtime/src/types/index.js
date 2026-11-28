@@ -58,6 +58,7 @@ import ObjectTypeProperty from './ObjectTypeProperty';
 import ParameterizedTypeAlias from './ParameterizedTypeAlias';
 import ParameterizedFunctionType from './ParameterizedFunctionType';
 import PartialType from './PartialType';
+import ReadOnlyArrayType from './ReadOnlyArrayType';
 import RefinementType from './RefinementType';
 import StringLiteralType from './StringLiteralType';
 import StringType from './StringType';
@@ -103,6 +104,7 @@ export {
   ParameterizedTypeAlias,
   ParameterizedFunctionType,
   PartialType,
+  ReadOnlyArrayType,
   RefinementType,
   StringLiteralType,
   StringType,
