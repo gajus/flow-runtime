@@ -17,6 +17,7 @@ export const expected = `
     const _returnType2 = t.return(t.any());
     yield 12;
     yield 42;
+    return _returnType2.assert();
   }
 
   for (const it of someGenerator()) {
